@@ -15,3 +15,32 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# Eclipse / Anypoint Studio (additional, beyond .project/.classpath)
+.settings/
+.metadata/
+*.launch
+
+# Mule-specific
+.mule/
+.DependenciesLoad
+.tmp/
+
+# Secrets and environment-specific config — NEVER commit these
+*.secrets.properties
+local.properties
+.env
+.env.*
+*-credentials.yaml
+*-credentials.properties
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+logs/
