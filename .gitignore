@@ -44,3 +44,10 @@ Thumbs.db
 # Logs
 *.log
 logs/
+# Keystores / certs — never commit
+*.jks
+*.p12
+*.keystore
+*.pem
+*.crt
+*.key
