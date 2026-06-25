@@ -1,0 +1,27 @@
+#%RAML 1.0 DataType
+type: object
+displayName: PointMetric
+properties:
+  user_id:
+    type: integer
+    description: Unique identifier for the user
+  metric_type:
+    type: string
+    description: Canonical metric type
+  value:
+    type: number
+    description: Recorded metric value
+  unit:
+    type: string
+    description: Unit of measurement
+  source_device:
+    type: string
+    description: Device or app that recorded the metric
+  recorded_at:
+    type: datetime
+    description: timestamp of when the metric was recorded
+  duration_seconds:
+    type: number | nil
+    required: false
+    description: Duration in seconds 
+example: !include point-metric-example.raml

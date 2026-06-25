@@ -1,0 +1,160 @@
+#%RAML 1.0
+title: wearable-system-api
+baseUri: https://localhost:8083/api/v1/wearables-sapi
+version: 1.0.0
+
+uses:
+  dataTypes: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/nutrisense-api-fragments/1.0.0/nutrisense-api-fragments-.raml
+  global: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/global-api-fragments/1.0.0/global-api-fragments.raml
+
+
+/health:
+  get:
+    securedBy: global.client-id-based
+    responses:
+      200:
+        body:
+          application/json:
+            type: global.HealthCheck
+      500:
+        body:
+          application/json:
+            type: global.Error
+
+/wearable-data:
+  /{userId}:
+    uriParameters:
+      userId:
+        type: integer
+        description: Unique identifier of the user whose wearable data is being ingested
+    post:
+      description: Batch ingest of wearable data for a given user.
+      securedBy: global.client-id-based
+      body:
+        application/json:
+          type: dataTypes.WearableIngest
+      responses:
+        202:
+          body:
+            application/json:
+              type: dataTypes.WearablesIngestResponse
+        400:
+          body:
+            application/json:
+              type: global.Error
+        401:
+          body:
+            application/json:
+              type: global.Error
+        500:
+          body:
+            application/json:
+              type: global.Error
+    get:
+      description: |
+        Query raw wearable data for a given user. When dataType is omitted all three data types are returned.  
+        When dataType is specified a flat array of that type is returned.
+      securedBy: global.client-id-based
+      is: global.paginated
+      queryParameters:
+        metricType:
+          description: Filter by one or more metric types
+          type: array
+          items:
+            type: string
+        dataType:
+          type: string
+          enum: [point_metrics, sleep_sessions, workouts]
+          description: Limit response to a single data type. Omit to return all three.
+          required: false
+        startDate:
+          type: datetime
+          description: Filter records on or after this datetime. Must be paired with endDate.
+          required: false
+        endDate:
+          type: datetime
+          description: Filter records on or before this datetime. Must be paired with startDate.
+          required: false
+      responses:
+        200:
+          body:
+            application/json:
+              type: dataTypes.PointMetric[] | dataTypes.SleepSession[] | dataTypes.Workout[] | dataTypes.WearableIngest
+        400:
+          body:
+            application/json:
+              type: global.Error
+        401:
+          body:
+            application/json:
+              type: global.Error
+        404:
+          body:
+            application/json:
+              type: global.Error
+        500:
+          body:
+            application/json:
+              type: global.Error
+
+    /summary:
+      get:
+        description: |
+          Returns aggregated wearable data summary for a given user over a requested window.
+          When dataType is omitted all three summaries are returned.
+        securedBy: global.client-id-based
+        is: global.paginated
+        queryParameters:
+          dataType:
+            type: string
+            enum: [point_metrics, sleep_sessions, workouts]
+            description: Limit summary to a single data type. Omit to return all three in an envelope.
+            required: false
+          metricType:
+            type: array
+            items:
+              type: string
+            description: Filter summaries by one or more metric types. Not applicable whendataType=sleep_sessions.
+            required: false
+          startDate:
+            type: datetime
+            description: Start of the summary window. Must be paired with endDate.
+            required: false
+          endDate:
+            type: datetime
+            description: End of the summary window. Must be paired with startDate.
+            required: false
+          duration:
+            type: integer
+            description: Number of days back from today to summarize. Max 30.
+            minimum: 1
+            maximum: 30
+            required: false
+        responses:
+          200:
+            body:
+              application/json:
+                type: 
+                  dataTypes.PointMetricSummary[] | dataTypes.SleepSessionSummary | dataTypes.WorkoutSummary | dataTypes.WearableSummaryResponse
+          400:
+            body:
+              application/json:
+                type: global.Error
+          401:
+            body:
+              application/json:
+                type: global.Error
+          404:
+            body:
+              application/json:
+                type: global.Error
+          500:
+            body:
+              application/json:
+                type: global.Error
+
+
+
+  
+            
+      

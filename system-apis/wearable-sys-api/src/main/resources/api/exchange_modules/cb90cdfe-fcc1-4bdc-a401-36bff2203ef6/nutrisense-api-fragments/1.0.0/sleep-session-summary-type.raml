@@ -1,0 +1,38 @@
+#%RAML 1.0 DataType
+type: object
+displayName: SleepSessionSummary
+properties:
+  start_date:
+    type: datetime
+    description: Start of the window this sleep summary covers
+  end_date:
+    type: datetime
+    description: End of the window this sleep summary covers
+  total_duration_seconds:
+    type: number
+    description: Total sleep duration in seconds across all sessions in the requested window
+  stages:
+    type: array
+    description: Breakdown of total duration per sleep stage
+    items:
+      type: object
+      properties:
+        stage:
+          type: string
+          description: Sleep stage name, e.g. Core, Deep, REM, Awake
+        duration_seconds:
+          type: number
+          description: Total duration in seconds for this stage across the requested window
+example:
+  start_date: "2023-09-01T00:00:00Z"
+  end_date: "2023-09-30T23:59:59Z"
+  total_duration_seconds: 28800
+  stages:
+    - stage: "Core"
+      duration_seconds: 14400
+    - stage: "Deep"
+      duration_seconds: 7200
+    - stage: "REM"
+      duration_seconds: 5400
+    - stage: "Awake"
+      duration_seconds: 1800

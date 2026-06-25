@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
 	<parent>
 		<groupId>com.runo313</groupId>
 		<artifactId>nutrisense</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
-	
 	<artifactId>wearable-sys-api</artifactId>
 	<packaging>mule-application</packaging>
 	<name>wearable-sys-api</name>
@@ -48,6 +46,12 @@
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-sockets-connector</artifactId>
 			<version>1.2.7</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-apikit-module</artifactId>
+			<version>1.11.11</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>

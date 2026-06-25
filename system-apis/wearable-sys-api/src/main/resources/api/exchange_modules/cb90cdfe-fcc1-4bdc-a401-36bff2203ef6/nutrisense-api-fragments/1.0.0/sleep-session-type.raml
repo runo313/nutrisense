@@ -1,0 +1,20 @@
+#%RAML 1.0 DataType
+type: object
+displayName: SleepSession
+properties:
+  user_id:
+    type: integer
+    description: Unique identifier for the user
+  stage:
+    type: string
+    description: Sleep stage, e.g. Core, Deep, REM, Awake
+  start_time:
+    type: datetime
+    description: UTC timestamp of when the sleep stage began
+  end_time:
+    type: datetime
+    description: UTC timestamp of when the sleep stage ended
+  source_device:
+    type: string
+    description: Device or app that recorded the sleep session, e.g. Health
+example: !include sleep-session-example.raml

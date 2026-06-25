@@ -1,0 +1,27 @@
+#%RAML 1.0 Trait
+responses:
+  400:
+    body:
+      application/json:
+        example: { "message": "Invalid request." }
+  401:
+    body:
+      application/json:
+        example: { "message": "Unauthorized. Invalid credentials." }
+  403:
+    body:
+      application/json:
+        example: { "message": "Forbidden." }
+  404:
+    body:
+      application/json:
+        example: { "message": "Not found." }
+  500:
+    body:
+      application/json:
+        example: { "message": "Internal server error." }
+  503:
+    description: Service Unavailable
+    body:
+      application/json:
+        example: { "message": "Service unavailable. Please try again later." }
