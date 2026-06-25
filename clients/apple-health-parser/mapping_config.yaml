@@ -1,0 +1,93 @@
+point_metrics:
+  HKQuantityTypeIdentifierHeartRate:
+    metric_type: heart_rate
+    unit: count/min
+    convert: none
+    has_duration: false
+
+  HKQuantityTypeIdentifierRestingHeartRate:
+    metric_type: resting_heart_rate
+    unit: count/min
+    convert: none
+    has_duration: false
+
+  HKQuantityTypeIdentifierHeartRateVariabilitySDNN:
+    metric_type: hrv
+    unit: ms
+    convert: none
+    has_duration: true
+
+  HKQuantityTypeIdentifierStepCount:
+    metric_type: step_count
+    unit: count
+    convert: none
+    has_duration: true
+
+  HKQuantityTypeIdentifierActiveEnergyBurned:
+    metric_type: active_energy_burned
+    unit: Cal
+    convert: none
+    has_duration: true
+
+  HKQuantityTypeIdentifierAppleExerciseTime:
+    metric_type: apple_exercise_time
+    unit: min
+    convert: none
+    has_duration: true
+
+  HKQuantityTypeIdentifierDistanceWalkingRunning:
+    metric_type: distance_walking_running
+    unit: mi
+    convert: none
+    has_duration: true
+
+  HKQuantityTypeIdentifierFlightsClimbed:
+    metric_type: flights_climbed
+    unit: count
+    convert: none
+    has_duration: true
+
+  HKQuantityTypeIdentifierBasalEnergyBurned:
+    metric_type: basal_energy_burned
+    unit: Cal
+    convert: none
+    has_duration: true
+
+  HKQuantityTypeIdentifierBodyMass:
+    metric_type: body_mass
+    unit: kg
+    convert: lb_to_kg
+    has_duration: false
+
+  HKQuantityTypeIdentifierVO2Max:
+    metric_type: vo2_max
+    unit: mL/min·kg
+    convert: none
+    has_duration: false
+
+  HKQuantityTypeIdentifierOxygenSaturation:
+    metric_type: oxygen_saturation
+    unit: percent
+    convert: fraction_to_percent
+    has_duration: false
+
+  HKQuantityTypeIdentifierRespiratoryRate:
+    metric_type: respiratory_rate
+    unit: count/min
+    convert: none
+    has_duration: false
+
+sleep_analysis:
+  source_type: HKCategoryTypeIdentifierSleepAnalysis
+  value_map:
+    HKCategoryValueSleepAnalysisAsleepCore: core
+    HKCategoryValueSleepAnalysisAsleepDeep: deep
+    HKCategoryValueSleepAnalysisAsleepREM: rem
+    HKCategoryValueSleepAnalysisAsleepUnspecified: unspecified
+  drop_values:
+    - HKCategoryValueSleepAnalysisInBed
+    - HKCategoryValueSleepAnalysisAwake
+
+workouts:
+  source_type: Workout
+  activity_type_prefix_strip: HKWorkoutActivityType
