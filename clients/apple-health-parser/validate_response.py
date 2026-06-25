@@ -69,8 +69,9 @@ def validate_output(output: Dict) -> Dict[str,Any]:
                     errors_dict['workouts_time_issue']= errors_dict.get('workouts_time_issue',0)+1
             if float(output['workouts'][i]['duration']) < 0:
                 errors_dict['workouts_duration_error']= errors_dict.get('workouts_duration_error',0)+1
-            if output['workouts'][i]['energy_burned'] is not None and output['workouts'][i]['energy_burned'] < 0:
-                errors_dict['workouts_energy_burned_error']= errors_dict.get('workouts_energy_burned_error',0)+1
+            energy_burned = output['workouts'][i].get('energy_burned')
+            if energy_burned is not None and energy_burned < 0:
+                errors_dict['workouts_energy_burned_error'] += 1
             if not isinstance(output['workouts'][i]['statistics'],list) :
                 errors_dict['workouts_statistics_error']= errors_dict.get('workouts_statistics_error',0)+1
             for stat in output['workouts'][i]['statistics']:

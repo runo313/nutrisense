@@ -17,11 +17,12 @@ def apply_conversion(value:str,convert_type:str)-> float:
         raise ValueError(f"convert_type must be lb_to_kg or fraction_to_percent, got {convert_type}")
     return converted_value
 
-def build_point_metric_row(user_id:str,rtype:str, value:float, recorded_at:datetime, duration_seconds:int, source_name:str, config:str)-> Dict: 
+def build_point_metric_row(user_id:str,rtype:str, unit:str, value:float, recorded_at:datetime, duration_seconds:int, source_name:str, config:str)-> Dict: 
     row={
         "user_id": user_id,
         "metric_type": config['point_metrics'][rtype]['metric_type'],
         "value":value,
+        "unit": unit,
         "recorded_at": datetime.isoformat(recorded_at),
         "duration_seconds": duration_seconds,
         "source_device": source_name
@@ -46,9 +47,10 @@ def build_workouts_row(user_id:str, activity_type:str, start_time:datetime, end_
         "end_time" : datetime.isoformat(end_time),
         "source_device": sourceName,
         "duration":float(duration),
-        "duration_unit":duration_unit,
-        "energy_burned": energy_burned,
+        "duration_unit":duration_unit
     }
+    if energy_burned:
+        row['energy_burned']=energy_burned
     return row 
 
 def build_statistics_row(type:str, startDate:datetime, endDate:datetime ,sum_value=None,average=None,min_value=None,max_value=None,unit=None)-> Dict:
@@ -69,7 +71,7 @@ with open('./mapping_config.yaml') as f:
 
 def construct_output(id:str)-> List[Dict]:
     user_id = id
-    path = "/Users/runosiakpebru/Downloads/apple_health_export/export.xml" # /Users/runosiakpebru/Downloads/sample-data-health.xml
+    path = "/Users/runosiakpebru/Downloads/sample-data-health.xml" # /Users/runosiakpebru/Downloads/apple_health_export/export.xml"
     context = ET.iterparse(source=path, events=('end',))
     context = iter(context)
     event, root = next(context)
@@ -83,6 +85,7 @@ def construct_output(id:str)-> List[Dict]:
             if rtype in config['point_metrics']:
                 sourceName= elem.attrib.get('sourceName','').replace('\xa0', ' ')
                 value=elem.attrib.get('value')
+                unit=config['point_metrics'][rtype]['unit']
                 startDate=datetime.strptime(elem.attrib.get('startDate'),"%Y-%m-%d %H:%M:%S %z")
                 endDate=datetime.strptime(elem.attrib.get('endDate'),"%Y-%m-%d %H:%M:%S %z")
                 converted_value=apply_conversion(value,config['point_metrics'][rtype]['convert'])
@@ -92,7 +95,7 @@ def construct_output(id:str)-> List[Dict]:
                     sys.stdout.write("skipping entered data as date is invalid")
                     continue
                 else:
-                    data_to_insert= build_point_metric_row(user_id,rtype,converted_value,startDate,duration_seconds,sourceName,config)
+                    data_to_insert= build_point_metric_row(user_id,rtype,unit,converted_value,startDate,duration_seconds,sourceName,config)
                     output.append(data_to_insert)
             elif rtype == config['sleep_analysis']['source_type']:
                 sleep_label=elem.attrib.get('value')
@@ -128,11 +131,11 @@ def construct_output(id:str)-> List[Dict]:
                 stat_type= config['point_metrics'].get(stat_elem.attrib.get('type'), {}).get('metric_type') or stat_elem.attrib.get('type')
                 stat_start=datetime.strptime(stat_elem.attrib.get('startDate') or elem.attrib.get('startDate'),"%Y-%m-%d %H:%M:%S %z") 
                 stat_end=datetime.strptime(stat_elem.attrib.get('endDate') or elem.attrib.get('endDate'),"%Y-%m-%d %H:%M:%S %z") 
-                sum_value=stat_elem.attrib.get('sum',None)
+                sum_value=float(stat_elem.attrib.get('sum')) if stat_elem.attrib.get('sum') is not None else None
                 unit=stat_elem.attrib.get('unit',None)
-                min_value=stat_elem.attrib.get('minimum',None)
-                max_value=stat_elem.attrib.get('maximum',None)
-                average=stat_elem.attrib.get('average',None)
+                min_value=float(stat_elem.attrib.get('minimum')) if stat_elem.attrib.get('minimum') is not None else None
+                max_value=float(stat_elem.attrib.get('maximum')) if stat_elem.attrib.get('maximum') is not None else None
+                average=float(stat_elem.attrib.get('average')) if stat_elem.attrib.get('average') is not None else None
                 work_out_stats.append(build_statistics_row(stat_type,stat_start,stat_end,sum_value,average,min_value,max_value,unit))
             
 
