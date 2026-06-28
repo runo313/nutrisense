@@ -1,0 +1,137 @@
+{
+  "point_metrics": [
+    {
+      "user_id": 82345,
+      "metric_type": "step_count",
+      "unit": "count",
+      "value": 148.0,
+      "recorded_at": "2022-03-22T14:34:03-04:00",
+      "duration_seconds": 103.0,
+      "source_device": "Runo\u2019s iPhone"
+    },
+    {
+      "user_id": 82345,
+      "metric_type": "step_count",
+      "unit": "count",
+      "value": 12.0,
+      "recorded_at": "2022-03-22T15:12:06-04:00",
+      "duration_seconds": 11.0,
+      "source_device": "Runo\u2019s iPhone"
+    },
+    {
+      "user_id": 82345,
+      "metric_type": "step_count",
+      "unit": "count",
+      "value": 941.0,
+      "recorded_at": "2022-03-22T15:43:23-04:00",
+      "duration_seconds": 600.0,
+      "source_device": "Runo\u2019s iPhone"
+    },
+    {
+      "user_id": 82345,
+      "metric_type": "step_count",
+      "unit": "count",
+      "value": 1000.0,
+      "recorded_at": "2022-03-22T15:53:23-04:00",
+      "duration_seconds": 600.0,
+      "source_device": "Runo\u2019s iPhone"
+    }
+    ],
+    "sleep_sessions": [
+        {
+      "user_id": 82345,
+      "stage": "deep",
+      "start_time": "2024-01-24T04:14:53-04:00",
+      "end_time": "2024-01-24T04:18:53-04:00",
+      "source_device": "Runo\u2019s Apple Watch"
+    },
+    {
+      "user_id": 82345,
+      "stage": "core",
+      "start_time": "2024-01-24T04:18:53-04:00",
+      "end_time": "2024-01-24T04:23:53-04:00",
+      "source_device": "Runo\u2019s Apple Watch"
+    },
+    {
+      "user_id": 82345,
+      "stage": "deep",
+      "start_time": "2024-01-24T04:23:53-04:00",
+      "end_time": "2024-01-24T04:31:53-04:00",
+      "source_device": "Runo\u2019s Apple Watch"
+    },
+    {
+      "user_id": 82345,
+      "stage": "core",
+      "start_time": "2024-01-24T04:31:53-04:00",
+      "end_time": "2024-01-24T04:55:53-04:00",
+      "source_device": "Runo\u2019s Apple Watch"
+    },
+    {
+      "user_id": 82345,
+      "stage": "rem",
+      "start_time": "2024-01-24T04:55:53-04:00",
+      "end_time": "2024-01-24T05:20:23-04:00",
+      "source_device": "Runo\u2019s Apple Watch"
+    },
+    {
+      "user_id": 82345,
+      "stage": "core",
+      "start_time": "2024-01-24T05:20:23-04:00",
+      "end_time": "2024-01-24T05:53:53-04:00",
+      "source_device": "Runo\u2019s Apple Watch"
+    }
+    ],
+  "workouts": [
+    {
+      "user_id": 82346,
+      "activity_type": "HKWorkoutActivityTypeWalking",
+      "start_time": "2023-09-12T16:29:08-04:00",
+      "end_time": "2023-09-12T17:20:29-04:00",
+      "source_device": "Runo\u2019s Apple Watch",
+      "duration": 51.35068506995837,
+      "duration_unit": "min",
+      "statistics": [
+        {
+          "metric_type": "HKQuantityTypeIdentifierDistanceWalkingRunning",
+          "start_time": "2023-09-12T16:29:08-04:00",
+          "end_time": "2023-09-12T17:20:29-04:00",
+          "sum_value": 2.17477,
+          "average_value": null,
+          "minimum_value": null,
+          "maximum_value": null,
+          "unit": "mi"
+        },
+        {
+          "metric_type": "HKQuantityTypeIdentifierBasalEnergyBurned",
+          "start_time": "2023-09-12T16:29:08-04:00",
+          "end_time": "2023-09-12T17:20:29-04:00",
+          "sum_value": 82.5446,
+          "average_value": null,
+          "minimum_value": null,
+          "maximum_value": null,
+          "unit": "Cal"
+        },
+        {
+          "metric_type": "HKQuantityTypeIdentifierHeartRate",
+          "start_time": "2023-09-12T16:29:08-04:00",
+          "end_time": "2023-09-12T17:20:29-04:00",
+          "sum_value": null,
+          "average_value": 95.4704,
+          "minimum_value": 52,
+          "maximum_value": 120,
+          "unit": "count/min"
+        },
+        {
+          "metric_type": "HKQuantityTypeIdentifierActiveEnergyBurned",
+          "start_time": "2023-09-12T16:29:08-04:00",
+          "end_time": "2023-09-12T17:20:29-04:00",
+          "sum_value": 211.47,
+          "average_value": null,
+          "minimum_value": null,
+          "maximum_value": null,
+          "unit": "Cal"
+        }
+      ]
+    }
+  ]
+}

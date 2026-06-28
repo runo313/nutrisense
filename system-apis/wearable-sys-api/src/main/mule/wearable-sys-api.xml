@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
-    <http:listener-config name="wearable-sys-api-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8081" />
-    </http:listener-config>
-    <apikit:config name="wearable-sys-api-config" api="wearable-sys-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    
     <flow name="wearable-sys-api-main">
         <http:listener config-ref="wearable-sys-api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -96,7 +93,7 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="wearable-sys-api-console">
+    <flow name="wearable-sys-api-console" doc:id="af89972c-3cc3-445a-b3fc-1e58b09e6aeb">
         <http:listener config-ref="wearable-sys-api-httpListenerConfig" path="/console/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
@@ -181,26 +178,15 @@ output application/json
         </ee:transform>
         <logger level="INFO" message="get:\wearable-data\(userId):wearable-sys-api-config" />
     </flow>
-    <flow name="post:\wearable-data\(userId):application\json:wearable-sys-api-config">
+    <flow name="post:\wearable-data\(userId):application\json:wearable-sys-api-config" doc:id="d1dbd50f-c125-4d48-ace3-4fcc4090eeec">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  point_metrics_inserted: 42,
-  point_metrics_skipped: 4,
-  sleep_sessions_inserted: 0,
-  sleep_sessions_skipped: 0,
-  workouts_inserted: 3,
-  workouts_skipped: 0
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="bedcaa88-4d8e-4f06-a464-965719358348" message='#[%dw 2.0&#10;output application/json&#10;import log&#10;---&#10;log::buildLog("INFO","Ingest Data Received",null, vars.correlationId , vars.flowName)]'/>
+		<flow-ref doc:name="wearables Flow" doc:id="3139f327-6f12-4236-b14f-140108e4ed4f" name="wearables-flow"/>
     </flow>
 </mule>

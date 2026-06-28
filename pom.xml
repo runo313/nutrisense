@@ -26,6 +26,7 @@
 		<mule.maven.plugin.version>4.7.0</mule.maven.plugin.version>
 		<mule.http.connector.version>1.11.1</mule.http.connector.version>
 		<mule.sockets.connector.version>1.2.7</mule.sockets.connector.version>
+		<mule.secure.configuration.property.module.version>1.2.6</mule.secure.configuration.property.module.version>
 	</properties>
 
 	<dependencyManagement>
@@ -41,6 +42,12 @@
 				<artifactId>mule-sockets-connector</artifactId>
 				<version>${mule.sockets.connector.version}</version>
 				<classifier>mule-plugin</classifier>
+			</dependency>
+			<dependency>
+    			<groupId>com.mulesoft.modules</groupId>
+    			<artifactId>mule-secure-configuration-property-module</artifactId>
+    			<version>${mule.secure.configuration.property.module.version}</version>
+    			<classifier>mule-plugin</classifier>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
