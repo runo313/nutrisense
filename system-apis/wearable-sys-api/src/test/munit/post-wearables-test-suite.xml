@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="   http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd   http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd   http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="post-wearables-test-suite.xml"/>
+	<munit:test doc:id="43781139-182e-430a-b457-445cf351d2ad" name="wearable-ingest-happy-path-suite">
+		<munit:behavior>
+			<munit-tools:mock-when doc:id="88a11777-116c-45bf-97e2-e548bbd5388b" doc:name="Mock Insert Point Metrics" processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="a98472a7-e145-4d6e-a502-4422531aa1e8"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{affectedRows: 1 as Number}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:id="bd540a13-d7d1-4a76-9aba-a1cadb35750f" doc:name="Mock Insert Sleep Sessions" processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="92e6e34f-53b2-4268-9773-fe8f4da333dd"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{affectedRows: 1 as Number}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:id="c69dcc52-51f3-446f-a16a-3d5c931e6449" doc:name="Mock Insert Workouts" processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="23224506-07f0-4523-83aa-632429ff1823"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{affectedRows: 1 as Number}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:id="a1b4e031-4b83-4c3b-b92a-b221403bc24d" doc:name="Mock Select Workout ID" processor="db:select">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="09107cb6-d093-4a1a-a7f7-03085fb65977"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{id: 1}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:id="b0776fb8-8d4b-4359-9ad6-95840bbae8b3" doc:name="Mock Insert Workout statistics " processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="6f99cee0-4a33-4096-a879-c3e46794302c"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{affectedRows: 1 as Number}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:id="162202db-ae2e-47d1-a2d6-027f75a68331" doc:name="Set Payload">
+				<munit:payload mediaType="application/json" value="#[MunitTools::getResourceAsString(&quot;payloads/wearable-data.json&quot;)]"/>
+				<munit:attributes value="#[{uriParams: {userId: &quot;82345&quot;}}]"/>
+			</munit:set-event>
+			<flow-ref doc:id="61a74342-1f3b-4dc9-96da-0cd5c4bf5dc3" doc:name="Flow Reference" name="post:\wearable-data\(userId):application\json:wearable-sys-api-config"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="bf134fad-5d32-4ef3-94a3-1728741329a5" doc:name="Assert that http status is 22" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(202)]" message="http response should be 202"/>
+			<munit-tools:assert-that doc:id="4f0351ff-28fd-4ec7-a396-f0ec636eb9ad" doc:name="Assert that point metrics" expression="#[output application/java --- payload.point_metrics_inserted]" is="#[MunitTools::equalTo(4)]" message="point metrics inserted should be 4"/>
+			<munit-tools:assert-that doc:id="ba7bd2b8-95d0-46de-9f96-4103c73e8d9f" doc:name="Assert that point metrics skipped" expression="#[output application/java --- payload.point_metrics_skipped]" is="#[MunitTools::equalTo(0)]" message="point metrics skipped should be 0"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test doc:id="73851c43-f221-4da4-921d-1ef1bde75120" name="wearable-ingest-idempotency-suite">
+		<munit:behavior>
+			<munit-tools:mock-when doc:id="1cfa8c51-01ce-46aa-91f6-21c2a4ac2077" doc:name="Mock Insert Point Metrics" processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="a98472a7-e145-4d6e-a502-4422531aa1e8"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{affectedRows: 0 as Number}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:id="dbc08eca-e81f-4dae-8856-5152618b8863" doc:name="Mock Insert Sleep Sessions" processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="92e6e34f-53b2-4268-9773-fe8f4da333dd"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{affectedRows: 0 as Number}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:id="938b2b73-488c-4937-a218-f4698ebbad15" doc:name="Mock Insert Workouts" processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="23224506-07f0-4523-83aa-632429ff1823"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload mediaType="application/java" value="#[{affectedRows: 0 as Number}]"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:id="3587f1ce-27a7-4746-ba04-5562d8383ec2" doc:name="Set Payload">
+				<munit:payload mediaType="application/json" value="#[MunitTools::getResourceAsString(&quot;payloads/wearable-data.json&quot;)]"/>
+				<munit:attributes value="#[{uriParams: {userId: &quot;82345&quot;}}]"/>
+			</munit:set-event>
+			<flow-ref doc:id="30e8e59c-fa65-4f3b-8c38-9b232877c50d" doc:name="Flow Reference" name="post:\wearable-data\(userId):application\json:wearable-sys-api-config"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="06eb8246-5b4f-45f1-9390-528870996c77" doc:name="Assert that http status is 202" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(202)]" message="http response should be 202"/>
+			<munit-tools:assert-that doc:id="ce3327e3-d9a8-4022-bd58-86942a427803" doc:name="Assert that point metrics" expression="#[output application/java --- payload.point_metrics_inserted]" is="#[MunitTools::equalTo(0)]" message="point metrics inserted should be 0"/>
+			<munit-tools:assert-that doc:id="88d638e1-fcbe-4a28-b0fb-937fd9692474" doc:name="Assert that point metrics skipped" expression="#[output application/java --- payload.point_metrics_skipped]" is="#[MunitTools::equalTo(4)]" message="point metrics skipped should be 4"/>
+			<munit-tools:assert-that doc:id="95304044-3a60-4bf6-8928-fdffca349d6f" doc:name="Assert that sleep sessions skipped " expression="#[output application/java --- payload.sleep_sessions_skipped]" is="#[MunitTools::equalTo(6)]" message="skipped should be 6"/>
+			<munit-tools:assert-that doc:id="6a3893ca-c6b0-45c7-b12c-1daa4309c208" doc:name="Assert that workouts skipped" expression="#[output application/java --- payload.workouts_skipped]" is="#[MunitTools::equalTo(1)]" message="skipped should be 1"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test doc:id="f39eb923-014a-42f2-bd54-8c9523361465" name="wearable-ingest-error-suite">
+		<munit:behavior>
+			<munit-tools:mock-when doc:id="7a7b4c21-e077-4a54-a6bc-e82052843ef6" doc:name="Mock when" processor="db:insert">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="a98472a7-e145-4d6e-a502-4422531aa1e8"/>
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error typeId="DB:QUERY_EXECUTION"/>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:id="77b03012-3775-492f-90ce-0c8182991da8" doc:name="Set Payload">
+				<munit:payload mediaType="application/json" value="#[MunitTools::getResourceAsString(&quot;payloads/wearable-data.json&quot;)]"/>
+				<munit:attributes value="#[{uriParams: {userId: &quot;82345&quot;}}]"/>
+			</munit:set-event>
+			<flow-ref doc:id="773d45a2-667c-4ada-aca7-15c0e31d624c" doc:name="Flow Reference" name="post:\wearable-data\(userId):application\json:wearable-sys-api-config"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:id="d63969d9-d644-48f2-b6ed-bd4b96eec5fa" doc:name="Assert that http status is 500" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(500)]" message="http response should be 500"/>
+		</munit:validation>
+	</munit:test>
+
+</mule>

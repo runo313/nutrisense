@@ -455,4 +455,6 @@ type: string]]></types:shape>
     </types:processor-declaration>
   </types:enrichment>
   <types:enrichment select="#4e92082f-db95-479a-9417-41e46a716919"/>
+  <types:enrichment select="#72524acc-2a6c-44f9-bff6-45ce4dd4a198"/>
+  <types:enrichment select="#95f38943-452d-4428-8ecd-ab85fe3bda45"/>
 </types:mule>

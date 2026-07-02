@@ -57,8 +57,22 @@ uses:
       securedBy: global.client-id-based
       is: global.paginated
       queryParameters:
-        metricType?:
-          description: Filter by one or more metric types
+        metricType:
+          description: Filter by one or more metric types. only applicable when dataType=point_metrics
+          required: false
+          type: array
+          items:
+            type: string
+        stage:
+          description: Filter by one or more sleep stages. only applicable when dataType=sleep_sessions
+          required: false
+          type: array
+          items:
+            type: string
+            enum: [Core, Deep, REM, Awake]
+        activityType:
+          description: Filter by one or more activity types. only applicable when dataType= workouts
+          required: false
           type: array
           items:
             type: string
