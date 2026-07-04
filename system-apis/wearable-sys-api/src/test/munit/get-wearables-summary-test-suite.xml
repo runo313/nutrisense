@@ -57,7 +57,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock when" doc:id="42b3cc75-7a5e-49e0-a9d2-e5e549654762" processor="db:select" >
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="65773fd5-754a-4fb7-b907-4f67fc4808c3" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="773592ac-64c8-4e2a-b639-67ad987b1a0c" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
 					<munit-tools:payload value='#[[&#10;	{&#10;            "stage": "core",&#10;            "stage_duration": 3750&#10;        },&#10;        {&#10;            "stage": "deep",&#10;            "stage_duration": 720&#10;        }&#10;]]' />
@@ -66,7 +66,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock when" doc:id="e4a525ae-00e9-4dae-8c96-274950733012" processor="db:select">
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="52b63ac4-7127-46a2-8c3b-fec0a1a56683" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="cca07a3b-e314-4fc7-bcb9-077cbbe469ab" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 			</munit-tools:mock-when>
 		</munit:behavior>

@@ -13,7 +13,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock when" doc:id="da89587e-221e-458e-a69c-412be38a4f56" processor="db:select">
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="84add7a7-c194-45f5-b406-7abc48481939" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="deafda75-3a32-4fee-acf1-322e31b65868" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
 					<munit-tools:payload value='#[{&#10;        "user_id": 82345,&#10;        "stage": "core",&#10;        "start_time": "2024-01-24T01:45:53",&#10;        "end_time": "2024-01-24T02:10:23",&#10;        "duration_seconds": 1470,&#10;        "source_device": "Runo’s Apple Watch"&#10;    }]' />
@@ -34,7 +34,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock when" doc:id="1c5154d3-c7cc-4d7d-a31f-9aae38fc0ed3" processor="db:select" >
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="ab8325c7-0846-46a4-a9d5-ddcfd982b95b" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="b4eb3584-1085-48f5-96c9-9b5fc7637e58" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
 					<munit-tools:payload value='#[{&#10;        "user_id": 82345,&#10;        "stage": "core",&#10;        "start_time": "2024-01-24T01:45:53",&#10;        "end_time": "2024-01-24T02:10:23",&#10;        "duration_seconds": 1470,&#10;        "source_device": "Runo’s Apple Watch"&#10;    }]' />
@@ -123,7 +123,7 @@ output application/java
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock when" doc:id="d59034c9-551d-4ae8-8ffd-9bbe6d00580f" processor="db:select" >
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="84add7a7-c194-45f5-b406-7abc48481939" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="deafda75-3a32-4fee-acf1-322e31b65868" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
 					<munit-tools:payload value="#[[]]" />
