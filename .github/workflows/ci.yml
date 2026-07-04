@@ -1,0 +1,134 @@
+name: NutriSense CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build and MUnit Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Maven settings
+        uses: whelk-io/maven-settings-xml-action@v22
+        with:
+          servers: >
+            [
+              {
+                "id": "anypoint-exchange-v3",
+                "username": "~~~Client~~~",
+                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+              },
+              {
+                "id": "mulesoft-releases",
+                "username": "~~~Client~~~",
+                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+              }
+            ]
+
+      - name: Detect changed modules
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            wearable:
+              - 'system-apis/wearable-sys-api/**'
+            nutrition:
+              - 'system-apis/nutrition-sys-api/**'
+            userprofile:
+              - 'system-apis/userprofile-sys-api/**'
+            notification:
+              - 'system-apis/notification-sys-api/**'
+            daily-insight:
+              - 'process-apis/daily-insight-process-api/**'
+            trend-analysis:
+              - 'process-apis/trend-analysis-process-api/**'
+            personal-dashboard:
+              - 'experience-apis/personal-dashboard-exp-api/**'
+            coach-provider:
+              - 'experience-apis/coach-provider-exp-api/**'
+            parent-pom:
+              - 'pom.xml'
+
+      - name: Build and test wearable-sys-api
+        if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl system-apis/wearable-sys-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test nutrition-sys-api
+        if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl system-apis/nutrition-sys-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test userprofile-sys-api
+        if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl system-apis/userprofile-sys-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test notification-sys-api
+        if: steps.changes.outputs.notification == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl system-apis/notification-sys-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test daily-insight-process-api
+        if: steps.changes.outputs.daily-insight == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl process-apis/daily-insight-process-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test trend-analysis-process-api
+        if: steps.changes.outputs.trend-analysis == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl process-apis/trend-analysis-process-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test personal-dashboard-exp-api
+        if: steps.changes.outputs.personal-dashboard == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl experience-apis/personal-dashboard-exp-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test coach-provider-exp-api
+        if: steps.changes.outputs.coach-provider == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl experience-apis/coach-provider-exp-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
