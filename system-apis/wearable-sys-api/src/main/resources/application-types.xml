@@ -457,4 +457,8 @@ type: string]]></types:shape>
   <types:enrichment select="#4e92082f-db95-479a-9417-41e46a716919"/>
   <types:enrichment select="#72524acc-2a6c-44f9-bff6-45ce4dd4a198"/>
   <types:enrichment select="#95f38943-452d-4428-8ecd-ab85fe3bda45"/>
+  <types:enrichment select="#859bc4ec-eb02-4b48-8c71-1bba9cbee886"/>
+  <types:enrichment select="#ffe09f9b-b727-4fdd-a5ea-e7584ad95976"/>
+  <types:enrichment select="#6fb15a87-8c77-432c-b6c2-2cad73bf549f"/>
+  <types:enrichment select="#68fd3a6b-9e96-4202-b170-ee881efdb888"/>
 </types:mule>

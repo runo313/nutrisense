@@ -82,11 +82,11 @@ uses:
           description: Limit response to a single data type. Omit to return all three.
           required: false
         startDate:
-          type: datetime
+          type: date-only
           description: Filter records on or after this datetime. Must be paired with endDate.
           required: false
         endDate:
-          type: datetime
+          type: date-only
           description: Filter records on or before this datetime. Must be paired with startDate.
           required: false
       responses:
@@ -128,14 +128,27 @@ uses:
             type: array
             items:
               type: string
-            description: Filter summaries by one or more metric types. Not applicable whendataType=sleep_sessions.
+            description: Filter summaries by one or more metric types. Only applicable when dataType=point_metrics.
             required: false
+          stage:
+            description: Filter by one or more sleep stages. only applicable when dataType=sleep_sessions
+            required: false
+            type: array
+            items:
+              type: string
+              enum: [Core, Deep, REM, Awake]
+          activityType:
+            description: Filter by one or more activity types. only applicable when dataType= workouts
+            required: false
+            type: array
+            items:
+              type: string
           startDate:
-            type: datetime
+            type: date-only
             description: Start of the summary window. Must be paired with endDate.
             required: false
           endDate:
-            type: datetime
+            type: date-only
             description: End of the summary window. Must be paired with startDate.
             required: false
           duration:
