@@ -1,0 +1,35 @@
+#%RAML 1.0 DataType
+type: object
+displayName: WorkoutStatistics
+properties:
+  metric_type:
+    type: string
+    description: Canonical metric type these statistics apply to, e.g. distance, heart_rate
+  unit:
+    type: string
+    description: Unit of measurement for the statistic values, e.g. km, bpm
+  sum_value:
+    type: number | nil
+    required: false
+    description: Sum of recorded values over the workout duration
+  average_value:
+    type: number | nil
+    required: false
+    description: Average of recorded values over the workout duration
+  minimum_value:
+    type: number | nil
+    required: false
+    description: Minimum recorded value over the workout duration
+  maximum_value:
+    type: number | nil
+    required: false
+    description: Maximum recorded value over the workout duration
+  start_time:
+    type: datetime
+    required: false
+    description: start time recorded 
+  end_time:
+    type: datetime
+    required: false
+    description: end time recorded 
+example: !include workout-statistics-example.raml

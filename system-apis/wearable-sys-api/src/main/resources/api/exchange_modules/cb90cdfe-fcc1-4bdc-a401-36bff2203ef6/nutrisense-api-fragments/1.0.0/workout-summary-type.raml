@@ -1,0 +1,105 @@
+#%RAML 1.0 DataType
+type: object
+displayName: WorkoutSummary
+properties:
+  start_date:
+    type: datetime
+    description: Start of the window this workout summary covers
+  end_date:
+    type: datetime
+    description: End of the window this workout summary covers
+  total_workouts:
+    type: integer
+    description: Total number of workout sessions in the requested window
+  total_duration:
+    type: number
+    description: Total combined duration across all workouts in the requested window
+  duration_unit:
+    type: string
+    description: Unit of the duration values, e.g. min, seconds
+  total_energy_burned:
+    type: number
+    required: false
+    description: Total combined active and basal energy burned across all workouts in the requested window
+  by_activity_type:
+    type: array
+    description: Breakdown of workout counts, duration, and statistics per activity type
+    items:
+      type: object
+      properties:
+        activity_type:
+          type: string
+          description: Type of workout activity, e.g. Running, Walking
+        count:
+          type: integer
+          description: Number of sessions of this activity type
+        total_duration:
+          type: number
+          description: Combined duration of all sessions of this activity type
+        total_active_energy:
+          type: number
+          required: false
+          description: Total active energy burned across all sessions of this activity type
+        total_basal_energy:
+          type: number
+          required: false
+          description: Total basal energy burned across all sessions of this activity type
+        total_energy_burned:
+          type: number
+          required: false
+          description: Total combined active and basal energy burned across all sessions of this activity type
+        total_distance:
+          type: number
+          required: false
+          description: Total distance covered across all sessions of this activity type
+        distance_unit:
+          type: string
+          required: false
+          description: Unit of the distance values, e.g. mi, km
+        total_steps:
+          type: integer
+          required: false
+          description: Total steps recorded across all sessions of this activity type
+        avg_heart_rate:
+          type: number
+          required: false
+          description: Average heart rate across all sessions of this activity type
+        min_heart_rate:
+          type: number
+          required: false
+          description: Minimum heart rate recorded across all sessions of this activity type
+        max_heart_rate:
+          type: number
+          required: false
+          description: Maximum heart rate recorded across all sessions of this activity type
+example:
+  start_date: "2023-09-01T00:00:00Z"
+  end_date: "2023-09-30T23:59:59Z"
+  total_workouts: 14
+  total_duration: 420.5
+  duration_unit: "min"
+  total_energy_burned: 2145.2
+  by_activity_type:
+    - activity_type: "Running"
+      count: 6
+      total_duration: 198.3
+      total_active_energy: 780.5
+      total_basal_energy: 162.4
+      total_energy_burned: 942.9
+      total_distance: 5.8
+      distance_unit: "mi"
+      total_steps: 7392
+      avg_heart_rate: 145.3
+      min_heart_rate: 82.0
+      max_heart_rate: 180.0
+    - activity_type: "Walking"
+      count: 8
+      total_duration: 222.2
+      total_active_energy: 892.1
+      total_basal_energy: 310.2
+      total_energy_burned: 1202.3
+      total_distance: 8.2
+      distance_unit: "mi"
+      avg_heart_rate: 99.4
+      min_heart_rate: 52.0
+      max_heart_rate: 137.0

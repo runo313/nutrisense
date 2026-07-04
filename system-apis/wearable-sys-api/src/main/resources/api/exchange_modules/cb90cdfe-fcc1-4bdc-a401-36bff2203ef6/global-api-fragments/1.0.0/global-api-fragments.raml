@@ -1,0 +1,14 @@
+#%RAML 1.0 Library
+usage: Shared traits, security schemes, and data types
+
+traits:
+  errorResponses: !include error-traits.raml
+  paginated: !include common-traits.raml
+
+securitySchemes:
+  oauth_2_0: !include oauth-security.raml
+  client-id-based: !include client-id-based.raml
+
+types:
+  HealthCheck: !include health-type.raml
+  Error: !include error-type.raml

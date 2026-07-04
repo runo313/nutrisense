@@ -1,0 +1,34 @@
+#%RAML 1.0 DataType
+type: object
+displayName: Workout
+properties:
+  user_id:
+    type: integer
+    description: Unique identifier for the user
+  activity_type:
+    type: string
+    description: Type of workout activity, e.g. Running, Cycling, Swimming
+  start_time:
+    type: datetime
+    description: UTC timestamp of when the workout began
+  end_time:
+    type: datetime
+    description: UTC timestamp of when the workout ended
+  source_device:
+    type: string
+    description: Device or app that recorded the workout, e.g. Health
+  duration:
+    type: number
+    description: Duration of the workout
+  duration_unit:
+    type: string
+    description: Unit of the duration value, e.g. seconds, minutes
+  energy_burned:
+    type: number
+    required: false
+    description: Total active energy burned during the workout
+  statistics:
+    type: array
+    description: statistics for metrics recorded during the workout
+    items: !include workout-statistics-type.raml
+example: !include workout-example.raml

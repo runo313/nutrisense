@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config
+		name="wearable-sys-api-httpListenerConfig">
+		<http:listener-connection host="0.0.0.0"
+			port="${wearable.https.port}" protocol="HTTPS">
+			<tls:context >
+				<tls:key-store type="${wearable.keystore.type}" path="${wearable.keystore.path}" alias="${wearable.keystore.alias}" keyPassword="${secure::wearable.keystore.keyPassword}" password="${secure::wearable.keystore.password}" />
+			</tls:context>
+		</http:listener-connection>
+	</http:listener-config>
+	<apikit:config name="wearable-sys-api-config"
+		api="wearable-sys-api.raml" outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+	<global-property doc:name="Global Property" doc:id="00384218-782c-400d-88a5-e63b38fd107a" name="env" value="local" />
+	<configuration-properties doc:name="Configuration properties" doc:id="57ae5660-cf8f-41ac-84bc-f60cf28fb6d9" file="wearables-${env}.properties" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="60690633-bf7d-4c4e-950a-a8befc84f6e0" file="wearables-${env}.properties" key="${MULE_MASTER_KEY}" />
+	<db:config name="NUTRISENSE_DB_CONFIG" doc:name="Database Config" doc:id="713bd2e1-651f-4f4e-bb10-5ff8cee94675" >
+		<db:generic-connection url="${nutrisense.db.url}" user="${secure::nutrisense.db.user}" password="${secure::nutrisense.db.password}" driverClassName="${nutrisense.db.driver}"/>
+	</db:config>
+</mule>

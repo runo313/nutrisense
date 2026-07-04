@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="get-wearables-test-suite.xml" />
+	<munit:test name="point-metrics-happy-path-suiteTest" doc:id="2eb84d31-5447-4554-9e42-fb95ec78a566">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="da89587e-221e-458e-a69c-412be38a4f56" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="deafda75-3a32-4fee-acf1-322e31b65868" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;        "user_id": 82345,&#10;        "stage": "core",&#10;        "start_time": "2024-01-24T01:45:53",&#10;        "end_time": "2024-01-24T02:10:23",&#10;        "duration_seconds": 1470,&#10;        "source_device": "Runo’s Apple Watch"&#10;    }]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="732608fa-6e3d-40f4-a964-1d9f73583238" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "metricType": "body_mass",&#10;    "metricType": "step_count",&#10;    //activityType: "walking",&#10;    dataType:"point_metrics"&#10;  }&#10;}]' mediaType="application/java" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="727b442c-0437-471a-921a-e425f814d95b" name="get:\wearable-data\(userId):wearable-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 200" doc:id="559abe75-4b69-4369-af8e-e451132a379e" message="http response should be 200" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sleep-sessions-happy-path-suiteTest" doc:id="bf3fedc2-b87b-40c8-bc28-f8aa85197462">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1c5154d3-c7cc-4d7d-a31f-9aae38fc0ed3" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b4eb3584-1085-48f5-96c9-9b5fc7637e58" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;        "user_id": 82345,&#10;        "stage": "core",&#10;        "start_time": "2024-01-24T01:45:53",&#10;        "end_time": "2024-01-24T02:10:23",&#10;        "duration_seconds": 1470,&#10;        "source_device": "Runo’s Apple Watch"&#10;    }]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="37cd13e7-bdec-4664-8f50-765d95b14b30" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "stage": "REM",&#10;    dataType:"sleep_sessions"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="f012ee9c-d260-4b75-91e8-6f2d2af0f5a7" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 200" doc:id="8d9b379a-fd1c-4eb4-b968-b116c6480cc6" message="http response should be 200" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="all-dataType-happy-path-suiteTest" doc:id="5a253f44-918f-449b-bf1d-ac57449ecf60">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select Point Metrics" doc:id="363fde76-e06c-41cb-bc26-258a6b853477" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="00b50e89-3657-4bd0-b557-63b5cb648af4" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Sleep Sessions" doc:id="36ee0d06-dbeb-472c-ba1d-dbbab8388cc9" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a99e489d-416a-4ecb-b266-54ff0f8f2dd6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Workouts" doc:id="a20bfece-bd75-4fe7-bd89-a8853fee8309" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d0a9a3df-49c2-4d26-9140-0e21d7126c54" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="520067f3-0f36-42c0-b6c4-6d5d1a83af95" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "activityType": "jogging",&#10;    metricType: "step_count",&#10;    "startDate":"2022-08-21T14:34:03-04:00",&#10;    "endDate":"2022-08-21T14:34:03-04:00"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<ee:transform doc:name="Transform Message" doc:id="6fb15a87-8c77-432c-b6c2-2cad73bf549f" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="sleepSessionsResult" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+        "user_id": 82345,
+        "stage": "core",
+        "start_time": "2024-01-24T01:45:53",
+        "end_time": "2024-01-24T02:10:23",
+        "duration_seconds": 1470,
+        "source_device": "Runo’s Apple Watch"
+  }]]></ee:set-variable>
+					<ee:set-variable variableName="pointMetricsResult" ><![CDATA[[]]]></ee:set-variable>
+					<ee:set-variable variableName="workOutsResult" ><![CDATA[[]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="6950ea2e-c821-446c-9d21-ecaf8d725405" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 200" doc:id="16c75747-ca9c-467d-8777-a4c0556116ec" message="http response should be 200" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="workouts-happy-path-suiteTest" doc:id="6ae0ada7-1826-4f64-89ca-4ea9c3b6d42d">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="eedef2f2-8046-425e-9036-72bb890acbcf" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b147209e-a7a1-4be1-ba66-242a36d5258a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[&#10;    {&#10;        "id": 16,&#10;        "user_id": 82345,&#10;        "activity_type": "walking",&#10;        "start_time": "2025-01-06 09: 10: 24.0",&#10;        "end_time": "2025-01-06 09: 27: 25.0",&#10;        "source_device": "Runo’s Apple Watch",&#10;        "duration": 17.02356324990591,&#10;        "duration_unit": "min",&#10;        "energy_burned": null,&#10;        "stat_metric_type": "distance_walking_running",&#10;        "stat_unit": "mi",&#10;        "sum_value": 0.984083,&#10;        "average_value": null,&#10;        "minimum_value": null,&#10;        "maximum_value": null&#10;    }&#10;]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d88434e4-320f-4121-ae19-e9947b0f25e6" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "activityType": "walking",&#10;    dataType:"workouts",&#10;    "startDate":"2022-08-21T14:34:03-04:00",&#10;    "endDate":"2022-08-21T14:34:03-04:00"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="bbeb3a8c-ce6e-4bb9-b0d8-e0290fe3e1cf" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 200" doc:id="d53f77ab-b396-4213-a3e7-16676f346a36" message="http response should be 200" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="point-metrics-fail-path-suiteTest" doc:id="78dc9ae1-959e-484a-99a2-37c7afedcacf">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="d59034c9-551d-4ae8-8ffd-9bbe6d00580f" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="deafda75-3a32-4fee-acf1-322e31b65868" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="a25548ef-c28d-43e6-b0dd-bc73716539b3" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "metricType": "body_mass",&#10;    //"metricType": "step_count",&#10;    //activityType: "walking",&#10;    dataType:"point_metrics"&#10;  }&#10;}]' mediaType="application/java" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="ae5bbad6-0f38-41c2-8661-2c2a66c8a5c9" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 404" doc:id="7a2e10d2-8eee-4e85-ad74-87ca2e0351d4" message="http response should be 404" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sleep-sessions-fail-path-suiteTest" doc:id="92421b08-b316-4597-b050-3e47ab5968f3" expectedErrorType="ANY">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="74b50f94-5da0-4be8-9a93-8d2640127693" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "stage": "REM",&#10;    dataType:"point_metrics",&#10;    startDate: "2022-08-21T14:34:03-04:00",&#10;    activityType:"walking"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="31abc98b-1e98-4b02-8dcd-d09fd04606aa" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 400" doc:id="820376f4-30a5-4517-9612-140f609da00c" message="http response should be 400" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sleep-sessions-fail-path-suiteTest1" doc:id="34810dd9-fcb1-48ce-a452-8c8396065c15">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="7632e3f4-fa95-4e54-b154-14a405afa1d9" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b4eb3584-1085-48f5-96c9-9b5fc7637e58" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="599ec289-24fd-455e-bc91-13a160382351" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "stage": "REM",&#10;    dataType:"sleep_sessions"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="73495eb8-9a19-4613-a469-7bef2c842a3a" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 404" doc:id="49d67dbf-9209-4355-b6d3-26b17704a605" message="http response should be 404" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="workouts-fail-path-suiteTest" doc:id="c6440ec7-76ae-4ede-8ed4-83b7ce510c03">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a46f0fbb-9d8a-4cab-8783-b3600d59b0bf" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b147209e-a7a1-4be1-ba66-242a36d5258a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[&#10;    &#10;]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="86587d9c-6d76-440a-a504-58211ebe0623" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "activityType": "walking",&#10;    dataType:"workouts",&#10;    "startDate":"2022-08-21T14:34:03-04:00",&#10;    "endDate":"2022-08-21T14:34:03-04:00"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="1b4162c7-2b53-4bdf-ba0f-f4bcafa085dc" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 404" doc:id="d83e0fb5-37d6-45da-b054-88d705d3df27" message="http response should be 404" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="all-dataType-fail-path-suiteTest" doc:id="7ffb0a46-4ed8-4828-9975-737708051b49">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select Point Metrics" doc:id="34d0fc45-391b-4bed-b4dc-34d0ddbdb27d" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="00b50e89-3657-4bd0-b557-63b5cb648af4" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Sleep Sessions" doc:id="2f00f588-ea78-472b-b06a-581f12371ee0" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a99e489d-416a-4ecb-b266-54ff0f8f2dd6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Workouts" doc:id="17aa6fe4-70b7-46ea-9c0a-98e1d7ca4db2" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d0a9a3df-49c2-4d26-9140-0e21d7126c54" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="748aea69-a6a4-4123-9c66-1f14dc36fdbb" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "activityType": "jogging",&#10;    metricType: "step_count",&#10;    "startDate":"2022-08-21T14:34:03-04:00",&#10;    "endDate":"2022-08-21T14:34:03-04:00"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<ee:transform doc:name="Transform Message" doc:id="9209d80d-968f-4a5b-95f2-bc0dae8bb02c" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable variableName="sleepSessionsResult" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+					<ee:set-variable variableName="pointMetricsResult" ><![CDATA[[]]]></ee:set-variable>
+					<ee:set-variable variableName="workOutsResult" ><![CDATA[[]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="0fc01dda-e741-4e0e-882a-a72b6cd69ba2" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 404" doc:id="46df2dc2-cd27-4da6-aa83-a0a0f5b2feda" message="http response should be 404" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="all-dataType-happy-path-suiteTest1" doc:id="02c279af-2cfc-467d-aa8f-c7c4d96ae2f0" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select Point Metrics" doc:id="bfd661d6-1c70-4e09-9482-6046266ebd2a" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="00b50e89-3657-4bd0-b557-63b5cb648af4" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Sleep Sessions" doc:id="20d52dc5-f9c6-4091-bd06-d6b8ff0990c1" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a99e489d-416a-4ecb-b266-54ff0f8f2dd6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Workouts" doc:id="6e04f06c-6523-43d7-b384-f90fed474c85" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d0a9a3df-49c2-4d26-9140-0e21d7126c54" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="326b439d-e0fb-4422-a8f0-fd4dce4e8d26" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "82345"},&#10;  queryParams: {&#10;    "activityType": "jogging",&#10;    metricType: "step_count",&#10;    "startDate":"2022-08-21T14:34:03-04:00",&#10;    "endDate":"2022-08-21T14:34:03-04:00"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<ee:transform doc:name="Transform Message" doc:id="1c27e9f0-5442-4c02-b498-d2b51b44cdfa" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable variableName="sleepSessionsResult" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+					<ee:set-variable variableName="pointMetricsResult" ><![CDATA[[]]]></ee:set-variable>
+					<ee:set-variable variableName="workOutsResult" ><![CDATA[%dw 2.0
+output application/java
+---
+
+[
+    {
+        "id": 16,
+        "user_id": 82345,
+        "activity_type": "walking",
+        "start_time": "2025-01-06 09: 10: 24.0",
+        "end_time": "2025-01-06 09: 27: 25.0",
+        "source_device": "Runo’s Apple Watch",
+        "duration": 17.02356324990591,
+        "duration_unit": "min",
+        "energy_burned": null,
+        "stat_metric_type": "distance_walking_running",
+        "stat_unit": "mi",
+        "sum_value": 0.984083,
+        "average_value": null,
+        "minimum_value": null,
+        "maximum_value": null
+    }
+]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="ce84e799-0936-4a77-9091-a270414bf211" name="get:\wearable-data\(userId):wearable-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status is 200" doc:id="ad5c6b52-c725-4413-a383-a533cc3894f3" message="http response should be 200" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

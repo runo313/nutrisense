@@ -1,5 +1,224 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+    
+    <flow name="wearable-sys-api-main">
+        <http:listener config-ref="wearable-sys-api-httpListenerConfig" path="/api/v1/wearables-sapi/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="wearable-sys-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-400",
+  message: "Bad Request: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "Resource not found: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "Method Not allowed: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-406",
+  message: "Not Acceptable: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-415",
+  message: "Unsupported media type: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-501",
+  message: "Not implemented: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\health:wearable-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "UP",
+  timestamp: now()
+} ]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cbb36d84-9107-4375-9437-597bff982488" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="c12c418c-e1ab-410d-b35f-fef6aa1ab833" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-500",
+  message: "DOWN",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    </flow>
+    <flow name="get:\wearable-data\(userId)\summary:wearable-sys-api-config" doc:id="ec078086-70a6-400b-a025-bb34183b621a">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="queryParams" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	dataType: attributes.queryParams.dataType,
+	metricType: attributes.queryParams.*metricType default null,
+	sleep_stage: attributes.queryParams.*stage default null,
+	activityType: attributes.queryParams.*activityType default null,
+	startDate: attributes.queryParams.startDate as Date default null,
+	endDate: attributes.queryParams.endDate as Date default null,
+	duration: attributes.queryParams.duration default null
+}]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="50a130c2-6633-42c6-92c3-7ff0b5676bab" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request wearables summary data from User: ' ++ vars.userId as String&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,vars.queryParams, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="validate-wearable-query-params-flow" doc:id="4f6faca2-9091-40cf-8b54-8bfac489ad31" name="validate-wearable-query-params-flow" />
+		<flow-ref doc:name="get-wearables-summary-data-flow" doc:id="36353ede-5255-461c-9d53-f18ad099927a" name="get-wearables-summary-data-flow"/>
+    </flow>
+    <flow name="get:\wearable-data\(userId):wearable-sys-api-config" doc:id="29ab34e5-946c-4111-b2f3-e62b7b3ab308">
+        <ee:transform doc:name="Transform Message" doc:id="95f38943-452d-4428-8ecd-ab85fe3bda45">
+            <ee:variables>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId' as Number]]></ee:set-variable>
+				<ee:set-variable variableName="queryParams" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	dataType: attributes.queryParams.dataType,
+	metricType: attributes.queryParams.*metricType default null,
+	sleep_stage: attributes.queryParams.*stage default null,
+	activityType: attributes.queryParams.*activityType default null,
+	startDate: attributes.queryParams.startDate as Date default null,
+	endDate: attributes.queryParams.endDate as Date default null,
+	limit: attributes.queryParams.limit as Number default 50,
+	offset: attributes.queryParams.offset as Number default 0
+}]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="5dab921c-ef18-4da3-b085-d743243a1e78" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request wearables data from User: ' ++ vars.userId as String&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,vars.queryParams, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="validate-wearable-query-params-flow" doc:id="3bff5c7b-b084-4418-9dc4-927d0ddd68ea" name="validate-wearable-query-params-flow"/>
+		<flow-ref doc:name="get-wearable-data-flow" doc:id="ca9ee096-2d88-4658-b967-ca4951a2629f" name="get-wearable-data-flow"/>
+    </flow>
+    <flow name="post:\wearable-data\(userId):application\json:wearable-sys-api-config" doc:id="d1dbd50f-c125-4d48-ace3-4fcc4090eeec">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId' as Number]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="bedcaa88-4d8e-4f06-a464-965719358348" message='#[%dw 2.0&#10;output application/json&#10;import log&#10;---&#10;log::buildLog("INFO","Ingest Data Received",vars.userId, vars.correlationId , vars.flowName)]'/>
+		<flow-ref doc:name="wearables Flow" doc:id="3139f327-6f12-4236-b14f-140108e4ed4f" name="wearables-flow"/>
+    </flow>
+</mule>

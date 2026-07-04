@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="get-wearable-data-flow" doc:id="fafb7ce2-d420-42bf-85d5-d8ce548277a9" >
+		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="7814a925-2ce2-4c82-83c5-d87e964051a0" variableName="flowName" />
+		<logger level="INFO" doc:name="Sent params" doc:id="b5421722-3e8f-44ae-9d48-e6322e0d3b37" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	activityType: vars.queryParams.activityType,&#10;	metricType: vars.queryParams.metricType,&#10;	stage: vars.queryParams.sleep_stage,&#10;	startDate: vars.queryParams.startDate,&#10;	endDate: vars.queryParams.endDate&#10;}&#10;import log&#10;---&#10;log::buildLog("INFO","Querying wearable data",logMessage,vars.correlationId , vars.flowName)]' />
+		<choice doc:name="vars.dataType" doc:id="5fb9933c-1f0f-44d4-bfc9-a192e2d03fa8" >
+			<when expression='#[vars.queryParams.dataType == "point_metrics"]' >
+				<ee:transform doc:name="Construct Sql and Input params" doc:id="3d86b2d8-8926-4f7f-a246-3085f0975d51" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
+output application/java
+
+var baseSQL = "SELECT user_id, metric_type, value, unit, source_device, recorded_at, duration_seconds FROM point_metrics WHERE user_id = :user_id"
+
+var sanitizedMetricTypes= if(vars.queryParams.metricType != null )
+    vars.queryParams.metricType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+
+var metricTypeClause= if (sanitizedMetricTypes != null) " AND metric_type IN (" ++ (sanitizedMetricTypes map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
+
+var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
+    " AND recorded_at BETWEEN :startDate AND :endDate"
+  else ""
+var endClause = " ORDER BY recorded_at DESC LIMIT :limit OFFSET :offset"
+---
+baseSQL ++ metricTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
+						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	user_id: vars.userId as Number,
+	limit: vars.queryParams.limit,
+	offset: vars.queryParams.offset
+} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
+	startDate: vars.queryParams.startDate ,
+    endDate: vars.queryParams.endDate 
+}else {})]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<db:select doc:name="Select Point Metrics" doc:id="deafda75-3a32-4fee-acf1-322e31b65868" config-ref="NUTRISENSE_DB_CONFIG" >
+					<db:sql ><![CDATA[#[vars.sql]]]></db:sql>
+					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+				</db:select>
+				<choice doc:name="Choice" doc:id="a2980348-2550-4eb0-9640-710b358318cf" >
+					<when expression="#[sizeOf(payload) &gt; 0]" >
+						<ee:transform doc:name="Transform Message" doc:id="90a57a26-fa88-4c97-b8ef-dab16638327b" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Not data found" doc:id="3a6bf3e6-2f00-4c3b-af4b-beef38f977a2" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "No data found for the given user and filters",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</when>
+			<when expression='#[vars.queryParams.dataType == "sleep_sessions"]' >
+				<ee:transform doc:name="Construct Sql and Input params" doc:id="59fe4107-90b9-46fa-886f-6aa5212d0473" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
+output application/java
+
+var baseSQL = "SELECT user_id, stage, start_time, end_time,duration_seconds,source_device FROM sleep_sessions WHERE user_id = :user_id"
+
+var sanitizedSleepStages= if(vars.queryParams.sleep_stage != null )
+    vars.queryParams.sleep_stage map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+
+var sleepStageClause= if (sanitizedSleepStages != null) " AND stage IN (" ++ (sanitizedSleepStages map ("'" ++ lower($) ++ "'") joinBy ", ") ++ ")" else ""
+
+var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
+    " AND start_time BETWEEN :startDate AND :endDate"
+  else ""
+  
+var endClause = " ORDER BY start_time DESC LIMIT :limit OFFSET :offset"
+---
+baseSQL ++ sleepStageClause ++ dateClause ++ endClause]]></ee:set-variable>
+						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	user_id: vars.userId as Number,
+	limit: vars.queryParams.limit,
+	offset: vars.queryParams.offset
+} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
+	startDate: vars.queryParams.startDate ,
+    endDate: vars.queryParams.endDate 
+}else {})]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<db:select doc:name="Select Sleep Sessions" doc:id="b4eb3584-1085-48f5-96c9-9b5fc7637e58" config-ref="NUTRISENSE_DB_CONFIG" >
+					<db:sql ><![CDATA[#[vars.sql]]]></db:sql>
+					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+				</db:select>
+				<choice doc:name="Choice" doc:id="f28e558b-a55b-4fb4-90c0-ba11cd6ca83a" >
+					<when expression="#[sizeOf(payload) &gt; 0]" >
+						<ee:transform doc:name="Transform Message" doc:id="19d645a9-736c-41ae-b75c-22dce9cabb33" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Not data found" doc:id="64044c81-11b5-4776-978c-177413102cd6" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "No data found for the given user and filters",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</when>
+			<when expression='#[vars.queryParams.dataType == "workouts"]' >
+				<ee:transform doc:name="Construct Sql and Input params" doc:id="a549bd2b-9e60-47e3-a120-8f371303e153" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
+output application/java
+
+var baseSQL = "SELECT w.id, w.user_id, w.activity_type, w.start_time, w.end_time, 
+w.source_device, w.duration, w.duration_unit, w.energy_burned,
+ws.metric_type as stat_metric_type, ws.unit as stat_unit,
+ws.sum_value, ws.average_value, ws.minimum_value, ws.maximum_value
+FROM workouts w
+LEFT JOIN workout_statistics ws ON ws.workout_id = w.id
+WHERE w.user_id = :user_id"
+
+var sanitizedactivityType= if(vars.queryParams.activityType != null )
+    vars.queryParams.activityType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+
+var activityTypeClause= if (sanitizedactivityType != null) " AND activity_type IN (" ++ (sanitizedactivityType map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
+var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
+    " AND w.start_time BETWEEN :startDate AND :endDate"
+  else ""
+var endClause = " ORDER BY w.start_time DESC LIMIT :limit OFFSET :offset"
+---
+baseSQL ++ activityTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
+						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	user_id: vars.userId as Number,
+	limit: vars.queryParams.limit,
+	offset: vars.queryParams.offset
+} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
+	startDate: vars.queryParams.startDate ,
+    endDate: vars.queryParams.endDate 
+}else {})]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<db:select doc:name="Select WorkOut" doc:id="b147209e-a7a1-4be1-ba66-242a36d5258a" config-ref="NUTRISENSE_DB_CONFIG" >
+					<db:sql ><![CDATA[#[vars.sql]]]></db:sql>
+					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+				</db:select>
+				<ee:transform doc:name="Transform Message" doc:id="767462a9-ef08-4c89-8c73-192b09c7328f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload groupBy ((item) -> item.id) 
+pluck ((rows, workoutId) -> {
+  user_id: rows[0].user_id,
+  activity_type: rows[0].activity_type,
+  start_time: rows[0].start_time,
+  end_time: rows[0].end_time,
+  source_device: rows[0].source_device,
+  duration: rows[0].duration,
+  duration_unit: rows[0].duration_unit,
+  energy_burned: rows[0].energy_burned,
+  statistics: rows 
+    filter ((row) -> row.stat_metric_type != null)
+    map ((row) -> {
+      metric_type: row.stat_metric_type,
+      unit: row.stat_unit,
+      sum_value: row.sum_value,
+      average_value: row.average_value,
+      minimum_value: row.minimum_value,
+      maximum_value: row.maximum_value
+    })
+})]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="5d924eb0-3c4e-442d-94aa-86a261bdb748" >
+					<when expression="#[sizeOf(payload) &gt; 0]" >
+						<ee:transform doc:name="Transform Message" doc:id="2f2b7b79-7352-4846-a67a-0c9061db9e6d" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Not data found" doc:id="1e5e9c16-e1ab-4c0f-8768-6279364da18e" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "No data found for the given user and filters",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Construct SQL and Input params" doc:id="d2c2f371-fbe6-4d2f-9838-79126d8f51f6" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	user_id: vars.userId as Number,
+	limit: vars.queryParams.limit,
+	offset: vars.queryParams.offset
+} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
+	startDate: vars.queryParams.startDate ,
+    endDate: vars.queryParams.endDate 
+}else {})]]></ee:set-variable>
+						<ee:set-variable variableName="pointMetricsSql" ><![CDATA[%dw 2.0
+output application/java
+
+var baseSQL = "SELECT user_id, metric_type, value, unit, source_device, recorded_at, duration_seconds FROM point_metrics WHERE user_id = :user_id"
+
+var sanitizedMetricTypes= if(vars.queryParams.metricType != null )
+    vars.queryParams.metricType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+
+var metricTypeClause= if (sanitizedMetricTypes != null) " AND metric_type IN (" ++ (sanitizedMetricTypes map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
+
+var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
+    " AND recorded_at BETWEEN :startDate AND :endDate"
+  else ""
+var endClause = " ORDER BY recorded_at DESC LIMIT :limit OFFSET :offset"
+---
+baseSQL ++ metricTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
+						<ee:set-variable variableName="sleepSessionsSql" ><![CDATA[%dw 2.0
+output application/java
+
+var baseSQL = "SELECT user_id, stage, start_time, end_time,duration_seconds,source_device FROM sleep_sessions WHERE user_id = :user_id"
+
+var sanitizedSleepStages= if(vars.queryParams.sleep_stage != null )
+    vars.queryParams.sleep_stage map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+
+var sleepStageClause= if (sanitizedSleepStages != null) " AND stage IN (" ++ (sanitizedSleepStages map ("'" ++ lower($) ++ "'") joinBy ", ") ++ ")" else ""
+
+var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
+    " AND start_time BETWEEN :startDate AND :endDate"
+  else ""
+var endClause = " ORDER BY start_time DESC LIMIT :limit OFFSET :offset"
+---
+baseSQL ++ sleepStageClause ++ dateClause ++ endClause]]></ee:set-variable>
+						<ee:set-variable variableName="workoutSql" ><![CDATA[%dw 2.0
+output application/java
+
+var baseSQL = "SELECT w.id, w.user_id, w.activity_type, w.start_time, w.end_time, 
+w.source_device, w.duration, w.duration_unit, w.energy_burned,
+ws.metric_type as stat_metric_type, ws.unit as stat_unit,
+ws.sum_value, ws.average_value, ws.minimum_value, ws.maximum_value
+FROM workouts w
+LEFT JOIN workout_statistics ws ON ws.workout_id = w.id
+WHERE w.user_id = :user_id"
+
+var sanitizedactivityType= if(vars.queryParams.activityType != null )
+    vars.queryParams.activityType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+
+var activityTypeClause= if (sanitizedactivityType != null) " AND activity_type IN (" ++ (sanitizedactivityType map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
+var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
+    " AND w.start_time BETWEEN :startDate AND :endDate"
+  else ""
+var endClause = " ORDER BY w.start_time DESC LIMIT :limit OFFSET :offset"
+---
+baseSQL ++ activityTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<db:select doc:name="Select Point Metrics" doc:id="00b50e89-3657-4bd0-b557-63b5cb648af4" config-ref="NUTRISENSE_DB_CONFIG" target="pointMetricsResult" >
+					<db:sql ><![CDATA[#[vars.pointMetricsSql]]]></db:sql>
+					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+				</db:select>
+				<db:select doc:name="Select Sleep Sessions" doc:id="a99e489d-416a-4ecb-b266-54ff0f8f2dd6" config-ref="NUTRISENSE_DB_CONFIG" target="sleepSessionsResult" >
+					<db:sql ><![CDATA[#[vars.sleepSessionsSql]]]></db:sql>
+					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+				</db:select>
+				<db:select doc:name="Select WorkOut" doc:id="d0a9a3df-49c2-4d26-9140-0e21d7126c54" config-ref="NUTRISENSE_DB_CONFIG" target="workOutsResult" >
+					<db:sql ><![CDATA[#[vars.workoutSql]]]></db:sql>
+					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+				</db:select>
+				<ee:transform doc:name="Transform Message" doc:id="5fcfc721-c305-4c9d-a239-a4f390597a28" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var point_metrics = "point_metrics": vars.pointMetricsResult
+var sleep_sessions = "sleep_sessions": vars.sleepSessionsResult
+var workouts = "workouts": vars.workOutsResult groupBy ((item, index) -> item.id)
+pluck ((rows,workoutId) ->{
+  user_id: rows[0].user_id,
+  activity_type: rows[0].activity_type,
+  start_time: rows[0].start_time,
+  end_time: rows[0].end_time,
+  source_device: rows[0].source_device,
+  duration: rows[0].duration,
+  duration_unit: rows[0].duration_unit,
+  energy_burned: rows[0].energy_burned,
+  statistics: rows filter ((row) -> row.stat_metric_type !=null )
+  map ((row) ->{
+      metric_type: row.stat_metric_type,
+      unit: row.stat_unit,
+      sum_value: row.sum_value,
+      average_value: row.average_value,
+      minimum_value: row.minimum_value,
+      maximum_value: row.maximum_value
+  } )
+} ) 
+---
+point_metrics ++ sleep_sessions ++ workouts]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="b3fd2366-c100-411b-baa0-8645df9d0418">
+					<when expression="#[(sizeOf(payload.point_metrics) + sizeOf(payload.sleep_sessions) + sizeOf(payload.workouts)) &gt; 0]">
+						<ee:transform doc:name="Transform Message" doc:id="f95b2b84-32b1-4186-9955-2d26215f9af4">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[200]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+					<otherwise>
+						<ee:transform doc:name="Not data found" doc:id="64628b69-86a3-4ae7-81f3-f8830ca2cb78">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "No data found for the given user and filters",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="163d5cd3-d9d0-4ac5-b32a-abefacec3862" type="ANY" >
+				<logger level="ERROR" doc:name="Error" doc:id="57eaaff2-d69f-4a8f-9eaa-16de935d4622" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import log&#10;---&#10;log::buildLog("ERROR","An Error Occured",logMessage,vars.correlationId , vars.flowName)]' />
+				<ee:transform doc:name="" doc:id="9a187262-bda0-4f4e-81c9-af6a8cf0fdd2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-500",
+  message: "Server Currently Unavailable",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

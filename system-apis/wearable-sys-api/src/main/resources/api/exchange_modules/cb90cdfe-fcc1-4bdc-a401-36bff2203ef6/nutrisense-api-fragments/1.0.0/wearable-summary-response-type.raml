@@ -1,0 +1,66 @@
+#%RAML 1.0 DataType
+type: object
+displayName: WearableSummaryResponse
+properties:
+  point_metrics:
+    type: array
+    description: Aggregated summaries per metric type across the requested window
+    items: !include point-metric-summary-type.raml
+    required: false
+  sleep_sessions:
+    type: array
+    description: Aggregated sleep summary across the requested window
+    items: !include sleep-session-summary-type.raml
+    required: false
+  work_outs:
+    type: array
+    description: Aggregated workout summary across the requested window
+    items: !include workout-summary-type.raml
+    required: false
+example:
+  point_metrics: 
+  - metric_type: "heart_rate"
+    start_date: "2023-09-01T00:00:00Z"
+    end_date: "2023-09-30T23:59:59Z"
+    average: 72.4
+    min: 45.0
+    max: 183.0
+    count: 1284
+    unit: "bpm"
+  - metric_type: "steps"
+    start_date: "2023-09-01T00:00:00Z"
+    end_date: "2023-09-30T23:59:59Z"
+    average: 8432.0
+    min: 1200.0
+    max: 18500.0
+    count: 30
+    unit: "count"
+  sleep_sessions: 
+  - start_date: "2023-09-01T00:00:00Z"
+    end_date: "2023-09-30T23:59:59Z"
+    total_duration_seconds: 28800
+    stages:
+      - stage: "Core"
+        duration_seconds: 14400
+      - stage: "Deep"
+        duration_seconds: 7200
+      - stage: "REM"
+        duration_seconds: 5400
+      - stage: "Awake"
+        duration_seconds: 1800
+  work_outs: 
+  - start_date: "2023-09-01T00:00:00Z"
+    end_date: "2023-09-30T23:59:59Z"
+    total_workouts: 14
+    total_duration: 420.5
+    duration_unit: "min"
+    total_energy_burned: 3850.0
+    by_activity_type:
+      - activity_type: "Running"
+        count: 6
+        total_duration: 198.3
+      - activity_type: "Walking"
+        count: 8
+        total_duration: 222.2
+      
+        
