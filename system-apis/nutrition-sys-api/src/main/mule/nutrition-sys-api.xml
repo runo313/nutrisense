@@ -21,7 +21,7 @@ output application/json
 ---
 {
   code: "WEARABLE-400",
-  message: "Bad Request: " ++ error.description as String ,
+  message: "Bad Request: " ++ (error.description replace /\/\d+ / with "") as String ,
   correlationId: correlationId,
   timestamp: now(),
   originLayer: "system"
@@ -196,16 +196,16 @@ output application/json
 				<ee:set-variable variableName="nutrients" ><![CDATA[%dw 2.0
 import nutrientMapping
 output application/java
-var nutrients = attributes.queryParams.*fields
-var mappedFields= nutrientMapping::mapToDbValues(nutrients)
+var nutrients = attributes.queryParams.*fields default []
+var mappedFields = (nutrientMapping::mapToDbValues(nutrients) default []) as Array<String>
 ---
-mappedFields map($ as String) joinBy  (", ")]]></ee:set-variable>
+mappedFields joinBy ", "]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
         <logger level="INFO" doc:name="START" doc:id="4d4be088-af2a-48eb-9861-52f7b938ca1e" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food nutrients with foodId: '++ (vars.foodId as String)&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,vars.nutrients, vars.correlationId , vars.flowName)]"/>
-		<set-variable value='#["SELECT fdc_id, food_name, " ++ vars.nutrients ++ " FROM foods WHERE fdc_id = :foodId"]' doc:name="Set Variable" doc:id="45c84a67-52eb-409e-9de8-0e88ed327059" variableName="sql"/>
+		<set-variable value='#["SELECT fdc_id, food_name"&#10;++&#10;(if (!isEmpty(vars.nutrients)) ", " ++ vars.nutrients else "")&#10;++&#10;" FROM foods WHERE fdc_id = :foodId"]' doc:name="Set Variable" doc:id="45c84a67-52eb-409e-9de8-0e88ed327059" variableName="sql"/>
 		<logger level="INFO" doc:name="Logger" doc:id="837427cd-a73e-4650-bf44-3ea54dafcc46" message="vars.sql #[vars.sql]"/>
-		<db:select doc:name="Select Selected Nutrients" doc:id="53a6bf28-27aa-4620-915b-9c66ba8c2ef3" config-ref="NUTRISENSE_DB_CONFIG">
+		<db:select doc:name="Select Requested Nutrients" doc:id="53a6bf28-27aa-4620-915b-9c66ba8c2ef3" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[#[vars.sql]]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	foodId: vars.foodId
@@ -264,6 +264,7 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
+		<error-handler ref="nutrition-sys-api-error-handler" />
     </flow>
     <flow name="get:\foods\search:nutrition-sys-api-config">
 		<ee:transform doc:name="Query Param" doc:id="a3e0a2fa-ff1c-4ea3-b2a6-8ef7c2e4b3ec" >
@@ -301,8 +302,31 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<error-handler ref="nutrition-sys-api-error-handler" />
     </flow>
-    <flow name="get:\foods\(foodId):nutrition-sys-api-config">
+    <error-handler name="nutrition-sys-api-error-handler" doc:id="f6df9c47-525c-4625-ae24-a0fef8a21cff" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e28d828c-3a81-40f9-96f2-fdc2e8e4df68" type="ANY" >
+			<logger level="ERROR" doc:name="Error" doc:id="e11d07ba-d4bf-421a-a2a1-b97c8cc33d88" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import log&#10;---&#10;log::buildLog("ERROR","An Error Occured",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="" doc:id="ea59a85a-ba71-4b3b-b04c-5fdc0dbc9c26" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "NUTRITION-500",
+  message: "Server Currently Unavailable",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<flow name="get:\foods\(foodId):nutrition-sys-api-config">
         <ee:transform doc:name="Query Param" doc:id="e024963d-73e6-48f8-9d62-c690c5a6a045">
 			<ee:variables>
 				<ee:set-variable variableName="flowName"><![CDATA[flow.name]]></ee:set-variable>
@@ -379,5 +403,6 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
+		<error-handler ref="nutrition-sys-api-error-handler" />
     </flow>
 </mule>
