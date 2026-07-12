@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="nutrition-sys-api-test-suite.xml" />
+	<munit:test name="nutrition-sys-api-test-suite-get:\foods\(foodId)\nutrients:nutrition-sys-api-configTest" doc:id="90c34bc1-fa77-4390-bf36-a4456901daba" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="0e79f37f-1741-4f0f-840f-05c4df7f05f3" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="53a6bf28-27aa-4620-915b-9c66ba8c2ef3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[&#10;  {&#10;    "fdc_id": 323604,&#10;    "food_name": "Oatmeal, regular and quick, unenriched, dry",&#10;    "energy_kcal": 389,&#10;    "protein_g": 16.9,&#10;    "iron_mg": 4.72&#10;  }&#10;]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="c8f70145-6cd5-4b72-b82a-feddadf28468" >
+				<munit:attributes value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  uriParams: {foodId: "323604"},&#10;  queryParams: {&#10;    fields: "energyKcal", &#10;    fields: "proteinG", &#10;    fields: "ironMg"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\foods\(foodId)\nutrients:nutrition-sys-api-config" doc:id="efe1284e-9140-4a2d-b3ba-b420d316a72d" name="get:\foods\(foodId)\nutrients:nutrition-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 200" doc:id="df2c1bf0-17f1-46ec-ba4b-7a11a2447096" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="nutrition-sys-api-test-suite-get:\foods\search:nutrition-sys-api-configTest" doc:id="e75f72a4-b19a-4ed8-bcee-76811678f812" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="7ded925e-bc78-4bae-ac14-c1c06bc335b3" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="166e1005-ca21-462e-beff-fb09fed009f2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[&#10;  {&#10;    "fdc_id": 74778,&#10;    "food_name": "Oatmeal",&#10;    "category": "Cereal Grains and Pasta",&#10;    "serving_size_g": 100&#10;  },&#10;  {&#10;    "fdc_id": 747449,&#10;    "food_name": "Oatmeal, instant, plain, dry",&#10;    "category": "Cereal Grains and Pasta",&#10;    "serving_size_g": 100&#10;  }&#10;]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="cd3141eb-01fa-4c35-b993-ffea0c42b34e" >
+				<munit:attributes value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  uriParams: {},&#10;  queryParams: {name: "oatmeal", limit: "5"}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\foods\search:nutrition-sys-api-config" doc:id="b2de1cf7-c1cc-4d1b-bced-41f760ee19c2" name="get:\foods\search:nutrition-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 200" doc:id="1815d23f-43e6-4df7-aa6f-ffe788328e7f" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="nutrition-sys-api-test-suite-get:\foods\(foodId):nutrition-sys-api-configTest" doc:id="c79a75b6-f716-4344-bbdf-3d517b41bfe4" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="e6de7503-db08-4bda-b554-e623e444b4dc" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c030a937-42ba-4569-b38a-a737d8affe1a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[&#10;  {&#10;    "fdc_id": 323604,&#10;    "food_name": "Oatmeal, regular and quick, unenriched, dry",&#10;    "category": "Cereal Grains and Pasta",&#10;    "serving_size_g": 100,&#10;    "source": "USDA Foundation Foods",&#10;    "energy_kcal": 389,&#10;    "protein_g": 16.9,&#10;    "carbohydrates_g": 66.3,&#10;    "dietary_fiber_g": 10.6,&#10;    "sugars_g": 0,&#10;    "total_fat_g": 6.9,&#10;    "saturated_fat_g": 1.21,&#10;    "sodium_mg": 2,&#10;    "potassium_mg": 429,&#10;    "calcium_mg": 54,&#10;    "iron_mg": 4.72,&#10;    "vitamin_c_mg": 0,&#10;    "vitamin_d_mcg": null,&#10;    "vitamin_b12_mcg": 0,&#10;    "magnesium_mg": 177,&#10;    "zinc_mg": 3.97&#10;  }&#10;]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="1cea0e49-eb5a-472a-a960-ae14230815ad" >
+				<munit:attributes value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  uriParams: {foodId: "323604"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\foods\(foodId):nutrition-sys-api-config" doc:id="caf70a3f-74d5-4f6b-8d88-d81edc306b53" name="get:\foods\(foodId):nutrition-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 200" doc:id="836001f8-9bd1-45dd-b529-443d96dec233" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="nutrition-sys-api-test-suite-get:\foods\search:nutrition-sys-api-fail-route" doc:id="3cc063c5-2666-4b07-8e7f-a275e443a28a" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="f352269a-9868-466d-8d39-940e090ea408" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="166e1005-ca21-462e-beff-fb09fed009f2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="3c4c4ad3-353a-4a76-8a90-bd930d8808de" >
+				<munit:attributes value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  uriParams: {},&#10;  queryParams: {name: "owo soup", limit: "5"}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\foods\search:nutrition-sys-api-config" doc:id="2279dbd6-15f3-4b7a-add5-f0e8e2ebe82d" name="get:\foods\search:nutrition-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 200" doc:id="9073c9bc-9e46-4dec-be68-b503b81f7b64" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="nutrition-sys-api-test-suiteTest" doc:id="23327177-5a1e-4f70-a6cf-bcb603fc2960" >
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="279369da-c012-4c38-85e6-d74a2129d32b" name="get:\health:nutrition-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 200" doc:id="2d984420-c3fc-41fe-a681-87eb2989b73c" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="nutrition-sys-api-test-suite-get:\foods\(foodId):nutrition-sys-api-fail-test" doc:id="9bc58c5f-a5ef-4ad4-a04e-3353b96658ab" description="Test" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="336dbae7-3b70-4a8a-a65f-8835b796320e" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c030a937-42ba-4569-b38a-a737d8affe1a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="0b362a17-e737-433f-b011-2733a44b68bc" >
+				<munit:attributes value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  uriParams: {foodId: "32360455"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\foods\(foodId):nutrition-sys-api-config" doc:id="675c4803-bc37-4897-aed1-2c0b7a0649ad" name="get:\foods\(foodId):nutrition-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 404" doc:id="f6083409-ae0e-48d2-ba47-8d20b25f165b" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="nutrition-sys-api-test-suite-get:\foods\(foodId)\nutrients:nutrition-sys-api-config-fail-test" doc:id="b66fedec-a779-49ab-93b0-e40afa5e365e" description="Test" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="25dbc2a3-4a52-486a-a4f7-d3950e2606fc" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="53a6bf28-27aa-4620-915b-9c66ba8c2ef3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d88223ed-abf3-4a92-bce0-6d4c8b0fb656" >
+				<munit:attributes value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  uriParams: {foodId: "323604"},&#10;  queryParams: {&#10;    fields: "energyKcal", &#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\foods\(foodId)\nutrients:nutrition-sys-api-config" doc:id="246c1c51-fb8e-44dc-a3db-be185d48d518" name="get:\foods\(foodId)\nutrients:nutrition-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 404" doc:id="f40a4595-b951-454a-9766-f638524aab17" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>
