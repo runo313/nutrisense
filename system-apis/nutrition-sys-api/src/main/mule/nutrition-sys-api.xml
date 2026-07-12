@@ -18,10 +18,16 @@
                         <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-{message: "Bad request"}]]></ee:set-payload>
+{
+  code: "WEARABLE-400",
+  message: "Bad Request: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
                     </ee:message>
                     <ee:variables>
-                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
@@ -31,10 +37,16 @@ output application/json
                         <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-{message: "Resource not found"}]]></ee:set-payload>
+{
+  code: "WEARABLE-404",
+  message: "Resource not found: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
                     </ee:message>
                     <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
@@ -44,10 +56,16 @@ output application/json
                         <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-{message: "Method not allowed"}]]></ee:set-payload>
+{
+  code: "WEARABLE-404",
+  message: "Method Not allowed: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
                     </ee:message>
                     <ee:variables>
-                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
@@ -57,10 +75,16 @@ output application/json
                         <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-{message: "Not acceptable"}]]></ee:set-payload>
+{
+  code: "WEARABLE-406",
+  message: "Not Acceptable: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
                     </ee:message>
                     <ee:variables>
-                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
@@ -70,10 +94,16 @@ output application/json
                         <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-{message: "Unsupported media type"}]]></ee:set-payload>
+{
+  code: "WEARABLE-415",
+  message: "Unsupported media type: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
                     </ee:message>
                     <ee:variables>
-                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
@@ -83,10 +113,16 @@ output application/json
                         <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-{message: "Not Implemented"}]]></ee:set-payload>
+{
+  code: "WEARABLE-501",
+  message: "Not implemented: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
                     </ee:message>
                     <ee:variables>
-                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
@@ -131,14 +167,39 @@ output application/json
 } as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0da52f54-9480-40f2-a288-d08ce1e6673e" type="ANY" >
+				<ee:transform doc:name="Transform Message" doc:id="256b1aec-9ad5-4631-836f-d621bd1a5066" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-500",
+  message: "DOWN",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
     </flow>
     <flow name="get:\foods\(foodId)\nutrients:nutrition-sys-api-config">
-        <ee:transform doc:name="Transform Message">
+        <ee:transform doc:name="Query Param">
             <ee:variables>
-                <ee:set-variable variableName="foodId">attributes.uriParams.'foodId'</ee:set-variable>
+                <ee:set-variable variableName="foodId"><![CDATA[attributes.uriParams.'foodId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="nutrients" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.*fields]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <ee:transform doc:name="Transform Message">
+        <logger level="INFO" doc:name="START" doc:id="4d4be088-af2a-48eb-9861-52f7b938ca1e" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food nutrients with foodId: '++ (vars.foodId as String)&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,vars.nutrients, vars.correlationId , vars.flowName)]"/>
+		<ee:transform doc:name="Transform Message">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -156,43 +217,35 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\foods\search:nutrition-sys-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
+		<ee:transform doc:name="Query Param" doc:id="a3e0a2fa-ff1c-4ea3-b2a6-8ef7c2e4b3ec" >
+			<ee:variables >
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="name" ><![CDATA[attributes.queryParams.name]]></ee:set-variable>
+				<ee:set-variable variableName="limit" ><![CDATA[attributes.queryParams.limit as Number default 10]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="228a3f51-2291-4b85-b356-9a853a97ee66" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food: '++ (vars.name as String)&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,null, vars.correlationId , vars.flowName)]" />
+		<ee:transform doc:name="Transform Message" doc:id="9a277005-b2c2-4851-9ac0-6aaa03d4de75" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-  totalResults: 3,
-  foods: [
-    {
-      foodId: 74778,
-      name: "Oatmeal",
-      category: "Cereals Grains and Pasta",
-      servingSizeG: 100
-    }, 
-    {
-      foodId: 747449,
-      name: "Oatmeal, instant, plain, dry",
-      category: "Cereal Grains and Pasta",
-      servingSizeG: 100
-    }, 
-    {
-      foodId: 747450,
-      name: "Oatmeal, steel cut, dry",
-      category: "Cereal Grains and Pasta",
-      servingSizeG: 100
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	status:"success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
     </flow>
     <flow name="get:\foods\(foodId):nutrition-sys-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="foodId">attributes.uriParams.'foodId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
+        <ee:transform doc:name="Query Param" doc:id="e024963d-73e6-48f8-9d62-c690c5a6a045">
+			<ee:variables>
+				<ee:set-variable variableName="flowName"><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="foodId"><![CDATA[attributes.uriParams.'foodId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[correlationId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="d1699c94-555a-406b-b38a-10e67570527f" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested full food nutrient data: '&#10;var foodId = vars.foodId as String&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
         <ee:transform doc:name="Transform Message">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
