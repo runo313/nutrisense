@@ -1,0 +1,19 @@
+#%RAML 1.0 DataType
+
+type: object
+displayName: Error
+properties:
+  message:
+    type: string
+    example: Invalid request.
+  correlationId:
+    type: string
+    example: 3f3e2c4d-9b0a-4a0f-a2ab-4f7f3c2b9a11
+  timestamp:
+    type: datetime
+    example: 2026-06-21T14:32:00Z
+  originLayer:
+    type: string
+    required: false
+    example: process-api
+    enum: [system-api, process-api, experience-api]

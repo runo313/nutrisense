@@ -1,0 +1,12 @@
+#%RAML 1.0 DataType
+type: object
+displayName: HealthCheck
+properties:
+  status:
+    type: string
+    enum: [UP, DOWN, DEGRADED]
+  timestamp:
+    type: datetime
+example:
+  status: "UP"
+  timestamp: "2026-06-21T12:00:00Z"
