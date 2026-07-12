@@ -1,0 +1,18 @@
+#%RAML 1.0 SecurityScheme
+type: OAuth 2.0
+description: OAuth 2.0/JWT
+describedBy:
+  headers:
+    Authorization:
+      type: string
+      required: true
+      example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  responses:
+    401:
+      description: Missing, invalid, or expired token
+    403:
+      description: Token valid but insufficient scope for the requested resource
+settings:
+  authorizationGrants: [ authorization_code, client_credentials ]
+  accessTokenUri: https://example.com/oauth/token
+  authorizationUri: https://example.com/oauth/authorize

@@ -1,5 +1,390 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <flow name="nutrition-sys-api-main">
+        <http:listener config-ref="nutrition-sys-api-httpListenerConfig" path="/api/v1/nutrition-data-sapi/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="nutrition-sys-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-400",
+  message: "Bad Request: " ++ (error.description replace /\/\d+ / with "") as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "Resource not found: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-404",
+  message: "Method Not allowed: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-406",
+  message: "Not Acceptable: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-415",
+  message: "Unsupported media type: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-501",
+  message: "Not implemented: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\health:nutrition-sys-api-config" doc:id="3ddfd2f0-d840-418b-9ebb-81c9ec01cbf2">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "UP",
+  timestamp: now()
+} ]]></ee:set-payload>
+            </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+        </ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0da52f54-9480-40f2-a288-d08ce1e6673e" type="ANY" >
+				<ee:transform doc:name="Transform Message" doc:id="256b1aec-9ad5-4631-836f-d621bd1a5066" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "WEARABLE-500",
+  message: "DOWN",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    </flow>
+    <flow name="get:\foods\(foodId)\nutrients:nutrition-sys-api-config">
+        <ee:transform doc:name="Query Param">
+            <ee:variables>
+                <ee:set-variable variableName="foodId"><![CDATA[attributes.uriParams.'foodId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="nutrients" ><![CDATA[%dw 2.0
+import nutrientMapping
+output application/java
+var nutrients = attributes.queryParams.*fields default []
+var mappedFields = (nutrientMapping::mapToDbValues(nutrients) default []) as Array<String>
+---
+mappedFields joinBy ", "]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="4d4be088-af2a-48eb-9861-52f7b938ca1e" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food nutrients with foodId'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;nutrients: vars.nutrients&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]"/>
+		<set-variable value='#["SELECT fdc_id, food_name"&#10;++&#10;(if (!isEmpty(vars.nutrients)) ", " ++ vars.nutrients else "")&#10;++&#10;" FROM foods WHERE fdc_id = :foodId"]' doc:name="Set Variable" doc:id="45c84a67-52eb-409e-9de8-0e88ed327059" variableName="sql"/>
+		<db:select doc:name="Select Requested Nutrients" doc:id="53a6bf28-27aa-4620-915b-9c66ba8c2ef3" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[#[vars.sql]]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	foodId: vars.foodId
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="a419314d-1ab0-441c-a1b8-0429b8f75187" >
+			<when expression="#[sizeOf(payload) &gt; 0]" >
+				<ee:transform doc:name="Transform Message" doc:id="f7d58253-8d79-49b6-a628-062491972acd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import nutrientMapping 
+output application/json
+var dbColumns = vars.nutrients splitBy ", "
+var apiFields = nutrientMapping::mapToApiFields(dbColumns)
+var row = payload[0]
+var nutrients = dbColumns map ((col, index) -> {
+  (apiFields[index] as String): row[col]
+}) reduce ((item, acc = {}) -> acc ++ item)
+---
+if (row != null)
+{
+  foodId: row.fdc_id,
+  name: row.food_name,
+  nutrients: nutrients
+}
+else null]]></ee:set-payload>
+			</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+					</ee:variables>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="NOT FOUND" doc:id="f1e7df5f-c180-4dc4-81f3-54f2456c5cac" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food Id does not exist'&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
+				<ee:transform doc:name="Not data found" doc:id="30c471bd-8323-4a0e-ab9c-c07a231272f4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "NUTRITION-404",
+  message: "food id: "++ vars.foodId as String ++ " does not exist",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END" doc:id="556f527b-9416-40a7-ac34-ca64a701b46a" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for food nutrients with foodId Complete'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;nutrients: vars.nutrients&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]"/>
+		<error-handler ref="nutrition-sys-api-error-handler" />
+    </flow>
+    <flow name="get:\foods\search:nutrition-sys-api-config">
+		<ee:transform doc:name="Query Param" doc:id="a3e0a2fa-ff1c-4ea3-b2a6-8ef7c2e4b3ec" >
+			<ee:variables >
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="name" ><![CDATA[attributes.queryParams.name]]></ee:set-variable>
+				<ee:set-variable variableName="limit" ><![CDATA[attributes.queryParams.limit as Number default 10]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="228a3f51-2291-4b85-b356-9a853a97ee66" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food details: '++ (vars.name as String)&#10;var foodname= {&#10;	foodName: vars.name&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodname, vars.correlationId , vars.flowName)]" />
+		<db:select doc:name="Select Foods" doc:id="166e1005-ca21-462e-beff-fb09fed009f2" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT fdc_id, food_name, category, serving_size_g 
+FROM foods 
+WHERE to_tsvector('english', food_name) @@ plainto_tsquery('english', :name)
+LIMIT :limit]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	name: vars.name,
+	limit: vars.limit
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="9a277005-b2c2-4851-9ac0-6aaa03d4de75" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	totalResults: sizeOf(payload),
+	foods: payload map (item)->{
+		foodId: item.fdc_id,
+		name: item.food_name,
+		category: item.category,
+		servingSizeG: item.serving_size_g
+	}
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="END" doc:id="00e470ab-7c2b-4260-8001-f8155b9c8a52" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for food search Complete'&#10;var message = {&#10;&quot;foodName&quot;: vars.name as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]" />
+		<error-handler ref="nutrition-sys-api-error-handler" />
+    </flow>
+    <error-handler name="nutrition-sys-api-error-handler" doc:id="f6df9c47-525c-4625-ae24-a0fef8a21cff" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e28d828c-3a81-40f9-96f2-fdc2e8e4df68" type="ANY" >
+			<logger level="ERROR" doc:name="Error" doc:id="e11d07ba-d4bf-421a-a2a1-b97c8cc33d88" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import log&#10;---&#10;log::buildLog("ERROR","An Error Occured",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="" doc:id="ea59a85a-ba71-4b3b-b04c-5fdc0dbc9c26" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "NUTRITION-500",
+  message: "Server Currently Unavailable",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<flow name="get:\foods\(foodId):nutrition-sys-api-config">
+        <ee:transform doc:name="Query Param" doc:id="e024963d-73e6-48f8-9d62-c690c5a6a045">
+			<ee:variables>
+				<ee:set-variable variableName="flowName"><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="foodId"><![CDATA[attributes.uriParams.'foodId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[correlationId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="d1699c94-555a-406b-b38a-10e67570527f" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested full food nutrient data '&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
+        <db:select doc:name="Select Foods" doc:id="c030a937-42ba-4569-b38a-a737d8affe1a" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql><![CDATA[SELECT fdc_id, food_name, category, source, serving_size_g,
+       energy_kcal, protein_g, total_fat_g, saturated_fat_g,
+       carbohydrates_g, dietary_fiber_g, sugars_g, sodium_mg,
+       potassium_mg, calcium_mg, iron_mg, magnesium_mg, zinc_mg,
+       vitamin_c_mg, vitamin_d_mcg, vitamin_b12_mcg
+FROM foods
+WHERE fdc_id = :foodId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	foodId: vars.foodId
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="65aaf825-fb90-475b-a5b2-ab4082553f07" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map(item) -> {
+    foodId: item.fdc_id,
+    name: item.food_name,
+    category: item.category,
+    servingSizeG: item.serving_size_g,
+    source: "USDA Foundation Foods",
+    nutrients: {
+        energyKcal: item.energy_kcal,
+        proteinG: item.protein_g,
+        carbohydratesG: item.carbohydrates_g,
+        dietaryFiberG: item.dietary_fiber_g,
+        sugarsG: item.sugars_g,
+        totalFatG: item.total_fat_g,
+        saturatedFatG: item.saturated_fat_g,
+        sodiumMg: item.sodium_mg,
+        potassiumMg: item.potassium_mg,
+        calciumMg: item.calcium_mg,
+        ironMg: item.iron_mg,
+        vitaminCMg: item.vitamin_c_mg,
+        vitaminDMcg: item.vitamin_d_mcg,
+        vitaminB12Mcg: item.vitamin_b12_mcg,
+        magnesiumMg: item.magnesium_mg,
+        zincMg: item.zinc_mg
+    }
+}]]></ee:set-payload>
+            </ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+					</ee:variables>
+        </ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="NOT FOUND" doc:id="11270b5c-7a2f-4573-848d-321a2b848c07" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food Id does not exist'&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
+				<ee:transform doc:name="Not data found" doc:id="282a963d-c730-4b7e-ab90-709f13e66783" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "NUTRITION-404",
+  message: "food Id "++ vars.foodId  as String ++ " does not exist",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END" doc:id="f26322a4-541b-4d18-892a-dd3ae55a9c3b" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for complete food data complete'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]" />
+		<error-handler ref="nutrition-sys-api-error-handler" />
+    </flow>
+</mule>

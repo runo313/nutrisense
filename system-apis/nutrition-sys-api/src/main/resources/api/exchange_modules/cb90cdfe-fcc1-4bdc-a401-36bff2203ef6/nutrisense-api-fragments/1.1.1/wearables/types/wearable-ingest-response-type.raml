@@ -1,0 +1,29 @@
+#%RAML 1.0 DataType
+type: object
+displayName: WearableIngestResponse
+properties:
+  point_metrics_inserted:
+    type: integer
+    description: Number of point metric records successfully inserted
+  point_metrics_skipped:
+    type: integer
+    description: Number of point metric records skipped due to idempotency match
+  sleep_sessions_inserted:
+    type: integer
+    description: Number of sleep session records successfully inserted
+  sleep_sessions_skipped:
+    type: integer
+    description: Number of sleep session records skipped due to idempotency match
+  workouts_inserted:
+    type: integer
+    description: Number of workout records successfully inserted
+  workouts_skipped:
+    type: integer
+    description: Number of workout records skipped due to idempotency match
+example:
+  point_metrics_inserted: 42
+  point_metrics_skipped: 4
+  sleep_sessions_inserted: 0
+  sleep_sessions_skipped: 0
+  workouts_inserted: 3
+  workouts_skipped: 0

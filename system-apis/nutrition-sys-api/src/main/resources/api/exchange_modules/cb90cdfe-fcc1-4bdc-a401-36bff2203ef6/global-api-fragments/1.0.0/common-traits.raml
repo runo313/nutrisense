@@ -1,0 +1,22 @@
+#%RAML 1.0 Trait
+usage: Apply to GET list endpoints to support pagination via limit/offset.
+queryParameters:
+  limit:
+    type: integer
+    description: Maximum number of records to return
+    default: 50
+    minimum: 1
+    maximum: 500
+    required: false
+  offset:
+    type: integer
+    description: Number of records to skip before returning results
+    default: 0
+    minimum: 0
+    required: false
+responses:
+  200:
+    headers:
+      X-Total-Count:
+        type: integer
+        description: Total records matching the query, ignoring limit/offset

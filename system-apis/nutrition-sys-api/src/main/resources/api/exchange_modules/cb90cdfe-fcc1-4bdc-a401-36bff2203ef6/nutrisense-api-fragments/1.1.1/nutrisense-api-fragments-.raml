@@ -1,0 +1,22 @@
+#%RAML 1.0 Library
+usage: NutriSense wearable domain types for use across NutriSense API specs.
+
+types:
+  PointMetric: !include wearables/types/point-metric-type.raml
+  SleepSession: !include wearables/types/sleep-session-type.raml
+  WorkoutStatistics: !include wearables/types/workout-statistics-type.raml
+  Workout: !include wearables/types/workout-type.raml
+  WearableIngest: !include wearables/types/wearable-ingest-type.raml
+  PointMetricSummary: !include wearables/types/point-metric-summary-type.raml
+  SleepSessionSummary: !include wearables/types/sleep-session-summary-type.raml
+  WorkoutSummary: !include wearables/types/workout-summary-type.raml
+  WearablesIngestResponse: !include wearables/types/wearable-ingest-response-type.raml
+  WearableSummaryResponse: !include wearables/types/wearable-summary-response-type.raml
+  FoodSummary: !include nutrition/types/food-summary-type.raml
+  FoodSearchResponse: !include nutrition/types/food-search-response-type.raml
+  FoodDetail: !include nutrition/types/food-detail-type.raml
+  NutrientProfile: !include nutrition/types/nutrient-profile-type.raml
+  AllergenFlags: !include nutrition/types/allergen-flags-type.raml
+  DietLabels: !include nutrition/types/diet-labels-type.raml
+  NutrientField: !include nutrition/types/nutrient-field-type.raml
+  RequestedNutrients: !include nutrition/types/requested-nutrients-response-type.raml

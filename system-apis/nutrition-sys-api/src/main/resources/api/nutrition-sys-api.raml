@@ -1,0 +1,123 @@
+#%RAML 1.0
+title: nutrition-sys-api
+baseUri: https://localhost:8082/api/v1/nutrition-data-sapi
+version: 1.0.0
+
+uses:
+  global: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/global-api-fragments/1.0.0/global-api-fragments.raml
+  datatypes: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/nutrisense-api-fragments/1.1.1/nutrisense-api-fragments-.raml
+
+/foods: 
+  /search: 
+    get:
+      description: Search for foods by name. Returns the top K matching food records with basic information
+      securedBy: global.client-id-based
+      queryParameters:
+        name:
+          description: Name of the food
+          type: string
+          required: true
+        limit:
+          type: number
+          required: false
+          default: 10
+          maximum: 15
+      responses:
+        200:
+          body:
+            application/json:
+              type: datatypes.FoodSearchResponse
+        400:
+          body:
+            application/json:
+              type: global.Error
+        401:
+          body:
+            application/json:
+              type: global.Error
+        404:
+          body:
+            application/json:
+              type: global.Error
+        500:
+          body:
+            application/json:
+              type: global.Error
+
+  /{foodId}:
+    uriParameters:
+      foodId: 
+        type: integer
+        description: food identifier
+    get:
+      description: Returns the full nutrient profile and metadata for a specific food by its USDA food id
+      securedBy: global.client-id-based
+      responses: 
+        200: 
+          body: 
+            application/json:
+              type: datatypes.FoodDetail
+        401:
+          body:
+            application/json:
+              type: global.Error
+        404:
+          body:
+            application/json:
+              type: global.Error
+        500:
+          body:
+            application/json:
+              type: global.Error
+    /nutrients: 
+      get: 
+        securedBy: global.client-id-based
+        description: Returns a filtered nutrient profile for a specific food containing only the requested nutrient fields. 
+        queryParameters: 
+          fields:
+            required: true
+            description: List of nutrient field names to return. Must include at least one value.
+            type: array
+            minItems: 1
+            items:
+              type: datatypes.NutrientField
+        responses:
+          200:
+            body:
+              application/json:
+                type: datatypes.RequestedNutrients   
+          400:
+            body:
+              application/json:
+                type: global.Error
+          401:
+            body:
+              application/json:
+                type: global.Error
+          404:
+            body:
+              application/json:
+                type: global.Error
+          500:
+            body:
+              application/json:
+                type: global.Error
+               
+/health:
+  get:
+    securedBy: global.client-id-based
+    description: Returns the health status of the Nutrition System API
+    responses:
+      200:
+        body:
+          application/json:
+            type: global.HealthCheck
+      401:
+        body:
+          application/json:
+            type: global.Error
+      500:
+        body:
+          application/json:
+            type: global.Error
+
