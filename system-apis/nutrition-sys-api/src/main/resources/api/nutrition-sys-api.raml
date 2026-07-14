@@ -52,6 +52,11 @@ uses:
     get:
       description: Returns the full nutrient profile and metadata for a specific food by its USDA food id
       securedBy: global.client-id-based
+      queryParameters:
+        portions:
+          type: boolean
+          required: false
+          default: false
       responses: 
         200: 
           body: 

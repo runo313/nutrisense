@@ -142,5 +142,26 @@
 			<munit-tools:assert-that doc:name="Assert HTTP status 404" doc:id="f40a4595-b951-454a-9766-f638524aab17" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
 		</munit:validation>
 	</munit:test>
+	<munit:test name="nutrition-sys-api-test-suite-get:\foods\(foodId):nutrition-sys-api-food-portions" doc:id="76591ace-2a0c-412a-9571-63ab99d95751" description="Test" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="94fa8a53-c3cd-4909-8c44-2755385de0bc" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e47e87e7-4f85-42d0-9b46-e77bf832cdaf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[&#10;  {&#10;    "fdc_id": 323604,&#10;    "food_name": "Oatmeal, regular and quick, unenriched, dry",&#10;    "category": "Cereal Grains and Pasta",&#10;    "serving_size_g": 100,&#10;    "source": "USDA Foundation Foods",&#10;    "energy_kcal": 389,&#10;    "protein_g": 16.9,&#10;    "carbohydrates_g": 66.3,&#10;    "dietary_fiber_g": 10.6,&#10;    "sugars_g": 0,&#10;    "total_fat_g": 6.9,&#10;    "saturated_fat_g": 1.21,&#10;    "sodium_mg": 2,&#10;    "potassium_mg": 429,&#10;    "calcium_mg": 54,&#10;    "iron_mg": 4.72,&#10;    "vitamin_c_mg": 0,&#10;    "vitamin_d_mcg": null,&#10;    "vitamin_b12_mcg": 0,&#10;    "magnesium_mg": 177,&#10;    "zinc_mg": 3.97&#10;  }&#10;]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="3dac3845-6b3a-4bca-a70d-68e46cb190fd" >
+				<munit:attributes value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  uriParams: {foodId: "323604"},&#10;  queryParams: {&#10;  	portions: true&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get:\foods\(foodId):nutrition-sys-api-config" doc:id="b7280a5e-dd02-4995-aac3-c2c0dd6b3212" name="get:\foods\(foodId):nutrition-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert HTTP status 200" doc:id="84ee41b6-54b5-43a3-9a4c-00b7bb165430" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
 
 </mule>

@@ -173,15 +173,15 @@ output application/json
 				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
 				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
 				<ee:set-variable variableName="nutrients" ><![CDATA[%dw 2.0
-import nutrientMapping
+import mapToDbValues from dwl::nutrientMapping
 output application/java
 var nutrients = attributes.queryParams.*fields default []
-var mappedFields = (nutrientMapping::mapToDbValues(nutrients) default []) as Array<String>
+var mappedFields = (mapToDbValues(nutrients) default []) as Array<String>
 ---
 mappedFields joinBy ", "]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <logger level="INFO" doc:name="START" doc:id="4d4be088-af2a-48eb-9861-52f7b938ca1e" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food nutrients with foodId'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;nutrients: vars.nutrients&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]"/>
+        <logger level="INFO" doc:name="START" doc:id="4d4be088-af2a-48eb-9861-52f7b938ca1e" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food nutrients with foodId'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;nutrients: vars.nutrients&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]"/>
 		<set-variable value='#["SELECT fdc_id, food_name"&#10;++&#10;(if (!isEmpty(vars.nutrients)) ", " ++ vars.nutrients else "")&#10;++&#10;" FROM foods WHERE fdc_id = :foodId"]' doc:name="Set Variable" doc:id="45c84a67-52eb-409e-9de8-0e88ed327059" variableName="sql"/>
 		<db:select doc:name="Select Requested Nutrients" doc:id="53a6bf28-27aa-4620-915b-9c66ba8c2ef3" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[#[vars.sql]]]></db:sql>
@@ -194,10 +194,10 @@ mappedFields joinBy ", "]]></ee:set-variable>
 				<ee:transform doc:name="Transform Message" doc:id="f7d58253-8d79-49b6-a628-062491972acd">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
-import nutrientMapping 
+import mapToApiFields from dwl::nutrientMapping
 output application/json
 var dbColumns = vars.nutrients splitBy ", "
-var apiFields = nutrientMapping::mapToApiFields(dbColumns)
+var apiFields = mapToApiFields(dbColumns)
 var row = payload[0]
 var nutrients = dbColumns map ((col, index) -> {
   (apiFields[index] as String): row[col]
@@ -217,7 +217,7 @@ else null]]></ee:set-payload>
 		</ee:transform>
 			</when>
 			<otherwise >
-				<logger level="INFO" doc:name="NOT FOUND" doc:id="f1e7df5f-c180-4dc4-81f3-54f2456c5cac" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food Id does not exist'&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
+				<logger level="INFO" doc:name="NOT FOUND" doc:id="f1e7df5f-c180-4dc4-81f3-54f2456c5cac" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food Id does not exist'&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
 				<ee:transform doc:name="Not data found" doc:id="30c471bd-8323-4a0e-ab9c-c07a231272f4" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -237,7 +237,7 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END" doc:id="556f527b-9416-40a7-ac34-ca64a701b46a" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for food nutrients with foodId Complete'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;nutrients: vars.nutrients&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]"/>
+		<logger level="INFO" doc:name="END" doc:id="556f527b-9416-40a7-ac34-ca64a701b46a" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for food nutrients with foodId Complete'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;nutrients: vars.nutrients&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]"/>
 		<error-handler ref="nutrition-sys-api-error-handler" />
     </flow>
     <flow name="get:\foods\search:nutrition-sys-api-config">
@@ -249,7 +249,7 @@ output application/json
 				<ee:set-variable variableName="limit" ><![CDATA[attributes.queryParams.limit as Number default 10]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="228a3f51-2291-4b85-b356-9a853a97ee66" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food details: '++ (vars.name as String)&#10;var foodname= {&#10;	foodName: vars.name&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodname, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="START" doc:id="228a3f51-2291-4b85-b356-9a853a97ee66" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food details: '++ (vars.name as String)&#10;var foodname= {&#10;	foodName: vars.name&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,foodname, vars.correlationId , vars.flowName)]" />
 		<db:select doc:name="Select Foods" doc:id="166e1005-ca21-462e-beff-fb09fed009f2" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT fdc_id, food_name, category, serving_size_g 
 FROM foods 
@@ -279,12 +279,12 @@ output application/json
 				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="00e470ab-7c2b-4260-8001-f8155b9c8a52" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for food search Complete'&#10;var message = {&#10;&quot;foodName&quot;: vars.name as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="END" doc:id="00e470ab-7c2b-4260-8001-f8155b9c8a52" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for food search Complete'&#10;var message = {&#10;&quot;foodName&quot;: vars.name as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]" />
 		<error-handler ref="nutrition-sys-api-error-handler" />
     </flow>
     <error-handler name="nutrition-sys-api-error-handler" doc:id="f6df9c47-525c-4625-ae24-a0fef8a21cff" >
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e28d828c-3a81-40f9-96f2-fdc2e8e4df68" type="ANY" >
-			<logger level="ERROR" doc:name="Error" doc:id="e11d07ba-d4bf-421a-a2a1-b97c8cc33d88" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import log&#10;---&#10;log::buildLog("ERROR","An Error Occured",logMessage,vars.correlationId , vars.flowName)]' />
+			<logger level="ERROR" doc:name="Error" doc:id="e11d07ba-d4bf-421a-a2a1-b97c8cc33d88" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An Error Occured",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="" doc:id="ea59a85a-ba71-4b3b-b04c-5fdc0dbc9c26" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
@@ -310,10 +310,29 @@ output application/json
 				<ee:set-variable variableName="flowName"><![CDATA[flow.name]]></ee:set-variable>
 				<ee:set-variable variableName="foodId"><![CDATA[attributes.uriParams.'foodId']]></ee:set-variable>
 				<ee:set-variable variableName="correlationId"><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="portions" ><![CDATA[(attributes.queryParams.portions default false) as Boolean]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="d1699c94-555a-406b-b38a-10e67570527f" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested full food nutrient data '&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
-        <db:select doc:name="Select Foods" doc:id="c030a937-42ba-4569-b38a-a737d8affe1a" config-ref="NUTRISENSE_DB_CONFIG">
+		<logger level="INFO" doc:name="START" doc:id="d1699c94-555a-406b-b38a-10e67570527f" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested full food nutrient data '&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;portions: vars.portions&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
+        <choice doc:name="Choice" doc:id="bcc7288c-0861-457c-95e7-e5bbe4e87896" >
+			<when expression="#[(vars.portions as Boolean)== true]">
+				<db:select doc:name="Select Foods with Portion" doc:id="e47e87e7-4f85-42d0-9b46-e77bf832cdaf" config-ref="NUTRISENSE_DB_CONFIG" >
+					<db:sql ><![CDATA[SELECT f.fdc_id, f.food_name, f.category, f.source, f.serving_size_g,
+       f.energy_kcal, f.protein_g, f.total_fat_g, f.saturated_fat_g,
+       f.carbohydrates_g, f.dietary_fiber_g, f.sugars_g, f.sodium_mg,
+       f.potassium_mg, f.calcium_mg, f.iron_mg, f.magnesium_mg, f.zinc_mg,
+       f.vitamin_c_mg, f.vitamin_d_mcg, f.vitamin_b12_mcg, fp.id,
+       fp.amount, fp.measure_unit_description, fp.gram_weight
+FROM foods f 
+LEFT JOIN food_portions fp ON f.fdc_id = fp.fdc_id
+WHERE f.fdc_id = :foodId]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	foodId: vars.foodId
+}]]]></db:input-parameters>
+				</db:select>
+			</when>
+			<otherwise >
+				<db:select doc:name="Select Foods" doc:id="c030a937-42ba-4569-b38a-a737d8affe1a" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql><![CDATA[SELECT fdc_id, food_name, category, source, serving_size_g,
        energy_kcal, protein_g, total_fat_g, saturated_fat_g,
        carbohydrates_g, dietary_fiber_g, sugars_g, sodium_mg,
@@ -325,38 +344,17 @@ WHERE fdc_id = :foodId]]></db:sql>
 	foodId: vars.foodId
 }]]]></db:input-parameters>
 		</db:select>
+			</otherwise>
+		</choice>
 		<choice doc:name="Choice" doc:id="65aaf825-fb90-475b-a5b2-ab4082553f07" >
 			<when expression="#[sizeOf(payload) &gt; 0]">
 				<ee:transform doc:name="Transform Message">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
+import transformPayload from dwl::foodDetail
 ---
-payload map(item) -> {
-    foodId: item.fdc_id,
-    name: item.food_name,
-    category: item.category,
-    servingSizeG: item.serving_size_g,
-    source: "USDA Foundation Foods",
-    nutrients: {
-        energyKcal: item.energy_kcal,
-        proteinG: item.protein_g,
-        carbohydratesG: item.carbohydrates_g,
-        dietaryFiberG: item.dietary_fiber_g,
-        sugarsG: item.sugars_g,
-        totalFatG: item.total_fat_g,
-        saturatedFatG: item.saturated_fat_g,
-        sodiumMg: item.sodium_mg,
-        potassiumMg: item.potassium_mg,
-        calciumMg: item.calcium_mg,
-        ironMg: item.iron_mg,
-        vitaminCMg: item.vitamin_c_mg,
-        vitaminDMcg: item.vitamin_d_mcg,
-        vitaminB12Mcg: item.vitamin_b12_mcg,
-        magnesiumMg: item.magnesium_mg,
-        zincMg: item.zinc_mg
-    }
-}]]></ee:set-payload>
+transformPayload(payload) ]]></ee:set-payload>
             </ee:message>
 					<ee:variables >
 						<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
@@ -364,7 +362,7 @@ payload map(item) -> {
         </ee:transform>
 			</when>
 			<otherwise >
-				<logger level="INFO" doc:name="NOT FOUND" doc:id="11270b5c-7a2f-4573-848d-321a2b848c07" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food Id does not exist'&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
+				<logger level="INFO" doc:name="NOT FOUND" doc:id="11270b5c-7a2f-4573-848d-321a2b848c07" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested food Id does not exist'&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
 				<ee:transform doc:name="Not data found" doc:id="282a963d-c730-4b7e-ab90-709f13e66783" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -384,7 +382,7 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END" doc:id="f26322a4-541b-4d18-892a-dd3ae55a9c3b" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for complete food data complete'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;}&#10;import log&#10;---&#10;log::buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="END" doc:id="f26322a4-541b-4d18-892a-dd3ae55a9c3b" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request for complete food data complete'&#10;var message = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,message, vars.correlationId , vars.flowName)]" />
 		<error-handler ref="nutrition-sys-api-error-handler" />
     </flow>
 </mule>
