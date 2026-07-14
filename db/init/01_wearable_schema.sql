@@ -1,7 +1,7 @@
 
 CREATE TABLE point_metrics (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
+    user_id TEXT NOT NULL,
     metric_type TEXT NOT NULL,
     value NUMERIC NOT NULL,
     recorded_at TIMESTAMPTZ NOT NULL,
@@ -18,7 +18,7 @@ CREATE INDEX idx_point_metrics_user_type_time
 
 CREATE TABLE sleep_sessions (
     id                BIGSERIAL PRIMARY KEY,
-    user_id           BIGINT NOT NULL,
+    user_id           TEXT NOT NULL,
     stage             TEXT NOT NULL,
     start_time        TIMESTAMPTZ NOT NULL,
     end_time          TIMESTAMPTZ NOT NULL,
@@ -36,7 +36,7 @@ CREATE INDEX idx_sleep_sessions_user_time
 
 CREATE TABLE workouts (
     id                BIGSERIAL PRIMARY KEY,
-    user_id           BIGINT NOT NULL,
+    user_id           TEXT NOT NULL,
     activity_type     TEXT NOT NULL,
     start_time        TIMESTAMPTZ NOT NULL,
     end_time          TIMESTAMPTZ NOT NULL,
