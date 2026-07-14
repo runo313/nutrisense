@@ -20,6 +20,10 @@ properties:
   nutrients: 
     type: !include nutrient-profile-type.raml
     description: Full nutritional composition per 100g
+  servingSizes?:
+    type: array
+    description: Serving size options for this food. Only present when portions=true query param is passed
+    items: !include food-portion-type.raml
   allergens?: 
     type: !include allergen-flags-type.raml
     description: Allergen presence flags
