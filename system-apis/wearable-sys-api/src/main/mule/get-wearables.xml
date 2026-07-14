@@ -15,31 +15,23 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 					<ee:variables >
 						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes,constructDateClause0 from dwl::transforms
 
 var baseSQL = "SELECT user_id, metric_type, value, unit, source_device, recorded_at, duration_seconds FROM point_metrics WHERE user_id = :user_id"
 
-var sanitizedMetricTypes= if(vars.queryParams.metricType != null )
-    vars.queryParams.metricType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedMetricTypes= sanitizedTypes(vars.queryParams.metricType)
 
 var metricTypeClause= if (sanitizedMetricTypes != null) " AND metric_type IN (" ++ (sanitizedMetricTypes map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
 
-var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
-    " AND recorded_at BETWEEN :startDate AND :endDate"
-  else ""
+var dateClause = constructDateClause0(vars.queryParams.startDate,vars.queryParams.endDate)
 var endClause = " ORDER BY recorded_at DESC LIMIT :limit OFFSET :offset"
 ---
 baseSQL ++ metricTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import constructInputParamsWearables from dwl::transforms
 ---
-{
-	user_id: vars.userId as Number,
-	limit: vars.queryParams.limit,
-	offset: vars.queryParams.offset
-} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
-	startDate: vars.queryParams.startDate ,
-    endDate: vars.queryParams.endDate 
-}else {})]]></ee:set-variable>
+constructInputParamsWearables(vars.userId,vars.queryParams)]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<db:select doc:name="Select Point Metrics" doc:id="deafda75-3a32-4fee-acf1-322e31b65868" config-ref="NUTRISENSE_DB_CONFIG" >
@@ -65,14 +57,9 @@ payload]]></ee:set-payload>
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
@@ -87,32 +74,24 @@ output application/json
 					<ee:variables >
 						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes,constructDateClause1 from dwl::transforms
 
 var baseSQL = "SELECT user_id, stage, start_time, end_time,duration_seconds,source_device FROM sleep_sessions WHERE user_id = :user_id"
 
-var sanitizedSleepStages= if(vars.queryParams.sleep_stage != null )
-    vars.queryParams.sleep_stage map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedSleepStages= sanitizedTypes(vars.queryParams.sleep_stage)
 
 var sleepStageClause= if (sanitizedSleepStages != null) " AND stage IN (" ++ (sanitizedSleepStages map ("'" ++ lower($) ++ "'") joinBy ", ") ++ ")" else ""
 
-var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
-    " AND start_time BETWEEN :startDate AND :endDate"
-  else ""
+var dateClause = constructDateClause1(vars.queryParams.startDate,vars.queryParams.endDate)
   
 var endClause = " ORDER BY start_time DESC LIMIT :limit OFFSET :offset"
 ---
 baseSQL ++ sleepStageClause ++ dateClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import constructInputParamsWearables from dwl::transforms
 ---
-{
-	user_id: vars.userId as Number,
-	limit: vars.queryParams.limit,
-	offset: vars.queryParams.offset
-} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
-	startDate: vars.queryParams.startDate ,
-    endDate: vars.queryParams.endDate 
-}else {})]]></ee:set-variable>
+constructInputParamsWearables(vars.userId,vars.queryParams)]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<db:select doc:name="Select Sleep Sessions" doc:id="b4eb3584-1085-48f5-96c9-9b5fc7637e58" config-ref="NUTRISENSE_DB_CONFIG" >
@@ -138,14 +117,9 @@ payload]]></ee:set-payload>
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
@@ -160,7 +134,7 @@ output application/json
 					<ee:variables >
 						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
 output application/java
-
+import sanitizedTypes,constructDateClause2 from dwl::transforms
 var baseSQL = "SELECT w.id, w.user_id, w.activity_type, w.start_time, w.end_time, 
 w.source_device, w.duration, w.duration_unit, w.energy_burned,
 ws.metric_type as stat_metric_type, ws.unit as stat_unit,
@@ -169,27 +143,18 @@ FROM workouts w
 LEFT JOIN workout_statistics ws ON ws.workout_id = w.id
 WHERE w.user_id = :user_id"
 
-var sanitizedactivityType= if(vars.queryParams.activityType != null )
-    vars.queryParams.activityType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedactivityType=sanitizedTypes(vars.queryParams.activityType)
 
 var activityTypeClause= if (sanitizedactivityType != null) " AND activity_type IN (" ++ (sanitizedactivityType map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
-var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
-    " AND w.start_time BETWEEN :startDate AND :endDate"
-  else ""
+var dateClause = constructDateClause2(vars.queryParams.startDate,vars.queryParams.endDate)
 var endClause = " ORDER BY w.start_time DESC LIMIT :limit OFFSET :offset"
 ---
 baseSQL ++ activityTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import constructInputParamsWearables from dwl::transforms
 ---
-{
-	user_id: vars.userId as Number,
-	limit: vars.queryParams.limit,
-	offset: vars.queryParams.offset
-} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
-	startDate: vars.queryParams.startDate ,
-    endDate: vars.queryParams.endDate 
-}else {})]]></ee:set-variable>
+constructInputParamsWearables(vars.userId,vars.queryParams)]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<db:select doc:name="Select WorkOut" doc:id="b147209e-a7a1-4be1-ba66-242a36d5258a" config-ref="NUTRISENSE_DB_CONFIG" >
@@ -200,28 +165,10 @@ output application/java
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import transformWorkOuts from dwl::transforms
 ---
-payload groupBy ((item) -> item.id) 
-pluck ((rows, workoutId) -> {
-  user_id: rows[0].user_id,
-  activity_type: rows[0].activity_type,
-  start_time: rows[0].start_time,
-  end_time: rows[0].end_time,
-  source_device: rows[0].source_device,
-  duration: rows[0].duration,
-  duration_unit: rows[0].duration_unit,
-  energy_burned: rows[0].energy_burned,
-  statistics: rows 
-    filter ((row) -> row.stat_metric_type != null)
-    map ((row) -> {
-      metric_type: row.stat_metric_type,
-      unit: row.stat_unit,
-      sum_value: row.sum_value,
-      average_value: row.average_value,
-      minimum_value: row.minimum_value,
-      maximum_value: row.maximum_value
-    })
-})]]></ee:set-payload>
+transformWorkOuts(payload)
+]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="5d924eb0-3c4e-442d-94aa-86a261bdb748" >
@@ -243,14 +190,9 @@ payload]]></ee:set-payload>
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
@@ -265,49 +207,39 @@ output application/json
 					<ee:variables >
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import constructInputParamsWearables from dwl::transforms
 ---
-{
-	user_id: vars.userId as Number,
-	limit: vars.queryParams.limit,
-	offset: vars.queryParams.offset
-} ++ (if (vars.queryParams.startDate != null and vars.queryParams.endDate != null){
-	startDate: vars.queryParams.startDate ,
-    endDate: vars.queryParams.endDate 
-}else {})]]></ee:set-variable>
+constructInputParamsWearables(vars.userId,vars.queryParams)]]></ee:set-variable>
 						<ee:set-variable variableName="pointMetricsSql" ><![CDATA[%dw 2.0
 output application/java
-
+import sanitizedTypes from dwl::transforms
+import constructDateClause0 from dwl::transforms
 var baseSQL = "SELECT user_id, metric_type, value, unit, source_device, recorded_at, duration_seconds FROM point_metrics WHERE user_id = :user_id"
 
-var sanitizedMetricTypes= if(vars.queryParams.metricType != null )
-    vars.queryParams.metricType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
-
+var sanitizedMetricTypes=sanitizedTypes(vars.queryParams.metricType) 
 var metricTypeClause= if (sanitizedMetricTypes != null) " AND metric_type IN (" ++ (sanitizedMetricTypes map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
 
-var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
-    " AND recorded_at BETWEEN :startDate AND :endDate"
-  else ""
+var dateClause = constructDateClause0(vars.queryParams.startDate,vars.queryParams.endDate)
 var endClause = " ORDER BY recorded_at DESC LIMIT :limit OFFSET :offset"
 ---
 baseSQL ++ metricTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="sleepSessionsSql" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes,constructDateClause1 from dwl::transforms
 
 var baseSQL = "SELECT user_id, stage, start_time, end_time,duration_seconds,source_device FROM sleep_sessions WHERE user_id = :user_id"
 
-var sanitizedSleepStages= if(vars.queryParams.sleep_stage != null )
-    vars.queryParams.sleep_stage map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedSleepStages= sanitizedTypes(vars.queryParams.sleep_stage)
 
 var sleepStageClause= if (sanitizedSleepStages != null) " AND stage IN (" ++ (sanitizedSleepStages map ("'" ++ lower($) ++ "'") joinBy ", ") ++ ")" else ""
 
-var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
-    " AND start_time BETWEEN :startDate AND :endDate"
-  else ""
+var dateClause = constructDateClause1(vars.queryParams.startDate,vars.queryParams.endDate)
 var endClause = " ORDER BY start_time DESC LIMIT :limit OFFSET :offset"
 ---
 baseSQL ++ sleepStageClause ++ dateClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="workoutSql" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes,constructDateClause2 from dwl::transforms
 
 var baseSQL = "SELECT w.id, w.user_id, w.activity_type, w.start_time, w.end_time, 
 w.source_device, w.duration, w.duration_unit, w.energy_burned,
@@ -317,13 +249,10 @@ FROM workouts w
 LEFT JOIN workout_statistics ws ON ws.workout_id = w.id
 WHERE w.user_id = :user_id"
 
-var sanitizedactivityType= if(vars.queryParams.activityType != null )
-    vars.queryParams.activityType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedactivityType= sanitizedTypes(vars.queryParams.activityType)
 
 var activityTypeClause= if (sanitizedactivityType != null) " AND activity_type IN (" ++ (sanitizedactivityType map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
-var dateClause = if (vars.queryParams.startDate != null and vars.queryParams.endDate != null)
-    " AND w.start_time BETWEEN :startDate AND :endDate"
-  else ""
+var dateClause = constructDateClause2(vars.queryParams.startDate,vars.queryParams.endDate)
 var endClause = " ORDER BY w.start_time DESC LIMIT :limit OFFSET :offset"
 ---
 baseSQL ++ activityTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
@@ -345,29 +274,10 @@ baseSQL ++ activityTypeClause ++ dateClause ++ endClause]]></ee:set-variable>
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-
+import transformWorkOuts from dwl::transforms
 var point_metrics = "point_metrics": vars.pointMetricsResult
-var sleep_sessions = "sleep_sessions": vars.sleepSessionsResult
-var workouts = "workouts": vars.workOutsResult groupBy ((item, index) -> item.id)
-pluck ((rows,workoutId) ->{
-  user_id: rows[0].user_id,
-  activity_type: rows[0].activity_type,
-  start_time: rows[0].start_time,
-  end_time: rows[0].end_time,
-  source_device: rows[0].source_device,
-  duration: rows[0].duration,
-  duration_unit: rows[0].duration_unit,
-  energy_burned: rows[0].energy_burned,
-  statistics: rows filter ((row) -> row.stat_metric_type !=null )
-  map ((row) ->{
-      metric_type: row.stat_metric_type,
-      unit: row.stat_unit,
-      sum_value: row.sum_value,
-      average_value: row.average_value,
-      minimum_value: row.minimum_value,
-      maximum_value: row.maximum_value
-  } )
-} ) 
+var sleep_sessions = "sleep_sessions":  vars.sleepSessionsResult
+var workouts = "workouts": transformWorkOuts(vars.workOutsResult) 
 ---
 point_metrics ++ sleep_sessions ++ workouts]]></ee:set-payload>
 					</ee:message>
@@ -391,14 +301,9 @@ payload]]></ee:set-payload>
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 					</ee:message>
 					<ee:variables>
 						<ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>

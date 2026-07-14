@@ -189,7 +189,7 @@ output application/java
     <flow name="get:\wearable-data\(userId):wearable-sys-api-config" doc:id="29ab34e5-946c-4111-b2f3-e62b7b3ab308">
         <ee:transform doc:name="Transform Message" doc:id="95f38943-452d-4428-8ecd-ab85fe3bda45">
             <ee:variables>
-                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId' as Number]]></ee:set-variable>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId' ]]></ee:set-variable>
 				<ee:set-variable variableName="queryParams" ><![CDATA[%dw 2.0
 output application/java
 ---
@@ -215,7 +215,7 @@ output application/java
     <flow name="post:\wearable-data\(userId):application\json:wearable-sys-api-config" doc:id="d1dbd50f-c125-4d48-ace3-4fcc4090eeec">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId' as Number]]></ee:set-variable>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
 				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
 				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
             </ee:variables>

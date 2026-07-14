@@ -47,14 +47,14 @@ var str = "P" ++ (vars.queryParams.duration default 30) ++"D"
 					<ee:variables >
 						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes from dwl::transforms
 
 var baseSQL = "SELECT metric_type,unit, AVG(value) as average,MIN(value) as min, MAX(value) as max,COUNT(*) as count 
 FROM point_metrics 
 WHERE user_id = :user_id AND 
 recorded_at BETWEEN :resolvedStartDate AND :resolvedEndDate"
 
-var sanitizedMetricTypes= if(vars.queryParams.metricType != null )
-    vars.queryParams.metricType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedMetricTypes= sanitizedTypes(vars.queryParams.metricType)
 
 var metricTypeClause= if (sanitizedMetricTypes != null) " AND metric_type IN (" ++ (sanitizedMetricTypes map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
 
@@ -64,12 +64,10 @@ var endClause = " GROUP BY metric_type, unit"
 baseSQL ++ metricTypeClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import constructInputParamsWearablesSummary from dwl::transforms
 ---
-{
-	user_id: vars.userId as Number,
-	resolvedStartDate: vars.resolvedStartDate,
-    resolvedEndDate: vars.resolvedEndDate
-}]]></ee:set-variable>
+constructInputParamsWearablesSummary(vars.userId,vars.resolvedStartDate,vars.resolvedEndDate)
+]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<db:select doc:name="Select Point Metrics" doc:id="dfe0269c-5e58-4d40-a2d3-0cbd8aee6d32" config-ref="NUTRISENSE_DB_CONFIG" >
@@ -80,17 +78,9 @@ output application/java
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import transformPointMetricsSummary from dwl::transforms
 ---
-payload map (item)->{
-	metric_type: item.metric_type,
-	startDate: vars.resolvedStartDate,
-	endDate: vars.resolvedEndDate,
-	average: item.average,
-	min: item.min,
-	max: item.max,
-	count: item.count,
-	unit: item.unit
-}]]></ee:set-payload>
+transformPointMetricsSummary(vars.resolvedStartDate,vars.resolvedEndDate,payload)]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="7fdc7020-c7ca-46c3-ae16-f525e3a87fcb" >
@@ -112,14 +102,9 @@ payload]]></ee:set-payload>
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
@@ -134,12 +119,10 @@ output application/json
 					<ee:variables >
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import constructInputParamsWearablesSummary from dwl::transforms
 ---
-{
-	user_id: vars.userId,
-	resolvedStartDate: vars.resolvedStartDate,
-    resolvedEndDate: vars.resolvedEndDate
-}]]></ee:set-variable>
+constructInputParamsWearablesSummary(vars.userId,vars.resolvedStartDate,vars.resolvedEndDate)
+]]></ee:set-variable>
 						<ee:set-variable variableName="sql1" ><![CDATA[%dw 2.0
 output application/java
 
@@ -160,6 +143,7 @@ var endClause = " GROUP BY w.duration_unit"
 baseSQL ++ activityTypeClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="sql2" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes from dwl::transforms
 
 var baseSQL = " SELECT w.activity_type, ws.metric_type, ws.unit,COUNT(DISTINCT w.id) as count, SUM(ws.sum_value) as sum_value,
 AVG(ws.average_value) as avg_value,MIN(ws.minimum_value) as min_value,MAX(ws.maximum_value) as max_value
@@ -167,8 +151,7 @@ FROM workouts w
 LEFT JOIN workout_statistics ws ON ws.workout_id = w.id
 WHERE user_id = :user_id AND start_time BETWEEN :resolvedStartDate AND :resolvedEndDate"
 
-var sanitizedactivityType= if(vars.queryParams.activityType != null )
-    vars.queryParams.activityType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedactivityType= sanitizedTypes(vars.queryParams.activityType)
 
 var activityTypeClause= if (sanitizedactivityType != null) " AND activity_type IN (" ++ (sanitizedactivityType map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
 
@@ -190,42 +173,9 @@ baseSQL ++ activityTypeClause ++ endClause]]></ee:set-variable>
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import transformWorkoutsSummary from dwl::transforms
 ---
-{
-  start_date: vars.resolvedStartDate,
-  end_date: vars.resolvedEndDate,
-  total_workouts: vars.sql1Result[0].total_workouts,
-  total_duration: vars.sql1Result[0].total_duration,
-  duration_unit: vars.sql1Result[0].duration_unit,
-  total_energy_burned: vars.sql1Result[0].total_energy_burned,
-  by_activity_type: vars.sql2Result 
-    groupBy ((row) -> row.activity_type)
-    pluck ((rows, activityType) -> 
-      do {
-        var heartRate = rows filter ($.metric_type == "heart_rate")
-        var activeEnergy = rows filter ($.metric_type == "active_energy")
-        var basalEnergy = rows filter ($.metric_type == "basal_energy")
-        var distance = rows filter ($.metric_type == "distance")
-        var steps = rows filter ($.metric_type == "steps")
-        var durationRow = vars.sql1Result filter ($.activity_type == activityType)
-        ---
-        {
-          activity_type: activityType,
-          count: rows[0].count,
-          total_duration: durationRow[0].total_duration default null,
-          (total_active_energy: activeEnergy[0].sum_value) if (sizeOf(activeEnergy) > 0),
-          (total_basal_energy: basalEnergy[0].sum_value) if (sizeOf(basalEnergy) > 0),
-          (total_energy_burned: (activeEnergy[0].sum_value default 0) + (basalEnergy[0].sum_value default 0)) if (sizeOf(activeEnergy) > 0 or sizeOf(basalEnergy) > 0),
-          (total_distance: distance[0].sum_value) if (sizeOf(distance) > 0),
-          (distance_unit: distance[0].unit) if (sizeOf(distance) > 0),
-          (total_steps: steps[0].sum_value) if (sizeOf(steps) > 0),
-          (avg_heart_rate: heartRate[0].avg_value) if (sizeOf(heartRate) > 0),
-          (min_heart_rate: heartRate[0].min_value) if (sizeOf(heartRate) > 0),
-          (max_heart_rate: heartRate[0].max_value) if (sizeOf(heartRate) > 0)
-        }
-      }
-    )
-}]]></ee:set-payload>
+transformWorkoutsSummary(vars.resolvedStartDate,vars.resolvedEndDate,vars.sql1Result,vars.sql2Result)]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="0672675f-1e9b-44c4-bd49-cdceaf4d3d4a" >
@@ -247,14 +197,9 @@ payload]]></ee:set-payload>
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
@@ -269,12 +214,12 @@ output application/json
 					<ee:variables >
 						<ee:set-variable variableName="sql" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes from dwl::transforms
 
 var baseSQL = "SELECT stage, SUM(duration_seconds) as stage_duration FROM sleep_sessions WHERE user_id = :user_id 
 AND start_time BETWEEN :resolvedStartDate AND :resolvedEndDate"
 
-var sanitizedSleepStages= if(vars.queryParams.sleep_stage != null )
-    vars.queryParams.sleep_stage map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedSleepStages=  sanitizedTypes(vars.queryParams.sleep_stage)
 
 var sleepStageClause= if (sanitizedSleepStages != null) " AND stage IN (" ++ (sanitizedSleepStages map ("'" ++ lower($) ++ "'") joinBy ", ") ++ ")" else ""
 
@@ -285,12 +230,11 @@ baseSQL ++ sleepStageClause ++ endClause
 ]]></ee:set-variable>
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes from dwl::transforms
+import constructInputParamsWearablesSummary from dwl::transforms
 ---
-{
-	user_id: vars.userId as Number,
-	resolvedStartDate: vars.resolvedStartDate,
-    resolvedEndDate: vars.resolvedEndDate
-}]]></ee:set-variable>
+constructInputParamsWearablesSummary(vars.userId,vars.resolvedStartDate,vars.resolvedEndDate)
+]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<db:select doc:name="Select Sleep Sessions" doc:id="10855447-b8cb-430a-9b59-1d28a4705bf3" config-ref="NUTRISENSE_DB_CONFIG" >
@@ -301,17 +245,9 @@ output application/java
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var total_duration = payload.stage_duration reduce ((item, accumulator) -> item + accumulator)
+import transformSleepSummary from dwl::transforms
 ---
-{
-    start_date: vars.resolvedStartDate,
-    end_date: vars.resolvedEndDate,
-    total_duration_seconds:total_duration,
-    stages: payload map ((item, index) ->{
-        stage: item.stage,
-        duration_seconds: item.stage_duration
-    } )
-}]]></ee:set-payload>
+transformSleepSummary(vars.resolvedStartDate,vars.resolvedEndDate,payload)]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="c561bed1-589b-4a60-b36b-c675d691c07b" >
@@ -333,14 +269,9 @@ payload]]></ee:set-payload>
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
@@ -355,22 +286,19 @@ output application/json
 					<ee:variables >
 						<ee:set-variable variableName="inputParams" ><![CDATA[%dw 2.0
 output application/java
+import constructInputParamsWearablesSummary from dwl::transforms
 ---
-{
-	user_id: vars.userId as Number,
-	resolvedStartDate: vars.resolvedStartDate,
-    resolvedEndDate: vars.resolvedEndDate
-}]]></ee:set-variable>
+constructInputParamsWearablesSummary(vars.userId,vars.resolvedStartDate,vars.resolvedEndDate)
+]]></ee:set-variable>
 						<ee:set-variable variableName="pointMetricsSql" ><![CDATA[%dw 2.0
 output application/java
-
+import sanitizedTypes from dwl::transforms
 var baseSQL = "SELECT metric_type,unit, AVG(value) as average,MIN(value) as min, MAX(value) as max,COUNT(*) as count 
 FROM point_metrics 
 WHERE user_id = :user_id AND 
 recorded_at BETWEEN :resolvedStartDate AND :resolvedEndDate"
 
-var sanitizedMetricTypes= if(vars.queryParams.metricType != null )
-    vars.queryParams.metricType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedMetricTypes= sanitizedTypes(vars.queryParams.metricType)
 
 var metricTypeClause= if (sanitizedMetricTypes != null) " AND metric_type IN (" ++ (sanitizedMetricTypes map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
 
@@ -380,12 +308,11 @@ var endClause = " GROUP BY metric_type, unit"
 baseSQL ++ metricTypeClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="sleepSessionsSql" ><![CDATA[%dw 2.0
 output application/java
-
+import sanitizedTypes from dwl::transforms
 var baseSQL = "SELECT stage, SUM(duration_seconds) as stage_duration FROM sleep_sessions WHERE user_id = :user_id 
 AND start_time BETWEEN :resolvedStartDate AND :resolvedEndDate"
 
-var sanitizedSleepStages= if(vars.queryParams.sleep_stage != null )
-    vars.queryParams.sleep_stage map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedSleepStages= sanitizedTypes(vars.queryParams.sleep_stage)
 
 var sleepStageClause= if (sanitizedSleepStages != null) " AND stage IN (" ++ (sanitizedSleepStages map ("'" ++ lower($) ++ "'") joinBy ", ") ++ ")" else ""
 
@@ -396,15 +323,14 @@ baseSQL ++ sleepStageClause ++ endClause
 ]]></ee:set-variable>
 						<ee:set-variable variableName="workoutSql1" ><![CDATA[%dw 2.0
 output application/java
-
+import sanitizedTypes from dwl::transforms
 var baseSQL = "SELECT COUNT(DISTINCT w.id) as total_workouts,SUM(w.duration) as total_duration, w.duration_unit, 
 SUM(CASE WHEN ws.metric_type IN ('active_energy_burned', 'basal_energy_burned' ) THEN ws.sum_value ELSE 0 END) as total_energy_burned
 FROM workouts w 
 LEFT JOIN workout_statistics ws ON ws.workout_id = w.id
 WHERE user_id = :user_id AND start_time BETWEEN :resolvedStartDate AND :resolvedEndDate"
 
-var sanitizedactivityType= if(vars.queryParams.activityType != null )
-    vars.queryParams.activityType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedactivityType= sanitizedTypes(vars.queryParams.activityType)
 
 var activityTypeClause= if (sanitizedactivityType != null) " AND activity_type IN (" ++ (sanitizedactivityType map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
 
@@ -414,6 +340,7 @@ var endClause = " GROUP BY w.duration_unit"
 baseSQL ++ activityTypeClause ++ endClause]]></ee:set-variable>
 						<ee:set-variable variableName="workoutSql2" ><![CDATA[%dw 2.0
 output application/java
+import sanitizedTypes from dwl::transforms
 
 var baseSQL = " SELECT w.activity_type, ws.metric_type, ws.unit,COUNT(DISTINCT w.id) as count, SUM(ws.sum_value) as sum_value,
 AVG(ws.average_value) as avg_value,MIN(ws.minimum_value) as min_value,MAX(ws.maximum_value) as max_value
@@ -421,8 +348,7 @@ FROM workouts w
 LEFT JOIN workout_statistics ws ON ws.workout_id = w.id
 WHERE user_id = :user_id AND start_time BETWEEN :resolvedStartDate AND :resolvedEndDate"
 
-var sanitizedactivityType= if(vars.queryParams.activityType != null )
-    vars.queryParams.activityType map ((item) -> item replace /[^a-zA-Z0-9_]/ with "") else null
+var sanitizedactivityType= sanitizedTypes(vars.queryParams.activityType)
 
 var activityTypeClause= if (sanitizedactivityType != null) " AND activity_type IN (" ++ (sanitizedactivityType map ("'" ++ $ ++ "'") joinBy ", ") ++ ")" else ""
 
@@ -452,60 +378,10 @@ baseSQL ++ activityTypeClause ++ endClause]]></ee:set-variable>
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-
-var point_metrics = "point_metrics": vars.pointMetricsResult map ((item) -> {
-    metric_type: item.metric_type,
-    start_date: vars.resolvedStartDate,
-    end_date: vars.resolvedEndDate,
-    average: item.average,
-    min: item.min,
-    max: item.max,
-    count: item.count
-})
-var sleep_sessions = "sleep_sessions":{
-    start_date: vars.resolvedStartDate,
-    end_date: vars.resolvedEndDate,
-    total_duration: vars.sleepSessionsResult.stage_duration reduce ((item, accumulator) -> item + accumulator),
-    stages: vars.sleepSessionsResult map ((item, index) ->{
-        stage: item.stage,
-        stage_duration: item.stage_duration
-    } ) }
-var workouts = "workouts": {
-  start_date: vars.resolvedStartDate,
-  end_date: vars.resolvedEndDate,
-  total_workouts: vars.workOutsResult1[0].total_workouts,
-  total_duration: vars.workOutsResult1[0].total_duration,
-  duration_unit: vars.workOutsResult1[0].duration_unit,
-  total_energy_burned: vars.workOutsResult1[0].total_energy_burned,
-  by_activity_type: vars.workOutsResult2
-  groupBy ((row) -> row.activity_type)
-  pluck ((rows, activityType) -> 
-      do {
-        var heartRate = rows filter ($.metric_type == "heart_rate")
-        var activeEnergy = rows filter ($.metric_type == "active_energy")
-        var basalEnergy = rows filter ($.metric_type == "basal_energy")
-        var distance = rows filter ($.metric_type == "distance")
-        var steps = rows filter ($.metric_type == "steps")
-        var durationRow = vars.sql1Result filter ($.activity_type == activityType)
-        ---
-        {
-          activity_type: activityType,
-          count: rows[0].count,
-          total_duration: durationRow[0].total_duration default null,
-          (total_active_energy: activeEnergy[0].sum_value) if (sizeOf(activeEnergy) > 0),
-          (total_basal_energy: basalEnergy[0].sum_value) if (sizeOf(basalEnergy) > 0),
-          (total_energy_burned: (activeEnergy[0].sum_value default 0) + (basalEnergy[0].sum_value default 0)) if (sizeOf(activeEnergy) > 0 or sizeOf(basalEnergy) > 0),
-          (total_distance: distance[0].sum_value) if (sizeOf(distance) > 0),
-          (distance_unit: distance[0].unit) if (sizeOf(distance) > 0),
-          (total_steps: steps[0].sum_value) if (sizeOf(steps) > 0),
-          (avg_heart_rate: heartRate[0].avg_value) if (sizeOf(heartRate) > 0),
-          (min_heart_rate: heartRate[0].min_value) if (sizeOf(heartRate) > 0),
-          (max_heart_rate: heartRate[0].max_value) if (sizeOf(heartRate) > 0)
-        }
-      }
-    )
-}  
-
+import transformPointMetricsSummary,transformSleepSummary,transformWorkoutsSummary from dwl::transforms
+var point_metrics = "point_metrics":transformPointMetricsSummary(vars.resolvedStartDate,vars.resolvedEndDate,vars.pointMetricsResult) 
+var sleep_sessions = "sleep_sessions":transformSleepSummary(vars.resolvedStartDate,vars.resolvedEndDate,vars.sleepSessionsResult)
+var workouts = "workouts": transformWorkoutsSummary(vars.resolvedStartDate,vars.resolvedEndDate,vars.workOutsResult1,vars.workOutsResult2)
 ---
 point_metrics ++ sleep_sessions ++ workouts]]></ee:set-payload>
 					</ee:message>
@@ -529,14 +405,9 @@ payload]]></ee:set-payload>
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+import noDataResponse from dwl::transforms
 ---
-{
-  code: "WEARABLE-404",
-  message: "No data found for the given user and filters",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
+noDataResponse(vars.correlationId)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
