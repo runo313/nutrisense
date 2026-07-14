@@ -59,7 +59,7 @@ output application/java
   }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Ingest Started" doc:id="3e58ec30-a91b-4f5b-a337-45b464e60af9" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	point_metrics:sizeOf(vars.point_metrics),&#10;	sleep_session:sizeOf(vars.sleep_sessions),&#10;	workouts: sizeOf(vars.workouts)&#10;}&#10;import log&#10;---&#10;log::buildLog("INFO","Ingest started",logMessage,vars.correlationId , vars.flowName)]'/>
+		<logger level="INFO" doc:name="Ingest Started" doc:id="3e58ec30-a91b-4f5b-a337-45b464e60af9" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	point_metrics:sizeOf(vars.point_metrics),&#10;	sleep_session:sizeOf(vars.sleep_sessions),&#10;	workouts: sizeOf(vars.workouts)&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Ingest started",logMessage,vars.correlationId , vars.flowName)]'/>
 		<try doc:name="Try " doc:id="febbfd53-e682-4842-8018-0a205a7e2f8d" transactionalAction="ALWAYS_BEGIN">
 			<foreach doc:name="For Each Point Metrics" doc:id="94a3811c-da01-4cf1-9adc-504843f7c0d4" collection="#[vars.point_metrics]">
 				<db:insert doc:name="Insert Point Metrics Data" doc:id="a98472a7-e145-4d6e-a502-4422531aa1e8" config-ref="NUTRISENSE_DB_CONFIG" transactionalAction="ALWAYS_JOIN">
@@ -176,7 +176,7 @@ output application/java
 					</otherwise>
 				</choice>
 			</foreach>
-			<logger level="INFO" doc:name="END" doc:id="5a5a893b-254e-4248-9bc7-00facd6e2c28" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	results: vars.results&#10;}&#10;import log&#10;---&#10;log::buildLog("INFO","Ingest complete",logMessage,vars.correlationId , vars.flowName)]'/>
+			<logger level="INFO" doc:name="END" doc:id="5a5a893b-254e-4248-9bc7-00facd6e2c28" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	results: vars.results&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Ingest complete",logMessage,vars.correlationId , vars.flowName)]'/>
 			<ee:transform doc:name="response" doc:id="ffc4a402-9e73-428b-9bfa-01b9bab655e0" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
@@ -197,7 +197,7 @@ output application/json
 			</ee:transform>
 			<error-handler >
 				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="291525fe-87ab-4090-948e-15ebca361772" type="DB:BAD_SQL_SYNTAX, DB:CONNECTIVITY, DB:QUERY_EXECUTION">
-					<logger level="ERROR" doc:name="Ingest failed" doc:id="36014737-a35a-4ad4-b5c6-c25a2e371169" message='#[%dw 2.0&#10;output application/json&#10;import log&#10;---&#10;log::buildLog("ERROR","Ingest failed",error.description, vars.correlationId , vars.flowName)]'/>
+					<logger level="ERROR" doc:name="Ingest failed" doc:id="36014737-a35a-4ad4-b5c6-c25a2e371169" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Ingest failed",error.description, vars.correlationId , vars.flowName)]'/>
 				</on-error-propagate>
 			</error-handler>
 		</try>
@@ -232,10 +232,10 @@ output application/json
 			<validation:is-false doc:name="validate activityType" doc:id="1a833edd-040c-4e90-adcc-63482e553fd5" message="metric_type cannot be combined with data types sleep_sessions or point_metrics" expression="#[vars.queryParams.activityType != null and (vars.queryParams.dataType == 'point_metrics'  or vars.queryParams.dataType == 'sleep_sessions' )]"/>
 			<validation:is-false doc:name="Duration with startdate" doc:id="6ce2c091-f755-4020-86e6-56c5c148996f" expression="#[vars.queryParams.duration != null and (vars.queryParams.startDate != null or vars.queryParams.endDate != null)]" message="Cannot provide both duration and Start/End Date. "/>
 		</validation:all>
-		<logger level="INFO" doc:name="Validations Passed" doc:id="9943f8ca-3752-49cd-ab4c-f0b1792b8c4e" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is valid",&#10;	userId: vars.userId&#10;}&#10;import log&#10;---&#10;log::buildLog("INFO","Validation Successful",logMessage,vars.correlationId , vars.flowName)]' />
+		<logger level="INFO" doc:name="Validations Passed" doc:id="9943f8ca-3752-49cd-ab4c-f0b1792b8c4e" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is valid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Validation Successful",logMessage,vars.correlationId , vars.flowName)]' />
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1912e114-3578-40d0-8025-67f590fd9df0" type="VALIDATION:MULTIPLE">
-				<logger level="ERROR" doc:name="Invalid QueryParam" doc:id="037a65b9-0ad8-48c3-8939-a0c7a4946be4" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is invalid",&#10;	userId: vars.userId&#10;}&#10;import log&#10;---&#10;log::buildLog("ERROR","Validation Not Successful",logMessage,vars.correlationId , vars.flowName)]' />
+				<logger level="ERROR" doc:name="Invalid QueryParam" doc:id="037a65b9-0ad8-48c3-8939-a0c7a4946be4" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is invalid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Validation Not Successful",logMessage,vars.correlationId , vars.flowName)]' />
 				<ee:transform doc:name="Error Invalid QueryParam" doc:id="dc4baca9-2d08-432a-b1b8-b40590e33294" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0

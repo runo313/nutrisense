@@ -39,7 +39,7 @@ var str = "P" ++ (vars.queryParams.duration default 30) ++"D"
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="Sent params" doc:id="44122a64-cf53-483b-93ba-256cd6e4b861" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	activityType: vars.queryParams.activityType,&#10;	metricType: vars.queryParams.metricType,&#10;	stage: vars.queryParams.sleep_stage,&#10;	startDate: vars.queryParams.startDate,&#10;	endDate: vars.queryParams.endDate,&#10;	resolvedStartDate: vars.resolvedStartDate,&#10;	resolvedEndDate: vars.resolvedEndDate&#10;}&#10;import log&#10;---&#10;log::buildLog("INFO","Querying wearable data",logMessage,vars.correlationId , vars.flowName)]' />
+		<logger level="INFO" doc:name="Sent params" doc:id="44122a64-cf53-483b-93ba-256cd6e4b861" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	activityType: vars.queryParams.activityType,&#10;	metricType: vars.queryParams.metricType,&#10;	stage: vars.queryParams.sleep_stage,&#10;	startDate: vars.queryParams.startDate,&#10;	endDate: vars.queryParams.endDate,&#10;	resolvedStartDate: vars.resolvedStartDate,&#10;	resolvedEndDate: vars.resolvedEndDate&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Querying wearable data",logMessage,vars.correlationId , vars.flowName)]' />
 		<choice doc:name="vars.dataType" doc:id="80057947-cd5f-4afc-8141-c873e5ef0220" >
 			<when expression='#[vars.queryParams.dataType == "point_metrics"]' >
 				<ee:transform doc:name="Construct Sql and Input params" doc:id="3efec376-259e-48eb-8638-108d0bd68a90" >
@@ -548,7 +548,7 @@ output application/json
 		</choice>
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5384400a-0796-44df-9c60-91c4b38fdc98" type="ANY" >
-				<logger level="ERROR" doc:name="Error" doc:id="66d803f4-e728-4a81-b4e9-5179996f5a52" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import log&#10;---&#10;log::buildLog("ERROR","An Error Occured",logMessage,vars.correlationId , vars.flowName)]' />
+				<logger level="ERROR" doc:name="Error" doc:id="66d803f4-e728-4a81-b4e9-5179996f5a52" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An Error Occured",logMessage,vars.correlationId , vars.flowName)]' />
 				<ee:transform doc:name="" doc:id="07fc1997-6376-41f0-a0cc-90fddb5ddc04" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
