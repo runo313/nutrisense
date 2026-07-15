@@ -11,6 +11,7 @@
 	<modules>
 		<module>system-apis/wearable-sys-api</module>
 		<module>system-apis/nutrition-sys-api</module>
+		<module>system-apis/meal-log-sys-api</module>
 		<module>system-apis/userprofile-sys-api</module>
 		<module>system-apis/notification-sys-api</module>
 		<module>process-apis/daily-insight-process-api</module>
