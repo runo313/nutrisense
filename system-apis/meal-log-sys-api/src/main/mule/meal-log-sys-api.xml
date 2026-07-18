@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
     
-    <flow name="meal-log-sys-api-main">
+    <validation:config name="Validation_Config" doc:name="Validation Config" doc:id="a0dca594-10dd-4e0f-904d-045474c3d448" i18n="#[payload.items some ((item) -&gt;&#10;  (item.portionId != null and item.quantityG != null) or&#10;  (item.portionId == null and item.portionAmount == null and item.quantityG == null)&#10;)]" />
+	<flow name="meal-log-sys-api-main">
         <http:listener config-ref="meal-log-sys-api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
@@ -133,11 +136,14 @@ output application/json
     <flow name="delete:\users\(userId)\meals\(mealId):meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+                <ee:set-variable variableName="mealId"><![CDATA[attributes.uriParams.'mealId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <logger level="INFO" message="delete:\users\(userId)\meals\(mealId):meal-log-sys-api-config" />
+        <logger level="INFO" doc:name="START" doc:id="34497d84-4a8e-4ff2-8418-2bd4e57cdfd9" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='DELETE meal request'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="delete-meal-flow" doc:id="2ca3e9d1-93ec-4165-a054-aee4661ca587" name="delete-meal-flow"/>
     </flow>
     <flow name="patch:\users\(userId)\meals\(mealId)\items\(itemId):application\json:meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
@@ -183,42 +189,14 @@ output application/json
     <flow name="patch:\users\(userId)\meals\(mealId):application\json:meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+                <ee:set-variable variableName="mealId"><![CDATA[attributes.uriParams.'mealId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="ab17c720-74fd-4195-b1ab-b5e250dfee09" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='PATCH meal request'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId,&#10;&quot;payload&quot;:payload&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="patch-meal-flow" doc:id="8796dfa0-6f45-44c0-9a57-a3b2288c6c69" name="patch-meal-flow"/>
     </flow>
     <flow name="get:\health:meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
@@ -236,171 +214,80 @@ output application/json
     <flow name="get:\users\(userId)\meals:meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="queryParams" ><![CDATA[%dw 2.0
+output application/java
 ---
 {
-  count: 2,
-  meals: [
-    {
-      mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      userId: "runo313",
-      mealType: "breakfast",
-      consumedAt: "2026-07-13T08:00:00-04:00",
-      loggedAt: "2026-07-13T08:30:00-04:00",
-      items: [
-        {
-          itemId: "a1b2c-e5f6-7890-abcd",
-          foodId: 747448,
-          portionId: 118808,
-          portionAmount: 1.5,
-          quantityG: 234,
-          loggedAt: "2026-07-13T08:30:00-04:00"
-        }
-      ]
-    }, 
-    {
-      mealId: "c3d4-a7b8-9012-cdef-",
-      userId: "runo313",
-      mealType: "lunch",
-      consumedAt: "2026-07-13T12:30:00-04:00",
-      loggedAt: "2026-07-13T12:45:00-04:00",
-      items: [
-        {
-          itemId: "d4e5f-b8c9-0123-defa",
-          foodId: 2684444,
-          quantityG: 150,
-          loggedAt: "2026-07-13T12:45:00-04:00"
-        }
-      ]
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
+	date: attributes.queryParams.date as Date default null,
+	from: attributes.queryParams.from as Date default null,
+	to: attributes.queryParams.to as Date default null,
+	timezone: attributes.queryParams.timezone default null
+}]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+            </ee:variables>
         </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="e492329d-bdbe-4a7a-a197-853de51c2970" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='GET meals Request'&#10;var userId = {&#10;userId: vars.userId as String,&#10;params: vars.queryParams&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="get-meals-flow" doc:id="ce63990f-defc-48a0-a582-1a4703b3fd6e" name="get-meals-flow"/>
     </flow>
     <flow name="get:\users\(userId)\meals\(mealId):meal-log-sys-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
+        <ee:transform doc:name="Transform Message" doc:id="e8992eb5-c3be-495c-8456-01f9f031b2a6">
+            <ee:message />
+			<ee:variables>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+                <ee:set-variable variableName="mealId"><![CDATA[attributes.uriParams.'mealId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="a3366993-72d9-49a5-8e20-c085ce26d17a" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='GET meal request'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="get-meal-by-id-flow" doc:id="d9e0ff2f-8ffd-41a3-9dbc-550c4b42d374" name="get-meal-by-id-flow"/>
     </flow>
     <flow name="post:\users\(userId)\meals\(mealId)\items:application\json:meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+                <ee:set-variable variableName="mealId"><![CDATA[attributes.uriParams.'mealId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="request" ><![CDATA[%dw 2.0
+output application/java
 ---
 {
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
+	items: payload
+}]]></ee:set-variable>
+            </ee:variables>
         </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="68e4731a-32da-41e5-8026-e10df7e1cef5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Add items request'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId:vars.mealId,&#10;itemCount:sizeOf(payload)&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="validate-payload-subflow" doc:id="98ee2d22-07e2-443a-a425-cb87df6e718f" name="validate-payload-subflow"/>
+		<flow-ref doc:name="insert-meal-items-subflow" doc:id="9c5d915a-b499-42f0-8b2b-001d53e46109" name="insert-meal-items-subflow"/>
+		<logger level="INFO" doc:name="END" doc:id="abcd8652-a0e2-44a4-92ef-d1ff6e1a75c4" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal created successfully'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<error-handler ref="post-meal-error-handler" />
     </flow>
     <flow name="post:\users\(userId)\meals:application\json:meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="request" ><![CDATA[%dw 2.0
+output application/java
 ---
 {
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
+	mealType: payload.mealType,
+	consumedAt: payload.consumedAt as DateTime {
+		format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+	} as String {
+		format: "yyyy-MM-dd HH:mm:ssXXX"
+	},
+	items: payload.items
+}]]></ee:set-variable>
+            </ee:variables>
         </ee:transform>
+        <logger level="INFO" doc:name="START" doc:id="c57d9422-8aff-42f9-8ffe-cba9ff88a20c" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request to create new meal'&#10;var userId = {&#10;userId: vars.userId as String,&#10;itemCount:sizeOf(payload)&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<flow-ref doc:name="validate-payload-subflow" doc:id="4ee39a09-1240-4686-a0f1-a0cea0772885" name="validate-payload-subflow" />
+		<flow-ref doc:name="create-meal-flow" doc:id="511f11d8-74b4-4c6f-b189-fe151974aae6" name="create-meal-flow"/>
+		<error-handler ref="post-meal-error-handler" />
     </flow>
 </mule>
