@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="delete-meal-flow" doc:id="57e29f1e-64c3-4d83-8ca9-b178795c1e25" >
+		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="54101ca1-2327-4afa-a29c-d28437161b2c" variableName="flowName"/>
+		<validation:is-false doc:name="Check Meal Id" doc:id="6803def2-64c2-416c-b54f-747a9a487ab5" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID." />
+		<db:select doc:name="Select meal_id" doc:id="d9f3be47-f98f-4715-bb61-a8e2dcff4ff9" config-ref="NUTRISENSE_DB_CONFIG" target="meal_id">
+			<db:sql><![CDATA[SELECT meal_id from meals where meal_id = :mealId AND user_id = :userId AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	mealId: vars.mealId,
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="54b284ff-feb8-48c4-946d-16be49e5aef7" >
+			<when expression="#[isEmpty(vars.meal_id)]">
+				<ee:transform doc:name="Not data found" doc:id="573ea811-69b6-4081-af49-b663a989a772" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-404",
+  message: "No data found for the provided user and filters",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<db:update doc:name="Update meal items" doc:id="169a88a5-255c-4346-b45b-4ba75eb7486c" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql><![CDATA[UPDATE meal_items SET deleted_at = now() 
+WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	mealId: vars.mealId
+}]]]></db:input-parameters>
+		</db:update>
+				<db:update doc:name="Update meals" doc:id="413aa91b-f68c-4fdf-8559-88cb4fa78a8c" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql><![CDATA[UPDATE meals SET deleted_at = now() 
+WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	mealId: vars.mealId
+}]]]></db:input-parameters>
+		</db:update>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="4018ac34-f999-48f6-82a6-02a3556f2cd2" type="VALIDATION:INVALID_BOOLEAN" >
+				<logger level="ERROR" doc:name="Invalid Meal Id" doc:id="5285a54b-5bb5-4e0e-9e4c-f02c07081605" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","meal Id received is invalid",logMessage,vars.correlationId , vars.flowName)]' />
+				<ee:transform doc:name="" doc:id="5f8638ee-04bc-4f6f-80c8-1a5442101f33" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "MEALS-LOG-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b165dcc4-0a92-4462-affb-633e0b019c27" type="ANY">
+				<logger level="ERROR" doc:name="An error occurred deleting meals" doc:id="4e30ddff-926c-410c-951f-c10fbeefee11" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An error occurred deleting meal",logMessage,vars.correlationId , vars.flowName)]' />
+				<ee:transform doc:name="Transform Message" doc:id="88206db9-4cc8-40eb-8f81-f8d7f764359e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-500",
+  message: "DELETE meal failed",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="delete-meal-item-flow" doc:id="c96ba7fe-dc62-473f-8e7b-a6ac51948037" >
+		<ee:transform doc:name="Transform Message" doc:id="304e06f2-7009-4185-9470-c9f6e12c36a4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
