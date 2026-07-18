@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="get-meals-flow" doc:id="fa260689-9c77-4d05-8e9f-89a83b3b5800" >
+		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="241c7a25-e811-4f1d-91e7-39d644086f26" variableName="flowName"/>
+		<validation:all doc:name="All" doc:id="faa386f8-a1db-4ac4-ae25-88a523e719dc" >
+			<validation:is-false doc:name="date cannot be used together with from or to" doc:id="bd2597ce-abb3-4eb8-9331-b05f8d5a8c60" expression="#[(vars.queryParams.date != null) and (vars.queryParams.from != null and vars.queryParams.to != null)]" message="date cannot be used together with from or to"/>
+			<validation:is-false doc:name="from requires to" doc:id="a669b05d-30e0-4ad5-9a3c-b664de890c8e" expression="#[(vars.queryParams.from != null and vars.queryParams.to == null) or (vars.queryParams.from == null and vars.queryParams.to != null)]" message="from requires to"/>
+			<validation:is-false doc:name="At least one date filter is required" doc:id="6c0d3b12-fc5a-496b-a187-1dabd3cbe92a" expression="#[vars.queryParams.date == null and vars.queryParams.from == null and vars.queryParams.to == null]" message="At least one date filter is required"/>
+			<validation:is-false doc:name="from must be before to" doc:id="0c3a3255-e939-46b5-8d87-6ea013d0c1e9" expression="#[(vars.queryParams.from != null and vars.queryParams.to != null) and (vars.queryParams.from &gt; vars.queryParams.to )]" message="from must be before to"/>
+		</validation:all>
+		<logger level="INFO" doc:name="Validations Passed" doc:id="73b6ec5e-baa4-4cb1-bc4b-c67154acb6e1" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is valid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Validation Successful",logMessage,vars.correlationId , vars.flowName)]' />
+		<db:select doc:name="Select meals" doc:id="6eb77221-9821-48db-90ce-e0bf69b51540" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
+       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+FROM meals m
+LEFT JOIN meal_items mi ON m.meal_id = mi.meal_id
+WHERE m.user_id = :userId
+AND m.consumed_at >= (:startDate::date + TIME '00:00:00') AT TIME ZONE :timezone
+AND m.consumed_at < (:endDate::date + TIME '00:00:00' + INTERVAL '1 day') AT TIME ZONE :timezone
+AND m.deleted_at IS NULL
+AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  userId: vars.userId,
+  startDate: vars.queryParams.date default vars.queryParams.from,
+  endDate: vars.queryParams.date default vars.queryParams.to,
+  timezone: vars.queryParams.timezone default "UTC"
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="1fd81e50-3124-454d-83ec-e4a6301003f5" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<ee:transform doc:name="Transform Message" doc:id="f87abf19-bcf3-44d5-8862-4e9297331d18">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	counts: sizeOf(payload),
+	meals: payload groupBy ((item) -> item.meal_type ) pluck ((value, key ) ->{
+		"meal_id": value[0].meal_id,
+		"user_id": value[0].user_id,
+		"meal_type": value[0].meal_type,
+		"consumed_at": value[0].consumed_at,
+		"meal_logged_at": value[0].meal_logged_at,
+		"items": value map ((item) -> {
+			"item_id": item.item_id,
+			"food_id": item.food_id,
+			"portion_id": item.portion_id,
+			"portion_amount": item.portion_amount,
+			"quantity_g": item.quantity_g,
+			"item_logged_at": item.item_logged_at
+		})
+	} )
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="httpStatus"><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Not data found" doc:id="54fb0378-769f-4f0b-a010-1fe5170e613d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-404",
+  message: "No data found for the provided user and filters",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8c08d41b-114a-40b9-8ebb-db34306b5ea9" type="VALIDATION:MULTIPLE">
+				<logger level="ERROR" doc:name="Invalid QueryParam" doc:id="918ae1a0-e07f-4805-a3b7-5e4c29c60e01" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is invalid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Validation Not Successful",logMessage,vars.correlationId , vars.flowName)]' />
+				<ee:transform doc:name="Error Invalid QueryParam" doc:id="233eef48-b334-4e6d-a0b1-2d1e66312c40">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "MEALS-LOG-400",
+  message: error.description replace("\n") with (" and "),
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8118c295-cf6e-4d13-8aa4-f7b9d42e8de8" type="DB:BAD_SQL_SYNTAX, DB:CONNECTIVITY, DB:QUERY_EXECUTION, DB:RETRY_EXHAUSTED, VALIDATION:MULTIPLE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<logger level="ERROR" doc:name="An error occurred retrieving meals" doc:id="b3535c27-eb5c-4910-aa21-e327ed50e651" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An error occurred retrieving meals",logMessage,vars.correlationId , vars.flowName)]' />
+				<ee:transform doc:name="Transform Message" doc:id="15023151-e387-42d2-8316-45cc2022acde" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-500",
+  message: "An error occurred retrieving meals",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="get-meal-by-id-flow" doc:id="05eac139-ee79-49a4-a675-be73925d90e4" >
+		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="cf63d19d-4f55-4fd9-8301-c2b1cb972b88" variableName="flowName" />
+		<validation:is-false doc:name="Check Meal Id" doc:id="a4beab61-2282-429e-bd2e-e9e8f54af0c1" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID."/>
+		<db:select doc:name="Select meals" doc:id="f2ff4a5c-bfe6-4432-b5df-21603a4184aa" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
+       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+FROM meals m
+LEFT JOIN meal_items mi ON m.meal_id = mi.meal_id
+WHERE m.meal_id = :meal_id
+AND m.deleted_at IS NULL
+AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId,
+	meal_id : vars.mealId
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="ef8ba20c-a73b-42d6-a1cf-af43b7a10f04" >
+			<when expression="#[sizeOf(payload) &gt; 0]" >
+				<ee:transform doc:name="Transform Message" doc:id="3e14550d-a79c-41bf-9490-f3ac725c048c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+import transformMeal from dwl::transforms
+output application/json
+---
+transformMeal(payload)]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Not data found" doc:id="63fc1e35-7496-4588-9fcf-c34ed6f23430" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-404",
+  message: "No data found for the provided user and filters",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3d782931-a591-48fd-b291-f1afd1d42c62" type="VALIDATION:INVALID_BOOLEAN">
+				<logger level="ERROR" doc:name="Invalid Meal Id" doc:id="a748c754-5aeb-4322-9e08-6d300816d763" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","meal Id received is invalid",logMessage,vars.correlationId , vars.flowName)]' />
+				<ee:transform doc:name="Invalid Meal Id" doc:id="1662e87d-cd70-49c0-9835-182248404f7c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "MEALS-LOG-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="82cb1ff0-c90e-4d77-acb2-51601fd78fa0" >
+				<logger level="ERROR" doc:name="An error occurred retrieving meals" doc:id="920263fa-bb0f-43d2-b7d4-ba6323628d20" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An error occurred retrieving meal",logMessage,vars.correlationId , vars.flowName)]' />
+				<ee:transform doc:name="Transform Message" doc:id="e38bfaa2-ce56-43e9-bb12-fd987bf2407f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-500",
+  message: "An error occurred retrieving meals",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
