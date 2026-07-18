@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="post-meal-error-handler" doc:id="61c74270-1fb5-40d5-80f1-37053532c41c" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e1fc9bf9-b58f-4cc7-a78c-30cc99ecebe4" type="VALIDATION:INVALID_BOOLEAN" >
+			<logger level="ERROR" doc:name="Invalid Request Items" doc:id="0e3ab1a1-a96a-4cbf-890b-def95a962736" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: payload.request&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Invalid Request to create new meal",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Error" doc:id="2f27395c-9e7c-48a6-bb4d-109e7ee6b16d" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "meal-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ae7fdb3d-dcce-45ad-8c06-f83276f16af4" type="DB:CONNECTIVITY, DB:QUERY_EXECUTION,ANY">
+			<logger level="ERROR" doc:name="Meal Creation failed" doc:id="4456e283-bd03-4747-b329-8812e86d813a" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: payload.request,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","meal creation failed",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Transform Message" doc:id="62e195b8-6285-4e0c-ae77-b6ed9a3ddbbe">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-500",
+  message: "Meal Creation Failed",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>
