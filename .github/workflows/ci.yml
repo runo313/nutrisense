@@ -47,6 +47,8 @@ jobs:
               - 'system-apis/wearable-sys-api/**'
             nutrition:
               - 'system-apis/nutrition-sys-api/**'
+            meal-log:
+              -'system-apis/meal-log-sys-api/**'
             userprofile:
               - 'system-apis/userprofile-sys-api/**'
             notification:
@@ -76,6 +78,13 @@ jobs:
           MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
           env: test
 
+      - name: Build and test meal-log-sys-api
+        if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl system-apis/meal-log-sys-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+          
       - name: Build and test userprofile-sys-api
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: mvn clean install -pl system-apis/userprofile-sys-api -am
