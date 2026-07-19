@@ -85,48 +85,6 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<error-handler>
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8c08d41b-114a-40b9-8ebb-db34306b5ea9" type="VALIDATION:MULTIPLE">
-				<logger level="ERROR" doc:name="Invalid QueryParam" doc:id="918ae1a0-e07f-4805-a3b7-5e4c29c60e01" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is invalid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Validation Not Successful",logMessage,vars.correlationId , vars.flowName)]' />
-				<ee:transform doc:name="Error Invalid QueryParam" doc:id="233eef48-b334-4e6d-a0b1-2d1e66312c40">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  code: "MEALS-LOG-400",
-  message: error.description replace("\n") with (" and "),
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8118c295-cf6e-4d13-8aa4-f7b9d42e8de8" type="DB:BAD_SQL_SYNTAX, DB:CONNECTIVITY, DB:QUERY_EXECUTION, DB:RETRY_EXHAUSTED, VALIDATION:MULTIPLE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
-				<logger level="ERROR" doc:name="An error occurred retrieving meals" doc:id="b3535c27-eb5c-4910-aa21-e327ed50e651" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An error occurred retrieving meals",logMessage,vars.correlationId , vars.flowName)]' />
-				<ee:transform doc:name="Transform Message" doc:id="15023151-e387-42d2-8316-45cc2022acde" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-  code: "Meal-500",
-  message: "An error occurred retrieving meals",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-		</error-handler>
 	</flow>
 	<flow name="get-meal-by-id-flow" doc:id="05eac139-ee79-49a4-a675-be73925d90e4" >
 		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="cf63d19d-4f55-4fd9-8301-c2b1cb972b88" variableName="flowName" />
@@ -181,47 +139,5 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3d782931-a591-48fd-b291-f1afd1d42c62" type="VALIDATION:INVALID_BOOLEAN">
-				<logger level="ERROR" doc:name="Invalid Meal Id" doc:id="a748c754-5aeb-4322-9e08-6d300816d763" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","meal Id received is invalid",logMessage,vars.correlationId , vars.flowName)]' />
-				<ee:transform doc:name="Invalid Meal Id" doc:id="1662e87d-cd70-49c0-9835-182248404f7c" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-  code: "MEALS-LOG-400",
-  message: error.description,
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="82cb1ff0-c90e-4d77-acb2-51601fd78fa0" >
-				<logger level="ERROR" doc:name="An error occurred retrieving meals" doc:id="920263fa-bb0f-43d2-b7d4-ba6323628d20" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An error occurred retrieving meal",logMessage,vars.correlationId , vars.flowName)]' />
-				<ee:transform doc:name="Transform Message" doc:id="e38bfaa2-ce56-43e9-bb12-fd987bf2407f">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  code: "Meal-500",
-  message: "An error occurred retrieving meals",
-  correlationId: correlationId,
-  timestamp: now(),
-  originLayer: "system"
-}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus"><![CDATA[500]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-		</error-handler>
 	</flow>
 </mule>

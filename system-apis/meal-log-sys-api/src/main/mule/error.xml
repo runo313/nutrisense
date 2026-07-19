@@ -4,12 +4,202 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<error-handler name="post-meal-error-handler" doc:id="61c74270-1fb5-40d5-80f1-37053532c41c" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e1fc9bf9-b58f-4cc7-a78c-30cc99ecebe4" type="VALIDATION:INVALID_BOOLEAN" >
-			<logger level="ERROR" doc:name="Invalid Request Items" doc:id="0e3ab1a1-a96a-4cbf-890b-def95a962736" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: payload.request&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Invalid Request to create new meal",logMessage,vars.correlationId , vars.flowName)]' />
-			<ee:transform doc:name="Error" doc:id="2f27395c-9e7c-48a6-bb4d-109e7ee6b16d" >
+	<error-handler name="patch-meal-error-handler" doc:id="8b84e73a-2c52-4631-81f2-2d39a33b7d01" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ed4af4fd-42fe-4825-b562-657f52af4dde" type="VALIDATION:INVALID_BOOLEAN, VALIDATION:NULL">
+			<logger level="ERROR" doc:name="Meal Creation failed" doc:id="3c10fada-ab08-417f-b604-a2edd1d4da67" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: payload.request,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","items update failed",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Not data found" doc:id="8fd6f23d-7809-4055-a663-9dff89f0a945" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-404",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1ac4ae4c-1b0b-4d0c-b3f2-6722f673261d" type="VALIDATION:MULTIPLE">
+			<logger level="ERROR" doc:name="Invalid Body" doc:id="f80970d6-1703-4466-9c9e-5e556eb42dd6" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Payload received is invalid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Validation Not Successful",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Error Invalid Body" doc:id="0b027fdb-6ba9-4f7e-bfa7-c887d7e3fdaf">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-400",
+  message: error.description replace("\n") with (" and "),
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="935c83d8-6e84-49b3-ad9f-2335bd882197" type="ANY">
+			<logger level="ERROR" doc:name="PATCH meal failed " doc:id="c3f0fe92-4f04-4564-bf71-38109cde4ccc" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","PATCH meal failed",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Transform Message" doc:id="211e18b5-9a42-4d58-871b-fce8543a37ff" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-500",
+  message: "An error occurred updating meal item",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="delete-meal-error-handler" doc:id="4771a8f4-6d21-486d-a1c1-d4fdc000f613" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="490ce1cf-84c1-45a7-9e53-cc2f6661fcf4" type="VALIDATION:INVALID_BOOLEAN" >
+			<logger level="ERROR" doc:name="Invalid Meal Id" doc:id="0d80f1ab-c695-4784-9e12-88c7322746ba" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId,&#10;	itemId: vars.itemId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Invalid Id",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="" doc:id="9cc30f5d-7bdd-445c-aea7-19ac369a040b" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "MEALS-LOG-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1899b5f8-190c-4248-985b-d66f6d16806c" >
+			<logger level="ERROR" doc:name="An error occurred deleting meals" doc:id="43a484a3-400e-43e2-9016-3370288099eb" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An error occurred deleting meal",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Transform Message" doc:id="21eaf7c8-99cb-4181-be1b-671a6e6b8cfa" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-500",
+  message: "DELETE meal failed",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="get-meal-error-handler" doc:id="b6010b0b-f661-4782-8dc6-37bd40d86b70" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1e7e5bfd-9203-46f7-bb3f-9b57adb78561" type="VALIDATION:MULTIPLE" >
+			<logger level="ERROR" doc:name="Invalid QueryParam" doc:id="22c6babc-3070-492e-bf27-c51c9f9820ee" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is invalid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Validation Not Successful",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Error Invalid QueryParam" doc:id="8aa7876c-5368-4656-a398-16a3a531f83f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "MEALS-LOG-400",
+  message: error.description replace("\n") with (" and "),
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1fdf3b3d-6c98-42a9-b96f-9e826b73408f" type="VALIDATION:INVALID_BOOLEAN" >
+			<logger level="ERROR" doc:name="Invalid Meal Id" doc:id="93711c74-8322-4094-a378-4e437a1d1119" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","meal Id received is invalid",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Invalid Meal Id1" doc:id="b987b395-c55c-418e-bcb6-a82af77a7cf2" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "MEALS-LOG-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e78f04fa-4596-4b74-b3ce-69b3feeb0991" >
+			<logger level="ERROR" doc:name="An error occurred retrieving meals" doc:id="3d8dac14-cd4e-4246-b560-91fecf658558" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: error.description,&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","An error occurred retrieving meals",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Transform Message" doc:id="6f171d91-80d6-4927-babd-21c77ac2a4a1" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-500",
+  message: "An error occurred retrieving meals",
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="post-meal-error-handler" doc:id="61c74270-1fb5-40d5-80f1-37053532c41c" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7ca3c64c-2833-47c9-a45f-b92cbe5fd661" type="VALIDATION:EMPTY_COLLECTION">
+			<logger level="ERROR" doc:name="Meal Creation failed" doc:id="a6aa6721-c57e-43b3-9f8f-b1c94f5ee4bd" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: payload.request,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","items creation failed",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Not data found" doc:id="24e4d632-3f13-4465-b64c-35c9e5f3ca8a" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "Meal-404",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e1fc9bf9-b58f-4cc7-a78c-30cc99ecebe4" type="VALIDATION:INVALID_BOOLEAN">
+			<logger level="ERROR" doc:name="Invalid Request Items" doc:id="0e3ab1a1-a96a-4cbf-890b-def95a962736" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: payload.request&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Invalid Request to create new meal",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Error" doc:id="2f27395c-9e7c-48a6-bb4d-109e7ee6b16d">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -20,8 +210,8 @@ output application/json
   originLayer: "system"
 }]]></ee:set-payload>
 				</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>
