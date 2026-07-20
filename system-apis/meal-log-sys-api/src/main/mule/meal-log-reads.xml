@@ -54,6 +54,7 @@ output application/json
 			"portion_amount": item.portion_amount,
 			"quantity_g": item.quantity_g,
 			"item_logged_at": item.item_logged_at
+			"foodId": item.food_id,
 		})
 	} )
 }]]></ee:set-payload>
