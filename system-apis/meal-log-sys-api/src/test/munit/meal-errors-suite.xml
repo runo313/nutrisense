@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="meal-errors-suite.xml" />
+	<munit:test name="should_return_400_for_invalid_item_mode" doc:id="e8dc20a7-ee74-4fc1-9db0-b50106ba22de">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="7269e1bf-4247-4d0d-898d-e9200de8745f" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  mealType: "breakfast",&#10;  consumedAt: "2026-07-13T08:00:00-04:00",&#10;  items: [&#10;    {foodId: 747448, portionId: 118808, portionAmount: 1.5, quantityG: 150.0}&#10;  ]&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "55445"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="post:\meals\(mealId)" doc:id="906189e2-3316-4bd5-bd59-ec27d9d18c0c" name="post:\users\(userId)\meals:application\json:meal-log-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 400" doc:id="fac6c5d2-2d23-4b87-bd82-289e0fe12d64" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" message="http status should be 400"/>
+			<munit-tools:assert-that doc:name="Assert code" doc:id="c5d95a01-e516-4cf8-9839-a930f9ccb457" expression="#[payload.code]" is='#[MunitTools::equalTo("MEAL-400")]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_400_for_invalid_patch_fields" doc:id="c9b06bd2-bde7-4967-b8da-0c306f6aa071">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="ae2f0309-e495-4d6d-88e3-8a5bc0b16025" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  mealType: "lunch",&#10;  loggedAt: "2026-07-13T08:00:00-04:00"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "55445",&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39764"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="patch:meals\(mealId)" doc:id="855d29f3-703a-4acc-bb12-5d648df35fcd" name="patch:\users\(userId)\meals\(mealId):application\json:meal-log-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 400" doc:id="1f704fe8-ed12-43f4-abb3-d026ff07bb20" message="http status should be 400" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" />
+			<munit-tools:assert-that doc:name="Assert code" doc:id="4c03f671-2220-44d8-b44f-51c0dff02437" expression="#[payload.code]" is='#[MunitTools::equalTo("MEAL-400")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_400_for_missing_date_filter" doc:id="75f1d527-66ff-46fd-8a06-154325a55ca5">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="4efc692e-d91a-4ee9-b5a4-b5c64d6e44c8" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "55445"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="get:(userId)\meals:" doc:id="24919da0-9545-4c2a-b954-4302a75ab4a1" name="get:\users\(userId)\meals:meal-log-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 400" doc:id="cdf4354a-c477-4949-b738-ff31f0930ac6" message="http status should be 400" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" />
+			<munit-tools:assert-that doc:name="Assert code" doc:id="bb5e3f25-be35-4ea1-bc75-92945c18caf0" expression="#[payload.code]" is='#[MunitTools::equalTo("MEAL-400")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_404_for_unknown_item" doc:id="6e96b1af-466f-49c0-8002-af38a8185f88">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="check meals exist" doc:id="429117d4-6a03-4f7d-b712-b50347e34281" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b685c72f-1a45-4cad-94da-433862c3df65" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock meal item exist" doc:id="976e4cfb-accc-4451-8462-f6c67d43b7f5" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="39f8043d-0b08-4cdc-9766-1fa90869e792" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="df90cbc7-6871-4e90-bee4-1bf5ec959d01" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	"foodId": 747448&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "55445",&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39765",&#10;    itemId: "8f6c2a34-b03d-49c0-a30a-c347d2183318"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<set-variable value='#[[{meal_id: "335c71bb-a167-4160-935e-1c8413f39764"}]]' doc:name="meal id" doc:id="0756a8a5-58cc-4d06-bdeb-aeecde731860" variableName="meal_id" />
+			<set-variable value='#[[]]' doc:name="Set Variable" doc:id="75c9559b-f50a-4868-8c25-2b7ebb9d7687" variableName="item_response" />
+			<flow-ref doc:name="Flow Reference" doc:id="4cba6c2c-4b9e-4431-bb58-73b614250ffd" name="patch:\users\(userId)\meals\(mealId)\items\(itemId):application\json:meal-log-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="a2838bad-1cc7-44d8-993b-8bcdc67b8054" message="http status should be 400" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+			<munit-tools:assert-that doc:name="Assert code" doc:id="315c53d0-e7e5-4fc9-9bc1-6e94a942108e" expression="#[payload.code]" is='#[MunitTools::equalTo("MEAL-404")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_add_items_and_return_404" doc:id="89e91002-0cdd-4a4e-a10f-704dd7c0bd0d">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select Meals" doc:id="448b3dbf-68e7-4823-b16b-b7d5f70f42ab" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="81a651be-b9d0-4a99-a296-eb9dca22d1cf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="2aefdf89-7597-47f7-826b-a69139605390" >
+				<munit:payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;[&#10;  {foodId: 323604, portionId: 118809, portionAmount: 1.0},&#10;  {foodId: 321358, quantityG: 50.0}&#10;]]" />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "55445", mealId: "335c71bb-a167-4160-935e-1c8413f39764"},&#10;  queryParams: {}&#10;}]' mediaType="application/java" />
+			</munit:set-event>
+			<set-variable value='#[[]]' doc:name="Set Variable" doc:id="5afc2100-36e0-48de-b920-b0c466966ec5" variableName="id" />
+			<flow-ref doc:name="post:\meals\(mealId)\items" doc:id="49cb2230-5e9b-4a89-be39-2140fa1cbdc2" name="post:\users\(userId)\meals\(mealId)\items:application\json:meal-log-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="ebfa1aec-ea9f-4c8f-a88f-6317564a2577" message="http status should be 400" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+			<munit-tools:assert-that doc:name="Assert code" doc:id="769b3432-1389-46e2-8bd2-7e6f8e6d0e79" expression="#[payload.code]" is='#[MunitTools::equalTo("MEAL-404")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_404_for_unknown_meal" doc:id="04670bb9-a2e4-4857-9b06-4eb83b8450fe">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="check meals exist" doc:id="fdb27ff2-c5bb-4c17-853b-1ac549efa347" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b685c72f-1a45-4cad-94da-433862c3df65" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="1c48e2ce-480d-419d-ad0f-ee85e2fd3f9a" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "55445",&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39765"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<set-variable value='#[[]]' doc:name="Set Variable" doc:id="e24d7f92-c355-4ae1-83d2-96a8906152d3" variableName="meal_id" />
+			<flow-ref doc:name="delete:meals\(mealId)" doc:id="156f800c-fc47-4013-b508-fced6e8573f3" name="delete:\users\(userId)\meals\(mealId):meal-log-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="e78b7d1c-9698-45e8-b401-196a1d521b1a" message="http status should be 400" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+			<munit-tools:assert-that doc:name="Assert code" doc:id="e9b137d5-b5a7-4506-9afd-78e0b713e2f7" expression="#[payload.code]" is='#[MunitTools::equalTo("MEAL-404")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_404_for_invalid_meal_Id" doc:id="f865074e-6645-4df7-a4da-def2576493c7" >
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="001c10fb-bb9d-44cd-b341-b15883c2183e" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "55445",mealId: "335c71bb-a167-4160-935e-1c8413f39"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="get:(userId)\meals\(mealId):" doc:id="8fb6fcba-8ed6-4240-9534-51418454909d" name="get:\users\(userId)\meals\(mealId):meal-log-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 400" doc:id="005f0bc8-4540-43ef-b47f-9a2245e1b403" message="http status should be 400" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" />
+			<munit-tools:assert-that doc:name="Assert code" doc:id="19dfa44b-bc84-4ddc-bf7b-abd3f6ac6bbc" expression="#[payload.code]" is='#[MunitTools::equalTo("MEAL-400")]' />
+		</munit:validation>
+	</munit:test>
+
+</mule>
