@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+		xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<global-property doc:name="Global Property"
+		doc:id="27f487c2-e48b-45fb-83a4-9a595a303fc1" name="env"
+		value="local" />
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="45d68e2c-7971-4109-80cf-f7b1185c5479"
+		file="meal-log-${env}.properties" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="09426abb-9f81-4f79-8aeb-6d992ae749b1" file="meal-log-${env}.properties" key="${MULE_MASTER_KEY}" />
+	<db:config name="NUTRISENSE_DB_CONFIG" doc:name="Database Config" doc:id="342a62d1-75bb-4a42-87fb-54c28c066abe" >
+		<db:generic-connection url="${nutrisense.db.url}" user="${secure::nutrisense.db.user}" password="${secure::nutrisense.db.password}" driverClassName="${nutrisense.db.driver}"/>
+	</db:config>
+	<http:listener-config
+		name="meal-log-sys-api-httpListenerConfig">
+		<http:listener-connection host="0.0.0.0"
+			port="${meals.https.port}" protocol="HTTPS">
+			<tls:context >
+				<tls:key-store type="${meals.keystore.type}" path="${meals.keystore.path}" alias="${meals.keystore.alias}" keyPassword="${secure::meals.keystore.password}" password="${secure::meals.keystore.keyPassword}" />
+			</tls:context> </http:listener-connection>
+	</http:listener-config>
+	<apikit:config name="meal-log-sys-api-config"
+		api="resource::cb90cdfe-fcc1-4bdc-a401-36bff2203ef6:meal-log-sys-api:1.0.0:raml:zip:meal-log-sys-api.raml"
+		outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+</mule>

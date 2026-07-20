@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="create-meal-flow" doc:id="43604722-7c3e-4078-840a-459180b2672c" >
+		<logger level="INFO" doc:name="Creating a new meal" doc:id="c0e48f25-a357-45b8-9d07-f7725310e255" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal creation started'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealType: vars.request.mealType,&#10;itemCount: sizeOf(vars.request.items)&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<try doc:name="Try" doc:id="bf633fd5-eb83-4c9d-aacd-b1e3ae4bdcb1" transactionalAction="ALWAYS_BEGIN" >
+			<db:insert doc:name="Insert Meals" doc:id="d09ea402-36b7-4806-a1bc-f8b30d395244" config-ref="NUTRISENSE_DB_CONFIG" transactionalAction="ALWAYS_JOIN" autoGenerateKeys="true" target="meal_id" targetValue="#[payload.generatedKeys.meal_id]" >
+				<db:sql ><![CDATA[INSERT INTO meals (user_id,meal_type,consumed_at) 
+VALUES (:user_id, :meal_type, :consumed_at)]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+	user_id: vars.userId,
+	meal_type: vars.request.mealType,
+	consumed_at: vars.request.consumedAt	
+}]]]></db:input-parameters>
+				<db:auto-generated-keys-column-names >
+					<db:auto-generated-keys-column-name value="meal_id" />
+				</db:auto-generated-keys-column-names>
+			</db:insert>
+			<flow-ref doc:name="insert-meal-items-subflow" doc:id="a09eeb71-32c0-4a6a-b32a-731c3616028e" name="insert-meal-items-subflow" />
+		</try>
+		<logger level="INFO" doc:name="END" doc:id="43687b2d-678c-4795-8948-814da00f8b58" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal created successfully'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]"/>
+	</flow>
+	<flow name="insert-meal-items-subflow" doc:id="a414cc0a-39b6-4f8e-95f5-7de0ec2a1556" >
+		<ee:transform doc:name="Set Mode" doc:id="c1a692ff-a00f-4900-b547-ca92fedf91fa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.request.items map (item)->{
+  foodId: item.foodId,
+  mode: if (item.quantityG != null) "B" else "A",
+  portionId: item.portionId default null,
+  portionAmount: item.portionAmount default null,
+  quantityG: item.quantityG default null
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Creating meal items" doc:id="72882f4a-d7d1-425e-8320-93b5fab04ff5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item creation started'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealType: vars.request.mealType,&#10;payload:payload&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<foreach doc:name="For Each " doc:id="dcc2a3c7-bc79-4a6e-9feb-4d21d010b78b" collection="#[payload]">
+			<set-variable value="#[payload]" doc:name="Current Payload" doc:id="3a3f8a35-38ac-48ac-90ab-b37483fd5f8b" variableName="currentItem" />
+			<choice doc:name="Choice" doc:id="91bed965-b894-4edc-b522-ccbc0dae58a4">
+				<when expression="#[payload.mode =='A']">
+					<db:select doc:name="Retreive Food Weight" doc:id="a9fef56f-f1c1-4984-a7cd-c6e46db908a3" config-ref="NUTRISENSE_DB_CONFIG">
+						<db:sql><![CDATA[SELECT gram_weight FROM food_portions where id = :id]]></db:sql>
+						<db:input-parameters><![CDATA[#[{
+	id : payload.portionId
+}]]]></db:input-parameters>
+					</db:select>
+					<validation:is-not-null doc:name="Is not null" doc:id="f22d4252-9731-4701-8464-af15450bc5ec" value="#[payload.gram_weight]" message="Invalid Portion provided" />
+					<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;(payload[0].gram_weight as Number) * (vars.currentItem.portionAmount as Number)]" doc:name="Computed Quantity G" doc:id="9b17a7d1-267c-418f-a9ab-60192c9a0793" variableName="computedQuantityG" />
+				</when>
+				<otherwise>
+					<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;payload.quantityG]" doc:name="Computed Quantity G" doc:id="af41274b-056c-4717-a379-043a8f9e67d6" variableName="computedQuantityG" />
+				</otherwise>
+			</choice>
+			<db:insert doc:name="Insert Food Items" doc:id="247a9e52-6111-4d99-9db6-2a2333625140" config-ref="NUTRISENSE_DB_CONFIG" transactionalAction="ALWAYS_JOIN">
+				<db:sql><![CDATA[INSERT INTO meal_items (food_id,portion_id,portion_amount,quantity_g, meal_id)
+VALUES (:food_id, :portion_id, :portion_amount, :quantity_g, :meal_id)]]></db:sql>
+				<db:input-parameters><![CDATA[#[{
+	 food_id: vars.currentItem.foodId,
+	 portion_id: vars.currentItem.portionId, 
+	 portion_amount:vars.currentItem.portionAmount,
+	 meal_id: vars.meal_id default vars.mealId, 
+	 quantity_g:vars.computedQuantityG
+}]]]></db:input-parameters>
+			</db:insert>
+		</foreach>
+		<db:select doc:name="Select full meal with items" doc:id="cb0b193d-4be5-4244-8bc1-b8d3cf255ebd" config-ref="NUTRISENSE_DB_CONFIG" >
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
+       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+FROM meals m
+JOIN meal_items mi ON m.meal_id = mi.meal_id
+WHERE m.meal_id = :mealId
+AND m.deleted_at IS NULL
+AND mi.deleted_at IS NULL
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	mealId: vars.meal_id default vars.mealId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="25d9deeb-7cd7-4322-88da-5b51bbf9d4ca" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import transformMeal from dwl::transforms
+---
+transformMeal(payload)]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[201]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+	<sub-flow name="validate-payload-subflow" doc:id="3667430e-5e5d-41f5-baa6-83eb89e2d729" >
+		<ee:transform doc:name="Validate Payload items" doc:id="a5faf1c6-67fd-4720-9561-985f08c7e739" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="validate" ><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+output application/java
+---
+ vars.request.items some (item)->
+ (item.portionId != null and item.quantityG != null) or
+ (item.portionId == null and item.portionAmount == null and item.quantityG == null)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="47648a78-0264-48d6-823e-f311e4fe2c87" >
+			<choice doc:name="Choice" doc:id="19479dc4-1b5e-4fa4-b561-c6c7b94ae8c1" >
+				<when expression="#[vars.mealId != null]">
+					<validation:is-false doc:name="Check Meal Id" doc:id="329f10a9-d946-403a-8d04-a23f9a79720f" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID." />
+					<db:select doc:name="Select Meals" doc:id="81a651be-b9d0-4a99-a296-eb9dca22d1cf" config-ref="NUTRISENSE_DB_CONFIG" target="id">
+						<db:sql ><![CDATA[SELECT meal_id FROM meals 
+WHERE meal_id = :mealId 
+AND user_id = :userId 
+AND deleted_at IS NULL]]></db:sql>
+						<db:input-parameters ><![CDATA[#[{
+	mealId: vars.mealId,
+	userId: vars.userId
+}]]]></db:input-parameters>
+					</db:select>
+					<validation:is-not-null doc:name="Is not null" doc:id="c962af96-5d15-435a-b3d9-6652d0f18506" value="#[vars.id.meal_id]" message="Invalid Portion provided" />
+				</when>
+			</choice>
+			<validation:is-false doc:name="vars.validate" doc:id="d466d1d3-3cd2-4ced-83a9-0e77ac6dde4c" expression="#[vars.validate]" message="Invalid Request. Each item must use (portionId + portionAmount) or (quantityG)" />
+		</try>
+	</sub-flow>
+</mule>

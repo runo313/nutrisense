@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="meal-deletes-suite.xml" />
+	<munit:test name="should_delete_meal_and_return_204" doc:id="9e8d6f55-2965-4b00-b82c-cf385b00127c" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="check meals exist" doc:id="df9fcdc8-0e32-46a8-a2e5-48466b8450cf" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b685c72f-1a45-4cad-94da-433862c3df65" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update" doc:id="dd46b6b5-a63d-4503-944e-4c2b843dc854" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="169a88a5-255c-4346-b45b-4ba75eb7486c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update meal" doc:id="ef47e482-e1f9-4630-b11c-69e7d0f86e55" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="413aa91b-f68c-4fdf-8559-88cb4fa78a8c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="22fef954-e1c2-44c2-a456-681092233f2d" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "55445",&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39764"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<set-variable value='#[[{meal_id: "335c71bb-a167-4160-935e-1c8413f39764"}]]' doc:name="Set Variable" doc:id="4a7dacb2-783d-4091-afd0-6c0abaea08f0" variableName="meal_id" />
+			<set-variable value='#[[{&#10;	"itemId": "2e2881ad-394b-438c-8465-09d36db9cf30",&#10;	"portionId": 118808,&#10;	"portionAmount": 1.5,&#10;	"quantityG": 74.55&#10;}]]' doc:name="Set Variable1" doc:id="faf2d2cb-43b8-4695-93bc-33d454b3f43e" variableName="item_response" />
+			<flow-ref doc:name="delete:\meals\(mealId)" doc:id="fbf1fa61-8fa0-44de-8177-84af2899fb1a" name="delete:\users\(userId)\meals\(mealId):meal-log-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert http status is 204" doc:id="e177f1f3-ee7b-466d-b8f1-3b799575b902" is="#[MunitTools::equalTo(204)]" expression="#[vars.httpStatus]"/>
+			<munit-tools:assert-that doc:name="Assert that payload is null" doc:id="0f393606-8f2c-452c-aca0-a97f574b398d" expression="#[payload]" is="#[MunitTools::equalTo(null)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_delete_meal_item_and_return_204" doc:id="851f6abf-7a7f-4ed8-9d8b-d0464701c098" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="check meals exist" doc:id="8800bbde-04e7-420e-b380-a4abebdc89dc" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b685c72f-1a45-4cad-94da-433862c3df65" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock meal item exist" doc:id="cbb5815d-b935-45de-8acd-ade88c7c9a63" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="39f8043d-0b08-4cdc-9766-1fa90869e792" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update meal items" doc:id="cf68daf5-541d-4019-a235-44983723fa49" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5a241418-ed91-4251-a993-9a62a9342a34" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="647dde78-28af-4c1c-b55b-a44b13c89ddd" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "55445",&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39764",&#10;    itemId: "8f6c2a34-b03d-49c0-a30a-c347d2183317"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<set-variable value='#[[{meal_id: "335c71bb-a167-4160-935e-1c8413f39764"}]]' doc:name="Set Variable" doc:id="fadd669c-045a-4a67-a1ca-a99b29ee5d65" variableName="meal_id" />
+			<set-variable value='#[[{&#10;	"itemId": "2e2881ad-394b-438c-8465-09d36db9cf30",&#10;	"portionId": 118808,&#10;	"portionAmount": 1.5,&#10;	"quantityG": 74.55&#10;}]]' doc:name="Set Variable1" doc:id="0252d009-796a-4aca-88e5-d1bdc077c056" variableName="item_response" />
+			<flow-ref doc:name="Flow Reference" doc:id="c63949dd-5de8-48e4-978e-5a3ca53496e4" name="delete:\users\(userId)\meals\(mealId)\items\(itemId):meal-log-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert http status is 204" doc:id="ae3f967d-4577-4fdc-99a2-00a0a56bca32" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(204)]" />
+			<munit-tools:assert-that doc:name="Assert that payload is null" doc:id="0f3f38f8-da49-46e9-95db-d04a3799d22d" expression="#[payload]" is="#[MunitTools::equalTo(null)]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

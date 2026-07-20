@@ -1,0 +1,16 @@
+[
+
+	{
+		"meal_id": "335c71bb-a167-4160-935e-1c8413f39764",
+		"user_id": "55445",
+		"meal_type": "breakfast",
+		"consumed_at": "2026-07-13 12:00:00+00",
+		"meal_logged_at": "2026-07-16 01:01:01+00",
+		"item_id": "8f6c2a34-b03d-49c0-a30a-c347d2183317",
+		"food_id": 747448,
+		"portion_id": 118808,
+		"portion_amount": 1.5,
+		"quantity_g": 234.0,
+		"item_logged_at": "2026-07-16 01:01:01+00"
+	}
+]

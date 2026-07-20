@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="patch-meal-flow" doc:id="245fe212-f4f3-4f97-8bc8-fa8cd443db06" >
+		<ee:transform doc:name="Transform Message" doc:id="f3c74c34-a3ec-4ee4-b7fa-18044e85ae06" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="InvalidKey" ><![CDATA[%dw 2.0
+output application/java
+import some from dw::core::Arrays
+---
+keysOf(payload) some ((key) -> !(['mealType', 'consumedAt'] contains (key as String)))]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:all doc:name="All" doc:id="bc1034ce-f27c-4908-8c57-207afc7aa029" >
+			<validation:is-false doc:name="Check Meal Id" doc:id="b67b7f6a-bbfa-44c9-99aa-051223b448a4" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID." />
+			<validation:is-false doc:name="mealType or consumedAt is required" doc:id="93c92f8e-e67c-49da-a5cc-e1498f0b934a" expression="#[payload.mealType == null and payload.consumedAt == null]" message="mealType or consumedAt is required"/>
+			<validation:is-false doc:name="Can only modify mealType or consumedAt" doc:id="30453bef-6e9f-4d3e-9b02-a6925404bce9" message="Can only modify mealType or consumedAt" expression="#[vars.InvalidKey]"/>
+		</validation:all>
+		<flow-ref doc:name="check-meals-exist" doc:id="4bff91c4-26a7-491d-a854-a158f41b7ec5" name="check-meals-exist"/>
+		<ee:transform doc:name="SQL" doc:id="906c7830-f57b-4392-be38-9c9688a30415">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+var base = "UPDATE meals "
+var Clause = if ( payload.mealType != null and payload.consumedAt == null ) " SET meal_type = :mealType " 
+else if ( payload.consumedAt != null and payload.mealType == null ) " SET consumed_at = :consumedAt"
+else "SET meal_type = :mealType, consumed_at = :consumedAt "
+var endClause= " WHERE meal_id = :mealId AND user_id = :userId AND deleted_at IS NULL"
+---
+base ++ Clause ++ endClause]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="sql"><![CDATA[%dw 2.0
+output application/java
+var base = "UPDATE meals "
+var Clause = if ( payload.mealType != null and payload.consumedAt == null ) " SET meal_type = :mealType " 
+else if ( payload.consumedAt != null and payload.mealType == null ) " SET consumed_at = :consumedAt"
+else "SET meal_type = :mealType, consumed_at = :consumedAt "
+var endClause= " WHERE meal_id = :mealId AND user_id = :userId AND deleted_at IS NULL"
+---
+base ++ Clause ++ endClause]]></ee:set-variable>
+						<ee:set-variable variableName="inputParam"><![CDATA[%dw 2.0
+output application/java
+---
+{
+	mealId: vars.mealId,
+	userId: vars.userId,
+	mealType: payload.mealType,
+	consumedAt: payload.consumedAt as DateTime {
+		format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+	} as String {
+		format: "yyyy-MM-dd HH:mm:ssXXX"
+	} default null
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+		<flow-ref doc:name="update-meal-items-subflow" doc:id="c56729a8-55c1-4ce4-b4c7-7f95f7219f09" name="update-meal-items-subflow" />
+	</flow>
+	<flow name="patch-meal-item-flow" doc:id="5751c6ca-6159-44e0-86d0-37989f5c25f1" >
+		<ee:transform doc:name="Transform Message" doc:id="81dab91e-7ba0-4ea6-8b56-5d6b43e4b9e6" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="mode" ><![CDATA[%dw 2.0
+output application/java
+---
+if (payload.quantityG != null) "B" else "A"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:all doc:name="All" doc:id="74414adb-edc8-4028-b9ec-e796166c10b8" >
+			<validation:is-false doc:name="Check Meal Id" doc:id="0e81343c-93ca-44a2-911d-6e435cfd7dbf" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID." />
+			<validation:is-false doc:name="Check Item Id" doc:id="5c166366-17dd-4b27-8572-ff7f678d2be9" expression="#[not (vars.itemId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Item Id format. Must be a valid UUID." />
+			<validation:is-false doc:name="At least one field is required " doc:id="781431c7-d825-474a-bef6-609c3a1d162f" expression="#[(vars.items.foodId != null or vars.items.portionAmount != null or vars.items.portionId != null ) and (vars.items.quantityG != null)]" message="At least one field is required "/>
+		</validation:all>
+		<flow-ref doc:name="check-meals-exist" doc:id="0181a9d9-f2a2-442d-93ce-55bd5c7afaed" name="check-meals-exist"/>
+		<flow-ref doc:name="check-items-exist" doc:id="284e3a4a-e563-431d-8a1e-82548a92fe9c" name="check-items-exist"/>
+		<choice doc:name="Check Mode" doc:id="d2314031-0472-4fdd-8f6e-4d908fa0fb91">
+			<when expression="#[vars.mode == 'A' and (payload.portionAmount != null or payload.portionId != null)]">
+				<db:select doc:name="Retreive Food Weight" doc:id="4adf83ee-f428-4abd-a52f-9a157caee110" config-ref="NUTRISENSE_DB_CONFIG" target="gram_weight">
+					<db:sql><![CDATA[SELECT gram_weight FROM food_portions where id = :id]]></db:sql>
+					<db:input-parameters><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	id : payload.portionId default vars.item_response[0].portion_id
+}]]]></db:input-parameters>
+				</db:select>
+				<validation:is-false doc:name="gram weight is empty" doc:id="4efd4624-35c9-45df-98a0-e089b26a3844" expression="#[sizeOf(vars.gram_weight) == 0]" message="Invalid portion provided"/>
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;&#10;---&#10;(vars.gram_weight.gram_weight[0] as Number) * (payload.portionAmount default vars.item_response[0].portion_amount as Number)]" doc:name="Computed Quantity G" doc:id="749eac59-b2e6-48d4-b16f-d641ea69cd58" variableName="computedQuantityG" />
+				<ee:transform doc:name="SQL" doc:id="85b1ee81-95e7-4d44-8cfd-d35154ee0e51">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+var setFoodId = if (payload.foodId != null) "food_id = :foodId" else ""
+var setPortionId = if (payload.portionId != null) "portion_id = :portionId" else ""
+var setPortionAmount = if (payload.portionAmount != null) "portion_amount = :portionAmount" else ""
+var setQuantityG = "quantity_g = :quantityG"
+var setClauses = [setFoodId, setPortionId, setPortionAmount, setQuantityG] 
+  filter ($ != "") 
+  joinBy ", "
+---
+"UPDATE meal_items SET " ++ setClauses ++ 
+" WHERE item_id = :itemId AND meal_id = :mealId AND deleted_at IS NULL"]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="inputParam" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	mealId: vars.mealId,
+	itemId: vars.itemId,
+	foodId: payload.foodId default null,
+	portionAmount: payload.portionAmount default null,
+	quantityG: vars.computedQuantityG,
+	portionId: payload.portionId default null
+} ]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<when expression="#[vars.mode == 'B']">
+				<ee:transform doc:name="SQL" doc:id="76ec7b73-4d90-4a17-aa8d-207e4fecb158">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+"UPDATE meal_items SET quantity_g = :quantityG WHERE item_id = :itemId AND meal_id = :mealId AND deleted_at IS NULL"]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="inputParam" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	mealId: vars.mealId,
+	itemId: vars.itemId,
+	quantityG: payload.quantityG
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<when expression="#[payload.portionAmount == null and payload.portionId == null and payload.foodId != null]">
+				<ee:transform doc:name="SQL" doc:id="81d9aa24-1c42-4628-947c-27b5f5008ee2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"UPDATE meal_items SET food_id = :foodId WHERE item_id = :itemId AND meal_id = :mealId AND deleted_at IS NULL"]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="inputParam" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	mealId: vars.mealId,
+	itemId: vars.itemId,
+	foodId: payload.foodId
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="93ae2b62-7d77-42d5-8c53-6b5b17f5240f" type="ANY"/>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="update-meal-items-subflow" doc:id="50adfe6d-7008-4d37-a1fe-427e3cd855a2" name="update-meal-items-subflow"/>
+	</flow>
+	<sub-flow name="update-meal-items-subflow" doc:id="2e553c8f-34f9-42ea-8121-c43cdaa06167" >
+		<logger level="INFO" doc:name="Executing Meal update" doc:id="b15690ff-4efe-472b-829a-35870c13258b" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Executing Meal update'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<db:update doc:name="Update meal items" doc:id="dce34fdf-5362-4f60-b1b7-f163bb7b2a67" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[#[payload]]]></db:sql>
+			<db:input-parameters ><![CDATA[#[%dw 2.0
+output application/java
+---
+vars.inputParam]]]></db:input-parameters>
+		</db:update>
+		<db:select doc:name="Select meals" doc:id="35eec0c7-4556-4490-8ecb-866ed0fe0f57" config-ref="NUTRISENSE_DB_CONFIG" >
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
+       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+FROM meals m
+LEFT JOIN meal_items mi ON m.meal_id = mi.meal_id
+WHERE m.meal_id = :meal_id
+AND m.deleted_at IS NULL
+AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId,
+	meal_id : vars.mealId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="319dff72-974a-4816-bf03-b2b4faaf7cc5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import transformMeal from dwl::transforms
+output application/json
+---
+transformMeal(payload)]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Update Complete" doc:id="a50987c1-ac3a-4677-9080-1b9a8b6fed83" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal updated'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+	</sub-flow>
+</mule>

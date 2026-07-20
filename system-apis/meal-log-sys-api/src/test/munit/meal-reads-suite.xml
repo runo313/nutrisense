@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="meal-reads-suite.xml" />
+	<munit:test name="should_return_meals_for_date_200" doc:id="320874f9-6b76-4010-8bfb-e9c6e5343283">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="6da74d26-a22f-4f52-aa16-0ec6e2527ac0" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="6eb77221-9821-48db-90ce-e0bf69b51540" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[&#10;  {&#10;    "meal_id": "335c71bb-a167-4160-935e-1c8413f39764",&#10;    "user_id": "55445",&#10;    "meal_type": "breakfast",&#10;    "consumed_at": "2026-07-13 12:00:00+00",&#10;    "meal_logged_at": "2026-07-16 01:01:01+00",&#10;    "item_id": "8f6c2a34-b03d-49c0-a30a-c347d2183317",&#10;    "food_id": 747448,&#10;    "portion_id": 118808,&#10;    "portion_amount": 1.5,&#10;    "quantity_g": 234.0,&#10;    "item_logged_at": "2026-07-16 01:01:01+00"&#10;  }&#10;]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="42127da0-a809-48ef-947f-710a4029328f" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "55445"},&#10;  queryParams: {&#10;    date: "2026-07-13",&#10;    timezone: "America/New_York"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="get meals" doc:id="25951454-440e-4c0f-a7cf-962465c4b044" name="get:\users\(userId)\meals:meal-log-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="85948c0d-74ab-4204-89c0-2fe688c9ddf9" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that payload  counts &gt; 0" doc:id="a2945bd0-511c-40b1-a3e8-ff71610730e8" expression="#[payload.counts]" is="#[MunitTools::greaterThan(0)]" />
+			<munit-tools:assert-that doc:name="Assert meals not empty" doc:id="fb74fe0b-2d34-4519-915d-0782aa6f424e" expression="#[payload.meals]" is="#[MunitTools::not(MunitTools::isEmpty())]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_empty_meals_200" doc:id="b60769b4-15de-4682-860a-f03bcc03f4e5">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="3e0357f9-0921-4e8a-bee1-e60466a06a04" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="6eb77221-9821-48db-90ce-e0bf69b51540" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="85f0c7f0-165a-47e8-8edf-674da705c8a1" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "55445"},&#10;  queryParams: {&#10;    date: "2026-07-13",&#10;    timezone: "America/New_York"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="get meals" doc:id="7d54e9a4-f672-4241-9359-9cc5c2f49f8f" name="get:\users\(userId)\meals:meal-log-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="810ee117-2740-4360-92c8-c8db08194c97" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+			<munit-tools:assert-that doc:name="Assert that payload equals 0" doc:id="8f5b3dbb-4045-4dcd-bb72-a714814c9dc3" expression="#[payload.counts]" is="#[MunitTools::equalTo(null)]" />
+			<munit-tools:assert-that doc:name="Assert that meals equals 0" doc:id="ec60c355-63aa-409c-9e01-8d2aa2d21317" expression="#[sizeOf(payload.meals)]" is="#[MunitTools::equalTo(null)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_meal_by_id_200" doc:id="14f214f7-b394-4734-ad27-92708abf1084">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="6d567fa2-4122-44e7-8471-f30eba06ac4a" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f2ff4a5c-bfe6-4432-b5df-21603a4184aa" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	"meal_id": "335c71bb-a167-4160-935e-1c8413f39764",&#10;	"user_id": "55445",&#10;	"meal_type": "lunch",&#10;	"consumed_at": "2026-07-13T08:00:00",&#10;	"meal_logged_at": "2026-07-18T12:39:35.897562",&#10;	"item_id": "62d96c78-674c-4418-885e-3d5e04d17500",&#10;	"food_id": 2684444,&#10;	"portion_id": null,&#10;	"portion_amount": null,&#10;	"quantity_g": 150,&#10;	"item_logged_at": "2026-07-18T12:39:35.897562"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="a4d652c6-094b-40db-9d5e-e04217e2b6c2" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "55445",&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39764"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="f1956c74-d9aa-46b8-ad38-99365936632a" name="get:\users\(userId)\meals\(mealId):meal-log-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 20" doc:id="7466f8ed-92d8-4672-8e67-93ddaffc56a9" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that meal id equals " doc:id="9651df97-b8c8-4494-9af7-63ac8ef14c7d" expression="#[payload.mealId]" is="#[MunitTools::equalTo('335c71bb-a167-4160-935e-1c8413f39764')]" />
+			<munit-tools:assert-that doc:name="Assert that userId equals " doc:id="fa313662-ee3a-457b-93aa-012406ab52f6" expression="#[payload.userId]" is="#[MunitTools::equalTo('55445')]" />
+			<munit-tools:assert-that doc:name="Assert items not empty" doc:id="218a96eb-2d6d-432e-9e45-21bfeb2cfc88" expression="#[payload.items]" is="#[MunitTools::not(MunitTools::isEmpty())]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_empty_meal_by_id" doc:id="d1874367-05db-402e-9356-87090f439fb8">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="d0841359-9187-4ee0-a1cf-830ea494b13a" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f2ff4a5c-bfe6-4432-b5df-21603a4184aa" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="28e4d456-9e80-44ac-942d-f7b9a61477ef" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "55445",&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39764"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="dc998166-08b3-4fd9-8425-a1bfbd4875be" name="get:\users\(userId)\meals\(mealId):meal-log-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="7d3fc039-2b12-4dee-907f-e69b08e6e9ce" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

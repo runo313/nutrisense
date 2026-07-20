@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="delete-meal-flow" doc:id="57e29f1e-64c3-4d83-8ca9-b178795c1e25" >
+		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="54101ca1-2327-4afa-a29c-d28437161b2c" variableName="flowName"/>
+		<validation:is-false doc:name="Check Meal Id" doc:id="6803def2-64c2-416c-b54f-747a9a487ab5" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID." />
+		<flow-ref doc:name="check-meals-exist" doc:id="428099c6-2fbe-4e32-9185-1dd0e6ecf8aa" name="check-meals-exist"/>
+		<db:update doc:name="Update meal items" doc:id="169a88a5-255c-4346-b45b-4ba75eb7486c" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql><![CDATA[UPDATE meal_items SET deleted_at = now() 
+WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	mealId: vars.mealId
+}]]]></db:input-parameters>
+		</db:update>
+		<db:update doc:name="Update meals" doc:id="413aa91b-f68c-4fdf-8559-88cb4fa78a8c" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql><![CDATA[UPDATE meals SET deleted_at = now() 
+WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	mealId: vars.mealId
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="667dfc09-8a94-4b12-95e5-12396a93d985" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+null]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[204]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+	<flow name="delete-meal-item-flow" doc:id="c96ba7fe-dc62-473f-8e7b-a6ac51948037" >
+		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="d4831b51-4831-4dae-9588-f4108b71bd8c" variableName="flowName" />
+		<validation:is-false doc:name="Check Meal Id" doc:id="36335185-f333-418c-a612-31e6416efc6f" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID." />
+		<validation:is-false doc:name="Check Item Id" doc:id="ae91696c-74c0-46d3-99be-322cce847003" expression="#[not (vars.itemId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Item Id format. Must be a valid UUID." />
+		<flow-ref doc:name="check-meals-exist" doc:id="c0fd71ab-d01a-4a27-86ec-c2577db59b06" name="check-meals-exist"/>
+		<flow-ref doc:name="check-items-exist" doc:id="aa6f3df0-e6e8-4f4d-91e0-46c26935f8e3" name="check-items-exist"/>
+		<db:update doc:name="Update meal items" doc:id="5a241418-ed91-4251-a993-9a62a9342a34" config-ref="NUTRISENSE_DB_CONFIG" >
+			<db:sql ><![CDATA[UPDATE meal_items SET deleted_at = now() 
+WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	mealId: vars.mealId
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="9fa4a4b8-efcd-4c5d-b40f-deeda618d4bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+null]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[204]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+</mule>

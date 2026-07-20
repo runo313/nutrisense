@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="check-meals-exist" doc:id="812ff304-72ed-4cca-b9e8-ea3466c2171f" >
+		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="40ea2573-c48e-477e-8273-5b7f78516710" variableName="flowName" />
+		<db:select doc:name="Select meal_id" doc:id="b685c72f-1a45-4cad-94da-433862c3df65" config-ref="NUTRISENSE_DB_CONFIG" target="meal_id" >
+			<db:sql ><![CDATA[SELECT meal_id from meals where meal_id = :mealId AND user_id = :userId AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	mealId: vars.mealId,
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<validation:is-false doc:name="meals not found" doc:id="72c0cd3e-2041-43f0-bbb9-84ef658bfd73" expression="#[sizeOf(vars.meal_id) == 0]" message="Meal not found or has been deleted" />
+		<logger level="INFO" doc:name="Meal existence confirmed" doc:id="921307b4-3b21-46aa-870d-90f3d7d23bd0" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal existence confirmed'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+	</sub-flow>
+	<sub-flow name="check-items-exist" doc:id="82fe1eee-5652-407a-ac00-e3863a1c4207" >
+		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="fa09f6a8-2e18-4312-908a-01da63c507c5" variableName="flowName" />
+		<db:select doc:name="Select meal items" doc:id="39f8043d-0b08-4cdc-9766-1fa90869e792" config-ref="NUTRISENSE_DB_CONFIG" target="item_response" >
+			<db:sql ><![CDATA[SELECT item_id, portion_id, portion_amount, quantity_g FROM meal_items
+WHERE item_id = :itemId
+AND meal_id = :mealId
+AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	mealId: vars.mealId,
+	itemId: vars.itemId
+}]]]></db:input-parameters>
+		</db:select>
+		<validation:is-false doc:name="Item not found " doc:id="375fb404-fefc-4ab0-8cd4-7466e80be027" expression="#[sizeOf(vars.item_response) &lt;= 0]" message="Item not found or has been deleted" />
+		<logger level="INFO" doc:name="Meal item existence confirmed" doc:id="c8c0fe9c-c522-4309-9e8f-de53e67ce487" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item existence confirmed'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+	</sub-flow>
+</mule>
