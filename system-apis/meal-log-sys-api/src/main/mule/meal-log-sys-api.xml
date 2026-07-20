@@ -166,7 +166,7 @@ payload]]></ee:set-variable>
 		<flow-ref doc:name="patch-meal-item-flow" doc:id="5c211388-1024-4e72-9bb0-47097c8224fe" name="patch-meal-item-flow"/>
 		<error-handler ref="patch-meal-error-handler" />
     </flow>
-    <flow name="patch:\users\(userId)\meals\(mealId):application\json:meal-log-sys-api-config">
+    <flow name="patch:\users\(userId)\meals\(mealId):application\json:meal-log-sys-api-config" doc:id="8f1dc9e7-6b42-4bf8-aadc-42ac710e9038">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
@@ -227,7 +227,7 @@ output application/java
 		<flow-ref doc:name="get-meal-by-id-flow" doc:id="d9e0ff2f-8ffd-41a3-9dbc-550c4b42d374" name="get-meal-by-id-flow"/>
 		<error-handler ref="get-meal-error-handler" />
     </flow>
-    <flow name="post:\users\(userId)\meals\(mealId)\items:application\json:meal-log-sys-api-config">
+    <flow name="post:\users\(userId)\meals\(mealId)\items:application\json:meal-log-sys-api-config" doc:id="6e882600-d23e-4f2e-9c15-78224f18ed5e">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
@@ -242,7 +242,7 @@ output application/java
 }]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <logger level="INFO" doc:name="START" doc:id="68e4731a-32da-41e5-8026-e10df7e1cef5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Add items request'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId:vars.mealId,&#10;itemCount:sizeOf(payload)&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+        <logger level="INFO" doc:name="START" doc:id="68e4731a-32da-41e5-8026-e10df7e1cef5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Add items request'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId:vars.mealId,&#10;requestItems:sizeOf(vars.request.items)&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
 		<flow-ref doc:name="validate-payload-subflow" doc:id="98ee2d22-07e2-443a-a425-cb87df6e718f" name="validate-payload-subflow"/>
 		<try doc:name="Try" doc:id="ba8debae-3c31-44e7-a04c-88ff52e28b9c" transactionalAction="ALWAYS_BEGIN">
 			<flow-ref doc:name="insert-meal-items-subflow" doc:id="9c5d915a-b499-42f0-8b2b-001d53e46109" name="insert-meal-items-subflow" />

@@ -194,7 +194,6 @@ AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
 	meal_id : vars.mealId
 }]]]></db:input-parameters>
 		</db:select>
-		<logger level="INFO" doc:name="Update Complete" doc:id="a50987c1-ac3a-4677-9080-1b9a8b6fed83" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal updated'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
 		<ee:transform doc:name="Transform Message" doc:id="319dff72-974a-4816-bf03-b2b4faaf7cc5" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -207,5 +206,6 @@ transformMeal(payload)]]></ee:set-payload>
 				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Update Complete" doc:id="a50987c1-ac3a-4677-9080-1b9a8b6fed83" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal updated'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
 	</sub-flow>
 </mule>

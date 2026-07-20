@@ -91,6 +91,9 @@ import transformMeal from dwl::transforms
 ---
 transformMeal(payload)]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[201]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 	</flow>
 	<sub-flow name="validate-payload-subflow" doc:id="3667430e-5e5d-41f5-baa6-83eb89e2d729" >
