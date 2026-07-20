@@ -42,19 +42,18 @@ output application/json
 {
 	counts: sizeOf(payload),
 	meals: payload groupBy ((item) -> item.meal_type ) pluck ((value, key ) ->{
-		"meal_id": value[0].meal_id,
-		"user_id": value[0].user_id,
-		"meal_type": value[0].meal_type,
-		"consumed_at": value[0].consumed_at,
-		"meal_logged_at": value[0].meal_logged_at,
+		"mealId": value[0].meal_id,
+		"userId": value[0].user_id,
+		"mealType": value[0].meal_type,
+		"consumedAt": value[0].consumed_at,
+		"loggedAt": value[0].meal_logged_at,
 		"items": value map ((item) -> {
-			"item_id": item.item_id,
-			"food_id": item.food_id,
-			"portion_id": item.portion_id,
-			"portion_amount": item.portion_amount,
-			"quantity_g": item.quantity_g,
-			"item_logged_at": item.item_logged_at
+			"itemId": item.item_id,
 			"foodId": item.food_id,
+			"portionId": item.portion_id,
+			"portionAmount": item.portion_amount,
+			"quantityG": item.quantity_g,
+			"loggedAt": item.item_logged_at
 		})
 	} )
 }]]></ee:set-payload>
