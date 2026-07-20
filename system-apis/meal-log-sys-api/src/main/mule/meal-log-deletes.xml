@@ -24,6 +24,17 @@ WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
 	mealId: vars.mealId
 }]]]></db:input-parameters>
 		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="667dfc09-8a94-4b12-95e5-12396a93d985" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+null]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[204]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 	</flow>
 	<flow name="delete-meal-item-flow" doc:id="c96ba7fe-dc62-473f-8e7b-a6ac51948037" >
 		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="d4831b51-4831-4dae-9588-f4108b71bd8c" variableName="flowName" />
@@ -38,5 +49,16 @@ WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
 	mealId: vars.mealId
 }]]]></db:input-parameters>
 		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="9fa4a4b8-efcd-4c5d-b40f-deeda618d4bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+null]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[204]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 	</flow>
 </mule>

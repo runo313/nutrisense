@@ -2,128 +2,20 @@
 <mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
-    
-    <validation:config name="Validation_Config" doc:name="Validation Config" doc:id="a0dca594-10dd-4e0f-904d-045474c3d448" i18n="#[payload.items some ((item) -&gt;&#10;  (item.portionId != null and item.quantityG != null) or&#10;  (item.portionId == null and item.portionAmount == null and item.quantityG == null)&#10;)]" />
 	<flow name="meal-log-sys-api-main">
-        <http:listener config-ref="meal-log-sys-api-httpListenerConfig" path="/api/*">
+        <http:listener config-ref="meal-log-sys-api-httpListenerConfig" path="api/v1/nutrition-data-sapi/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="meal-log-sys-api-config" />
-        <error-handler>
-            <on-error-propagate type="APIKIT:BAD_REQUEST">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Bad request"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_FOUND">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Resource not found"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Method not allowed"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Not acceptable"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Unsupported media type"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Not Implemented"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-        </error-handler>
+		<error-handler ref="apikit-error-handler" />
     </flow>
-    <flow name="meal-log-sys-api-console">
-        <http:listener config-ref="meal-log-sys-api-httpListenerConfig" path="/console/*">
-            <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:response>
-            <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:error-response>
-        </http:listener>
-        <apikit:console config-ref="meal-log-sys-api-config" />
-        <error-handler>
-            <on-error-propagate type="APIKIT:NOT_FOUND">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Resource not found"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-        </error-handler>
-    </flow>
-    <flow name="delete:\users\(userId)\meals\(mealId)\items\(itemId):meal-log-sys-api-config">
+	<flow name="delete:\users\(userId)\meals\(mealId)\items\(itemId):meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
@@ -135,7 +27,7 @@ output application/json
 		<flow-ref doc:name="delete-meal-item-flow" doc:id="c5b96e08-d166-43cb-a42e-2bf3529d9b1c" name="delete-meal-item-flow"/>
 		<error-handler ref="delete-meal-error-handler" />
     </flow>
-    <flow name="delete:\users\(userId)\meals\(mealId):meal-log-sys-api-config">
+    <flow name="delete:\users\(userId)\meals\(mealId):meal-log-sys-api-config" doc:id="c155bd79-2cdf-4dc6-99d5-042b2edd1466">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
@@ -192,7 +84,7 @@ output application/json
             </ee:message>
         </ee:transform>
     </flow>
-    <flow name="get:\users\(userId)\meals:meal-log-sys-api-config">
+    <flow name="get:\users\(userId)\meals:meal-log-sys-api-config" doc:id="93b82e1f-b2b9-484a-b76d-7a24a163d286">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
@@ -213,7 +105,7 @@ output application/java
 		<flow-ref doc:name="get-meals-flow" doc:id="ce63990f-defc-48a0-a582-1a4703b3fd6e" name="get-meals-flow"/>
 		<error-handler ref="get-meal-error-handler" />
     </flow>
-    <flow name="get:\users\(userId)\meals\(mealId):meal-log-sys-api-config">
+    <flow name="get:\users\(userId)\meals\(mealId):meal-log-sys-api-config" doc:id="b56af542-03f6-4207-871a-8e66bd0335e6">
         <ee:transform doc:name="Transform Message" doc:id="e8992eb5-c3be-495c-8456-01f9f031b2a6">
             <ee:message />
 			<ee:variables>

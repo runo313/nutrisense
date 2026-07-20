@@ -51,7 +51,7 @@ vars.request.items map (item)->{
 	id : payload.portionId
 }]]]></db:input-parameters>
 					</db:select>
-					<validation:is-not-null doc:name="Is not null" doc:id="f22d4252-9731-4701-8464-af15450bc5ec" value="#[payload.gram_weight]" message="Invalid Portion " />
+					<validation:is-not-null doc:name="Is not null" doc:id="f22d4252-9731-4701-8464-af15450bc5ec" value="#[payload.gram_weight]" message="Invalid Portion provided" />
 					<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;(payload[0].gram_weight as Number) * (vars.currentItem.portionAmount as Number)]" doc:name="Computed Quantity G" doc:id="9b17a7d1-267c-418f-a9ab-60192c9a0793" variableName="computedQuantityG" />
 				</when>
 				<otherwise>
@@ -125,7 +125,7 @@ AND deleted_at IS NULL]]></db:sql>
 	userId: vars.userId
 }]]]></db:input-parameters>
 					</db:select>
-					<validation:is-not-empty-collection doc:name="Is not empty collection" doc:id="4eb8c5cd-a17d-4618-8cb2-4480af162bdc" values="#[vars.id]" message="Meal not found"/>
+					<validation:is-not-null doc:name="Is not null" doc:id="c962af96-5d15-435a-b3d9-6652d0f18506" value="#[vars.id.meal_id]" message="Invalid Portion provided" />
 				</when>
 			</choice>
 			<validation:is-false doc:name="vars.validate" doc:id="d466d1d3-3cd2-4ced-83a9-0e77ac6dde4c" expression="#[vars.validate]" message="Invalid Request. Each item must use (portionId + portionAmount) or (quantityG)" />
