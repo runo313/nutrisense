@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="create-profile-flow" doc:id="ef7f5cde-38c0-45f4-88eb-8c1db938b41d" >
 		<ee:transform doc:name="Transform Message" doc:id="639cc207-2d93-4a9d-b28b-ca6522976214" >
 			<ee:message >
@@ -13,7 +14,95 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="c5d21fd9-8ccf-4afb-baa8-bd5c76ee89dd" />
+		<logger level="INFO" doc:name="START" doc:id="c5d21fd9-8ccf-4afb-baa8-bd5c76ee89dd" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: payload.userId&#10;}&#10;---&#10;buildLog("INFO","Profile creation started",message,vars.correlationId, vars.flowName)]'/>
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	userId: payload.userId,&#10;	name: payload.name,&#10;	email: payload.email,&#10;	dob: payload.dateOfBirth as Date,&#10;	sex: payload.biologicalSex,&#10;	height: payload.heightCm,&#10;	weight: payload.weightKg,&#10;	activityBaseline: payload.activityBaseline&#10;}]" doc:name="payload" doc:id="5de86479-d8a6-4cdb-92de-487ac79f60ce" variableName="user"/>
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;import computeCaloricTarget from dwl::caloricTarget&#10;---&#10;computeCaloricTarget(vars.user.weight,vars.user.height,vars.user.dob,vars.user.sex,vars.user.activityBaseline)]" doc:name="Compute Daily Caloric Target" doc:id="9fa0dee3-792a-4b63-98b5-ea6d5ca8755b" variableName="dailyCaloricTarget"/>
+		<db:select doc:name="Check for duplicate userId or email" doc:id="b0bf44bc-aa74-4529-b072-680f24d9b65c" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT user_id FROM users 
+WHERE (user_id = :userId OR email = :email)
+AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.user.userId,
+	email: vars.user.email
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="b0ceaa04-cfba-480c-b387-c44d51b64bdd" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<ee:transform doc:name="Duplicate Entry" doc:id="bda3cf80-4020-44c0-b2bb-5e3228fd6d15" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-409",
+  message: "A profile with this userId or email already exists",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[409]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Profile creation failed" doc:id="7660d561-bec9-4212-9bcd-56899e6e07d4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","Profile creation failed",message,vars.correlationId, vars.flowName)]'/>
+			</when>
+			<otherwise >
+				<db:insert doc:name="Insert user" doc:id="4bef71af-be7e-4fc6-8880-de0375859a44" config-ref="NUTRISENSE_DB_CONFIG">
+					<db:sql ><![CDATA[INSERT INTO users (user_id, name, email, date_of_birth, biological_sex, 
+height_cm, weight_kg, activity_baseline, daily_caloric_target,created_at, updated_at)
+
+VALUES (:userId, :name, :email, :dateOfBirth, :biologicalSex::biological_sex_enum,:heightCm, 
+:weightKg, :activityBaseline::activity_baseline_enum, :caloricTarget, now(), now())]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	userId: vars.user.userId,
+	name: vars.user.name,
+	email: vars.user.email,
+	dateOfBirth: vars.user.dob,
+	biologicalSex: vars.user.sex,
+	heightCm: vars.user.height,
+	weightKg: vars.user.weight,
+	activityBaseline: vars.user.activityBaseline,
+	caloricTarget: vars.dailyCaloricTarget
+}]]]></db:input-parameters>
+				</db:insert>
+				<db:select doc:name="Select user" doc:id="847aa79b-9507-4c65-ab74-7a158599a0c1" config-ref="NUTRISENSE_DB_CONFIG">
+					<db:sql ><![CDATA[SELECT user_id, name, email, date_of_birth, biological_sex, 
+height_cm, weight_kg, activity_baseline, daily_caloric_target,created_at,updated_at
+FROM users 
+WHERE user_id = :userId]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	userId: vars.user.userId
+}]]]></db:input-parameters>
+				</db:select>
+				<ee:transform doc:name="Payload" doc:id="7403f882-5022-493e-aef6-418e305301d7">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+payload map (item)->{
+  userId: item.user_id,
+  name: item.name,
+  email: item.email,
+  dateOfBirth: item.date_of_birth,
+  biologicalSex: item.biological_sex,
+  heightCm: item.height_cm,
+  weightKg: item.weight_kg,
+  activityBaseline: item.activity_baseline,
+  dailyCaloricTarget: item.daily_caloric_target,
+  createdAt: item.created_at,
+  updatedAt: item.updated_at
+} ]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[201]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="END" doc:id="053b5d47-810b-41f8-969f-bc3715a888db" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","Profile created successfully",message,vars.correlationId, vars.flowName)]'/>
+			</otherwise>
+		</choice>
 	</flow>
 	<flow name="get-profile-flow" doc:id="11927483-cf25-4446-a6ce-c97c844a46ae" >
 		<logger level="INFO" doc:name="Logger" doc:id="37a2e07d-f2ca-4631-a857-c6f0b0271160" />
