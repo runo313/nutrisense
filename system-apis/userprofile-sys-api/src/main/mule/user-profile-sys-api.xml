@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    
+    <flow name="user-profile-sys-api-main">
+        <http:listener config-ref="user-profile-sys-api-httpListenerConfig" path="api/v1/user-profile-sapi/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="user-profile-sys-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="user-profile-sys-api-console">
+        <http:listener config-ref="user-profile-sys-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="user-profile-sys-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="delete:\profiles\(userId)\constraints\(constraintId):user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+                <ee:set-variable variableName="constraintId">attributes.uriParams.'constraintId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="delete:\profiles\(userId)\constraints\(constraintId):user-profile-sys-api-config" />
+    </flow>
+    <flow name="delete:\profiles\(userId):user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="delete:\profiles\(userId):user-profile-sys-api-config" />
+    </flow>
+    <flow name="patch:\profiles\(userId)\preferences:application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  preferenceId: "d4e5f6a7-b8c9-0123-defa-234567890123",
+  userId: "runo313",
+  insightFrequency: "daily",
+  preferredWearableMetrics: [
+    "heart_rate", 
+    "sleep", 
+    "steps"
+  ],
+  preferredNutritionMetrics: [
+    "protein", 
+    "energy_kcal"
+  ],
+  typicalBreakfastTime: "08:00:00",
+  typicalLunchTime: "12:30:00",
+  typicalDinnerTime: "19:00:00",
+  typicalSleepTime: "23:00:00",
+  targetSleepDurationHrs: 7.5,
+  unitsSystem: "metric",
+  createdAt: "2026-07-13T08:00:00-04:00",
+  updatedAt: "2026-07-13T08:00:00-04:00"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="patch:\profiles\(userId)\conditions\(conditionId):application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+                <ee:set-variable variableName="conditionId">attributes.uriParams.'conditionId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  userId: "runo313",
+  conditionType: "hypertension",
+  managementStatus: "diet_controlled",
+  diagnosedAt: "2022-03-15",
+  notes: "Monitoring blood pressure weekly",
+  isActive: true,
+  createdAt: "2026-07-13T08:00:00-04:00"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="patch:\profiles\(userId)\goals\(goalId):application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+                <ee:set-variable variableName="goalId">attributes.uriParams.'goalId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  goalId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  userId: "runo313",
+  goalType: "weight_management",
+  goalDirection: "lose",
+  targetValue: 70,
+  targetUnit: "kg",
+  isPrimary: true,
+  isActive: true,
+  setAt: "2026-07-13T08:00:00-04:00"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="patch:\profiles\(userId):application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  userId: "james2822",
+  name: "James Cold",
+  email: "jcold@gmail.com",
+  dateOfBirth: "2000-01-15",
+  biologicalSex: "male",
+  heightCm: 175,
+  weightKg: 75,
+  activityBaseline: "moderately_active",
+  dailyCaloricTarget: 2800,
+  createdAt: "2026-07-13T08:00:00-04:00",
+  updatedAt: "2026-07-13T08:00:00-04:00",
+  goals: [
+    {
+      goalId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      userId: "james2822",
+      goalType: "weight_management",
+      goalDirection: "lose",
+      targetValue: 70,
+      targetUnit: "kg",
+      isPrimary: true,
+      isActive: true,
+      setAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  conditions: [
+    {
+      conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      userId: "james2822",
+      conditionType: "hypertension",
+      managementStatus: "diet_controlled",
+      isActive: true,
+      createdAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  constraints: [
+    {
+      constraintId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      userId: "james2822",
+      constraintType: "allergy",
+      constraintValue: "gluten",
+      severity: "strict",
+      isActive: true,
+      createdAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  preferences: {
+    preferenceId: "d4e5f6a7-b8c9-0123-defa-234567890123",
+    userId: "james2822",
+    insightFrequency: "daily",
+    preferredWearableMetrics: [
+      "heart_rate", 
+      "sleep"
+    ],
+    preferredNutritionMetrics: [
+      "protein", 
+      "energy_kcal"
+    ],
+    unitsSystem: "metric",
+    createdAt: "2026-07-13T08:00:00-04:00",
+    updatedAt: "2026-07-13T08:00:00-04:00"
+  }
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\profiles\(userId)\conditions:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="get:\profiles\(userId)\conditions:user-profile-sys-api-config" />
+    </flow>
+    <flow name="get:\profiles\(userId)\constraints:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="get:\profiles\(userId)\constraints:user-profile-sys-api-config" />
+    </flow>
+    <flow name="get:\profiles\(userId)\goals:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="get:\profiles\(userId)\goals:user-profile-sys-api-config" />
+    </flow>
+    <flow name="get:\health:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "UP",
+  timestamp: "2026-06-21T12:00:00Z"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\profiles\(userId)\preferences:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  preferenceId: "d4e5f6a7-b8c9-0123-defa-234567890123",
+  userId: "runo313",
+  insightFrequency: "daily",
+  preferredWearableMetrics: [
+    "heart_rate", 
+    "sleep", 
+    "steps"
+  ],
+  preferredNutritionMetrics: [
+    "protein", 
+    "energy_kcal"
+  ],
+  typicalBreakfastTime: "08:00:00",
+  typicalLunchTime: "12:30:00",
+  typicalDinnerTime: "19:00:00",
+  typicalSleepTime: "23:00:00",
+  targetSleepDurationHrs: 7.5,
+  unitsSystem: "metric",
+  createdAt: "2026-07-13T08:00:00-04:00",
+  updatedAt: "2026-07-13T08:00:00-04:00"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\profiles\(userId):user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  userId: "james2822",
+  name: "James Cold",
+  email: "jcold@gmail.com",
+  dateOfBirth: "2000-01-15",
+  biologicalSex: "male",
+  heightCm: 175,
+  weightKg: 75,
+  activityBaseline: "moderately_active",
+  dailyCaloricTarget: 2800,
+  createdAt: "2026-07-13T08:00:00-04:00",
+  updatedAt: "2026-07-13T08:00:00-04:00",
+  goals: [
+    {
+      goalId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      userId: "james2822",
+      goalType: "weight_management",
+      goalDirection: "lose",
+      targetValue: 70,
+      targetUnit: "kg",
+      isPrimary: true,
+      isActive: true,
+      setAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  conditions: [
+    {
+      conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      userId: "james2822",
+      conditionType: "hypertension",
+      managementStatus: "diet_controlled",
+      isActive: true,
+      createdAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  constraints: [
+    {
+      constraintId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      userId: "james2822",
+      constraintType: "allergy",
+      constraintValue: "gluten",
+      severity: "strict",
+      isActive: true,
+      createdAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  preferences: {
+    preferenceId: "d4e5f6a7-b8c9-0123-defa-234567890123",
+    userId: "james2822",
+    insightFrequency: "daily",
+    preferredWearableMetrics: [
+      "heart_rate", 
+      "sleep"
+    ],
+    preferredNutritionMetrics: [
+      "protein", 
+      "energy_kcal"
+    ],
+    unitsSystem: "metric",
+    createdAt: "2026-07-13T08:00:00-04:00",
+    updatedAt: "2026-07-13T08:00:00-04:00"
+  }
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\profiles\(userId)\conditions:application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  userId: "runo313",
+  conditionType: "hypertension",
+  managementStatus: "diet_controlled",
+  diagnosedAt: "2022-03-15",
+  notes: "Monitoring blood pressure weekly",
+  isActive: true,
+  createdAt: "2026-07-13T08:00:00-04:00"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\profiles\(userId)\constraints:application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  constraintId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
+  userId: "runo313",
+  constraintType: "allergy",
+  constraintValue: "gluten",
+  severity: "strict",
+  isActive: true,
+  createdAt: "2026-07-13T08:00:00-04:00"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\profiles\(userId)\goals:application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  goalId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  userId: "runo313",
+  goalType: "weight_management",
+  goalDirection: "lose",
+  targetValue: 70,
+  targetUnit: "kg",
+  isPrimary: true,
+  isActive: true,
+  setAt: "2026-07-13T08:00:00-04:00"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\profiles:application\json:user-profile-sys-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  userId: "james2822",
+  name: "James Cold",
+  email: "jcold@gmail.com",
+  dateOfBirth: "2000-01-15",
+  biologicalSex: "male",
+  heightCm: 175,
+  weightKg: 75,
+  activityBaseline: "moderately_active",
+  dailyCaloricTarget: 2800,
+  createdAt: "2026-07-13T08:00:00-04:00",
+  updatedAt: "2026-07-13T08:00:00-04:00",
+  goals: [
+    {
+      goalId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      userId: "james2822",
+      goalType: "weight_management",
+      goalDirection: "lose",
+      targetValue: 70,
+      targetUnit: "kg",
+      isPrimary: true,
+      isActive: true,
+      setAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  conditions: [
+    {
+      conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      userId: "james2822",
+      conditionType: "hypertension",
+      managementStatus: "diet_controlled",
+      isActive: true,
+      createdAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  constraints: [
+    {
+      constraintId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      userId: "james2822",
+      constraintType: "allergy",
+      constraintValue: "gluten",
+      severity: "strict",
+      isActive: true,
+      createdAt: "2026-07-13T08:00:00-04:00"
+    }
+  ],
+  preferences: {
+    preferenceId: "d4e5f6a7-b8c9-0123-defa-234567890123",
+    userId: "james2822",
+    insightFrequency: "daily",
+    preferredWearableMetrics: [
+      "heart_rate", 
+      "sleep"
+    ],
+    preferredNutritionMetrics: [
+      "protein", 
+      "energy_kcal"
+    ],
+    unitsSystem: "metric",
+    createdAt: "2026-07-13T08:00:00-04:00",
+    updatedAt: "2026-07-13T08:00:00-04:00"
+  }
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>
