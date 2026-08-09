@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="validate-uuid-subflow" doc:id="bd7d09b2-c956-44f1-996e-3ba3aae5e7a9" >
+		<logger level="INFO" doc:name="Logger" doc:id="b4d4632d-ad93-4abf-884c-70ed2b9d5bd3" />
+	</flow>
+	<flow name="validate-profile-exists-subflow" doc:id="280f001c-49f5-463c-9cc9-2e9d136d0bdd" >
+		<logger level="INFO" doc:name="Logger" doc:id="d7734e28-42b9-4f1d-bca6-1cc62a7120c9" />
+	</flow>
+	<flow name="compute-caloric-target-subflow" doc:id="35cff560-1a0d-4e45-aa3a-f70ed0a5c638" >
+		<logger level="INFO" doc:name="Logger" doc:id="eb86eee3-8798-44fe-a799-ec6599c81efd" />
+	</flow>
+</mule>

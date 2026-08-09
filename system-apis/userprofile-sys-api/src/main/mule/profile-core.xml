@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="create-profile-flow" doc:id="ef7f5cde-38c0-45f4-88eb-8c1db938b41d" >
+		<ee:transform doc:name="Transform Message" doc:id="639cc207-2d93-4a9d-b28b-ca6522976214" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c5d21fd9-8ccf-4afb-baa8-bd5c76ee89dd" />
+	</flow>
+	<flow name="get-profile-flow" doc:id="11927483-cf25-4446-a6ce-c97c844a46ae" >
+		<logger level="INFO" doc:name="Logger" doc:id="37a2e07d-f2ca-4631-a857-c6f0b0271160" />
+	</flow>
+	<flow name="patch-profile-flow" doc:id="bcbd1ba6-8093-40a4-90f9-9721ccce2c8d" >
+		<logger level="INFO" doc:name="Logger" doc:id="024dd04e-7f58-4a48-acfd-fc103c1bad1d" />
+	</flow>
+	<flow name="delete-profile-flow" doc:id="ac8a5397-06c4-4af4-bb8e-982f6ad2f7ad" >
+		<logger level="INFO" doc:name="Logger" doc:id="1546e53a-d044-4f41-85e0-0ee60b99ded1" />
+	</flow>
+</mule>

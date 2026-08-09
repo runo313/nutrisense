@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="get-preferences-flow" doc:id="0e0d3642-db1a-4647-b37d-c89cf91b2f8f" >
+		<logger level="INFO" doc:name="Logger" doc:id="72d2f189-4157-4f2e-a8c3-e431df4c8bdd" />
+	</flow>
+	<flow name="patch-preferences-flow" doc:id="710463e4-efef-4171-a39c-4c08e4250187" >
+		<logger level="INFO" doc:name="Logger" doc:id="2c21ab18-75f6-4dae-8ebc-3961cb5c4746" />
+	</flow>
+</mule>

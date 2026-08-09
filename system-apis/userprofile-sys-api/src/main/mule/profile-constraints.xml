@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="get-constraints-flow" doc:id="6934a9ed-01a8-49a2-a35e-98d97cf37286" >
+		<logger level="INFO" doc:name="Logger" doc:id="68e88ac7-69e7-4b6b-808f-a70d4bc9ba37" />
+	</flow>
+	<flow name="create-constraint-flow" doc:id="fa698785-2a41-4331-abe1-ea75459c35b3" >
+		<logger level="INFO" doc:name="Logger" doc:id="d0f1af46-ddd8-4cb7-8dd1-c6f166aa6811" />
+	</flow>
+	<flow name="delete-constraint-flow" doc:id="1bbf1b4d-6109-4ba3-9ade-25078327b4f2" >
+		<logger level="INFO" doc:name="Logger" doc:id="86b9b2a4-ca72-4238-a157-3455aa8c4ac7" />
+	</flow>
+</mule>

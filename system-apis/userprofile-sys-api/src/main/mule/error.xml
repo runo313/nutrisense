@@ -2,4 +2,14 @@
 
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="profile-read-error-handler" doc:id="891c1472-f682-4cfb-833a-2086656d5cc1" >
+		<logger level="INFO" doc:name="Logger" doc:id="38f01fb8-b61a-4bb3-b0e6-b35bed9d3a82" />
+	</flow>
+	<flow name="profile-write-error-handler" doc:id="406f8855-ad72-4446-a695-0820d31c0bbd" >
+		<logger level="INFO" doc:name="Logger" doc:id="35fa8533-7637-4b2e-a699-59659e4aec18" />
+	</flow>
+	<flow name="profile-delete-error-handler" doc:id="427e8cea-daf9-49c8-9cc3-183f81da2421" >
+		<logger level="INFO" doc:name="Logger" doc:id="2b74fbf9-8c77-441d-a52b-754915b1efc6" />
+	</flow>
+</mule>

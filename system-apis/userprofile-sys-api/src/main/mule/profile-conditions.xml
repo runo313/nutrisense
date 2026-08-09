@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="get-conditions-flow" doc:id="763a11d2-2ff8-4c06-9357-9bc786b3c9e6" >
+		<logger level="INFO" doc:name="Logger" doc:id="e4e55717-c884-4cbc-b87c-32330ec820e8" />
+	</flow>
+	<flow name="create-condition-flow" doc:id="dcf07453-999a-4e52-b606-e9927ac406f1" >
+		<logger level="INFO" doc:name="Logger" doc:id="836ff9af-c77a-4da5-aa0e-433686885bfa" />
+	</flow>
+	<flow name="patch-condition-flow" doc:id="497eabe5-e6bb-4855-bd51-b76aeef0b4a3" >
+		<logger level="INFO" doc:name="Logger" doc:id="17f4be28-5722-4b1f-ac1e-c13c56735cc5" />
+	</flow>
+</mule>

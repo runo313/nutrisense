@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="get-goals-flow" doc:id="b6fbd08e-a2bf-402d-992b-25c29ac09606" >
+		<logger level="INFO" doc:name="Logger" doc:id="2e137270-a1da-4bde-9e77-03567830153d" />
+	</flow>
+	<flow name="create-goal-flow" doc:id="9dc5b22b-bd0b-4a6a-a436-cc176474d762" >
+		<logger level="INFO" doc:name="Logger" doc:id="a50e50f8-914c-49f1-8180-1d8e69bf5b7d" />
+	</flow>
+	<flow name="patch-goal-flow" doc:id="e82c5d4d-61bd-428f-ac9a-78755f92ac8f" >
+		<logger level="INFO" doc:name="Logger" doc:id="469309b8-075e-44b8-b655-86920b26b490" />
+	</flow>
+</mule>
