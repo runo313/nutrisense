@@ -1,13 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<flow name="get-goals-flow" doc:id="b6fbd08e-a2bf-402d-992b-25c29ac09606" >
 		<logger level="INFO" doc:name="Logger" doc:id="2e137270-a1da-4bde-9e77-03567830153d" />
 	</flow>
 	<flow name="create-goal-flow" doc:id="9dc5b22b-bd0b-4a6a-a436-cc176474d762" >
-		<logger level="INFO" doc:name="Logger" doc:id="a50e50f8-914c-49f1-8180-1d8e69bf5b7d" />
+		<ee:transform doc:name="set variables" doc:id="37bbfc3b-05ae-4de7-baab-018e32bde4c1">
+			<ee:variables>
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="user" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	userId: attributes.uriParams.userId,
+	goalType: payload.goalType,
+	targetUnit: payload.targetUnit default null,
+	isPrimary: payload.isPrimary default false,
+	targetValue: payload.targetValue default null,
+	goalDirection: payload.goalDirection default null
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="d21bbb0c-0059-46b3-b230-3cfbe4845475" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","Create goal started",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="10ca53a2-89df-4969-a09a-3eb7246d630f" name="validate-profile-exists-subflow"/>
+		<validation:is-false doc:name="weight_management + no direction" doc:id="89f19c16-8d99-4561-a105-010a7c66039b" expression='#[vars.user.goalType == "weight_management" and vars.user.goalDirection == null]' message="goal direction is required for weight management goals"/>
+		<db:select doc:name="Select units_system" doc:id="06008a15-00e6-41e7-929b-8e05807e068f" config-ref="NUTRISENSE_DB_CONFIG" target="userPreferences.units_system">
+			<db:sql ><![CDATA[SELECT units_system FROM user_preferences
+WHERE user_id  = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.user.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="resolvedGoalDirection" doc:id="7fb79831-b1d0-4b1d-a1c9-09f7f1068652" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="resolvedTargetUnit" ><![CDATA[%dw 2.0
+output application/java
+---
+if ( vars.user.targetUnit != null ) vars.user.targetUnit
+else if ( vars.user.goalType == "weight_management" ) if ( vars.userPreferences.units_system == "imperial" ) "lbs"
+	else "kg"
+else if ( vars.user.goalType == "sleep_improvement" ) "hrs"
+else null]]></ee:set-variable>
+				<ee:set-variable variableName="resolvedGoalDirection" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.user.goalDirection default  "improve"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Select is_primary" doc:id="fa4510f4-01aa-41b7-af4d-d44ae4222bc0" config-ref="NUTRISENSE_DB_CONFIG" target="existingPrimaryGoalId" targetValue="#[payload[0].goal_id]">
+					<db:sql><![CDATA[SELECT is_primary,goal_id FROM user_goals WHERE user_id = :userId AND is_primary = True;]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	userId: vars.user.userId
+}]]]></db:input-parameters>
+				</db:select>
+		<try doc:name="Try" doc:id="507df63e-5969-450a-9d71-705d93081458" transactionalAction="ALWAYS_BEGIN">
+			<choice doc:name="Choice" doc:id="e0858666-5066-4b57-8493-1647e21c96a0">
+					<when expression="#[(sizeOf(payload) &gt; 0) and vars.user.isPrimary]">
+						<logger level="INFO" doc:name="Update Primary Goal" doc:id="3ce45b79-edfb-43f2-8211-77fd18dd7ddc" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.existingPrimaryGoalId&#10;	&#10;}&#10;---&#10;buildLog("INFO","Updating Primary Goal",message,vars.correlationId, vars.flowName)]' />
+						<db:update doc:name="Set Existing Goal to False" doc:id="69c772d2-34a3-4f10-b38e-db3434fceb0c" config-ref="NUTRISENSE_DB_CONFIG">
+							<db:sql><![CDATA[UPDATE user_goals SET is_primary = false 
+WHERE goal_id = :goalId]]></db:sql>
+							<db:input-parameters><![CDATA[#[{
+	goalId: vars.existingPrimaryGoalId
+}]]]></db:input-parameters>
+						</db:update>
+					</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Update Primary Goal" doc:id="5fe54782-c2f6-4511-a3fa-b210fe6645d9" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","No Updates to Primary Goal",message,vars.correlationId, vars.flowName)]' />
+			</otherwise>
+				</choice>
+			<db:insert doc:name="Insert Into user_goals" doc:id="3345d050-6a6f-4977-a6e1-2fdf6886c98a" config-ref="NUTRISENSE_DB_CONFIG" target="goal_id" targetValue="#[payload.generatedKeys.goal_id]" transactionalAction="ALWAYS_JOIN" autoGenerateKeys="true">
+					<db:sql><![CDATA[INSERT INTO user_goals (user_id, goal_type, goal_direction, target_value, target_unit, is_primary, is_active, set_at)
+VALUES (:userId, :goalType::goal_type_enum, :goalDirection::goal_direction_enum,
+:targetValue, :targetUnit, :isPrimary, true, now())
+]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	userId: vars.user.userId,
+	goalType: vars.user.goalType,
+	goalDirection: vars.user.goalDirection,
+	targetValue: vars.user.targetValue,
+	targetUnit: vars.user.targetUnit,
+	isPrimary: vars.user.isPrimary
+}]]]></db:input-parameters>
+			<db:auto-generated-keys-column-names>
+						<db:auto-generated-keys-column-name value="goal_id" />
+					</db:auto-generated-keys-column-names>
+				</db:insert>
+			<db:select doc:name="Select Goal" doc:id="41385b78-ece0-4f88-8d2d-1290515e6d0d" config-ref="NUTRISENSE_DB_CONFIG">
+					<db:sql><![CDATA[SELECT goal_id, user_id, goal_type, goal_direction, target_value,
+target_unit, is_primary, is_active, set_at, achieved_at
+FROM user_goals
+WHERE goal_id = :goalId]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	goalId: vars.goal_id
+}]]]></db:input-parameters>
+				</db:select>
+		</try>
+		<ee:transform doc:name="Transform Message" doc:id="72d9530b-9f43-459f-9b62-62d9f137039b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  goalId: payload[0].goal_id,
+  userId: payload[0].user_id,
+  goalType: payload[0].goal_type,
+  goalDirection: payload[0].goal_direction,
+  targetValue: payload[0].target_value,
+  targetUnit: payload[0].target_unit,
+  isPrimary: payload[0].is_primary,
+  isActive: payload[0].is_active,
+  setAt: payload[0].set_at,
+  achievedAt: payload[0].achieved_at
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Goal created successfully" doc:id="8aee1f94-cf01-4f5e-b37c-c3f518932c79" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.goal_id&#10;}&#10;---&#10;buildLog("INFO","Goal created successfully",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 	<flow name="patch-goal-flow" doc:id="e82c5d4d-61bd-428f-ac9a-78755f92ac8f" >
 		<logger level="INFO" doc:name="Logger" doc:id="469309b8-075e-44b8-b655-86920b26b490" />
