@@ -7,7 +7,46 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<flow name="get-goals-flow" doc:id="b6fbd08e-a2bf-402d-992b-25c29ac09606" >
-		<logger level="INFO" doc:name="Logger" doc:id="2e137270-a1da-4bde-9e77-03567830153d" />
+		<ee:transform doc:name="Transform Message" doc:id="19e18fe5-b9a8-4128-8517-965d4995a9a5">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="d34200d3-36b5-4b5c-9272-59cef613f895" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET goal request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="a18e8cc0-d47f-4de0-8f0d-3bf4089e705b" name="validate-profile-exists-subflow"/>
+		<db:select doc:name="Select User Goal" doc:id="1ccc12e0-8946-4efe-89eb-9ccef8dca4c9" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql><![CDATA[SELECT goal_id, user_id, goal_type, goal_direction, target_value,
+target_unit, is_primary, is_active, set_at, achieved_at
+FROM user_goals
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="037ec3d0-f700-471d-9aea-c4a0300c89af" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import transformGoal from dwl::transforms
+---
+transformGoal(payload)]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="END" doc:id="2bacfc89-57b9-4871-9d27-e06af0d42b43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request complete",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 	<flow name="create-goal-flow" doc:id="9dc5b22b-bd0b-4a6a-a436-cc176474d762" >
 		<ee:transform doc:name="set variables" doc:id="37bbfc3b-05ae-4de7-baab-018e32bde4c1">
