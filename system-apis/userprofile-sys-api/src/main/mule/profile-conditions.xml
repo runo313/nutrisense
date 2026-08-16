@@ -1,15 +1,235 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<flow name="get-conditions-flow" doc:id="763a11d2-2ff8-4c06-9357-9bc786b3c9e6" >
-		<logger level="INFO" doc:name="Logger" doc:id="e4e55717-c884-4cbc-b87c-32330ec820e8" />
+		<ee:transform doc:name="Transform Message" doc:id="63cbe25b-97d8-4216-b84e-8507b3a3a0af" >
+			<ee:variables >
+				<ee:set-variable variableName="userId" ><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="f92f59cc-008d-49c9-9aeb-05ba52a119f1" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET goal request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="e015b189-e300-47fc-bccd-e377072dd92c" name="validate-profile-exists-subflow" />
+		<db:select doc:name="Select Conditions" doc:id="59b199e6-37ad-42f4-ae6c-ae9ba5b789f3" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT condition_id, user_id, condition_type, management_status,
+diagnosed_at, notes, is_active, created_at, updated_at
+FROM user_conditions
+WHERE user_id =: user_id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Conditions" doc:id="189767e5-aa40-455c-a8d8-35aacecb33e0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import transformConditions from dwl::transforms
+---
+transformConditions(payload)]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="END" doc:id="cf9913fe-5475-40d7-9bde-ec67f913b72b" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET conditions request complete",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 	<flow name="create-condition-flow" doc:id="dcf07453-999a-4e52-b606-e9927ac406f1" >
-		<logger level="INFO" doc:name="Logger" doc:id="836ff9af-c77a-4da5-aa0e-433686885bfa" />
+		<ee:transform doc:name="Transform Message" doc:id="0bc4b2a9-3794-4721-9b13-b2e38b5e9e20">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="condition" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+  "conditionType": payload.conditionType,
+  "managementStatus": payload.managementStatus,
+  "diagnosedAt": payload.diagnosedAt as Date default null,
+  "notes": payload.notes default null
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="ad940bd3-1def-422d-af1d-f4812fbe39b5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition creation started",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="1b1e119b-3523-4d50-badc-b940323204b3" name="validate-profile-exists-subflow" />
+		<db:select doc:name="Select condition Id" doc:id="b2b7cfda-12bd-4257-b976-7de4b3266689" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions
+WHERE user_id = :userId
+AND condition_type = :conditionType
+AND is_active = true]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	conditionType: vars.condition.conditionType
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="80aef568-cc1d-4503-8bc1-a8e376e04a70" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<ee:transform doc:name="Duplicate Entry" doc:id="3c3ff326-c238-4507-845f-31d9ada42058" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-409",
+  message: "A condition with this type already exists",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[409]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Condition creation failed" doc:id="b0ad82e4-702a-45b2-85f2-d07ad235fac0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition creation failed",message,vars.correlationId, vars.flowName)]' />
+			</when>
+			<otherwise >
+				<db:insert doc:name="Insert Condition" doc:id="16e76912-7566-42e9-bb49-5bb2c22e63bb" config-ref="NUTRISENSE_DB_CONFIG" autoGenerateKeys="true" target="conditionId" targetValue="#[payload.generatedKeys.condition_id]">
+			<db:sql><![CDATA[INSERT INTO user_conditions 
+(user_id, condition_type, management_status, diagnosed_at, notes, is_active, created_at, updated_at)
+VALUES (:userId, :conditionType, :managementStatus, :diagnosedAt, :notes, true, now(), now())]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: vars.userId,
+	conditionType: vars.condition.conditionType,
+	managementStatus: vars.condition.managementStatus,
+	diagnosedAt:notes:vars.condition.diagnosedAt,
+	notes: vars.condition.notes,
+}]]]></db:input-parameters>
+			<db:auto-generated-keys-column-names>
+				<db:auto-generated-keys-column-name value="condition_id" />
+			</db:auto-generated-keys-column-names>
+		</db:insert>
+				<db:select doc:name="Select Condition" doc:id="cfb241b6-2717-4515-bd67-a68ca1397a4f" config-ref="NUTRISENSE_DB_CONFIG" >
+					<db:sql ><![CDATA[SELECT condition_id, user_id, condition_type, management_status,
+diagnosed_at, notes, is_active, created_at, updated_at
+FROM user_conditions
+WHERE condition_id = :conditionId]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	conditionId: vars.conditionId
+}]]]></db:input-parameters>
+				</db:select>
+				<ee:transform doc:name="Transform Message" doc:id="2536fdb3-78cf-48d7-a3f9-9bffade8a8b0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+import returnCondition from dwl::transforms
+---
+returnCondition(payload)]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="END" doc:id="893dd87b-868f-49f9-8a5a-c0e1de03bd19" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition created successfully",message,vars.correlationId, vars.flowName)]' />
+			</otherwise>
+		</choice>
 	</flow>
 	<flow name="patch-condition-flow" doc:id="497eabe5-e6bb-4855-bd51-b76aeef0b4a3" >
-		<logger level="INFO" doc:name="Logger" doc:id="17f4be28-5722-4b1f-ac1e-c13c56735cc5" />
+		<ee:transform doc:name="set variables" doc:id="ab6c6b69-6a5f-432e-8271-0f6b1a7c1d9c">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="conditionId" ><![CDATA[attributes.uriParams.'conditionId']]></ee:set-variable>
+				<ee:set-variable variableName="condition" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="fb12acef-e40b-4db0-aac9-0ecae548daf8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	conditionId: vars.conditionId&#10;}&#10;---&#10;buildLog("INFO","PATCH condition request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="94368f94-23c8-4546-b741-f78ed573e5b6" name="validate-profile-exists-subflow" />
+		<ee:transform doc:name="Check At least one field is provided" doc:id="654759ea-420e-4f16-ba7f-c2929894fc7b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import some from dw::core::Arrays
+---
+keysOf(vars.condition) some ((key) -> ['managementStatus',"diagnosedAt","notes","isActive"] contains  (key as String ))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<validation:is-true doc:name="At least one field is required" doc:id="79a6a54e-6945-426c-8989-0c631b68b7e0" expression="#[payload]" message="At least one condition field must be provided" />
+		<db:select doc:name="Select Condition Id" doc:id="f542275d-0c41-49b6-8fbb-0212f57dd325" config-ref="NUTRISENSE_DB_CONFIG" target="existingConditionId">
+			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions WHERE condition_id = :conditionId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	conditionId: vars.conditionId
+}]]]></db:input-parameters>
+		</db:select>
+		<validation:is-false doc:name="Condition does not exist" doc:id="c96f9cb6-4cb8-4cd9-802c-642b9a7075f9" expression="#[sizeOf( vars.existingConditionId) &gt; 0]" message="Condition does not exist" />
+		<ee:transform doc:name="SQL" doc:id="135e4be2-3ffc-465e-b08e-bc42fa0f88e3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+var setManagementStatus = if (vars.condition.managementStatus != null) "management_status = :managementStatus" else ""
+var setDiagnosedAt = if (vars.condition.diagnosedAt != null) "diagnosed_at = :diagnosedAt "else ""
+var setNotes = if (vars.condition.notes != null) "notes = :notes" else ""
+var setIsActive = if (vars.condition.isActive != null) "is_active = :isActive" else ""
+var updateClause = [setManagementStatus, setDiagnosedAt, setNotes, setIsActive] 
+filter ($ != "")
+joinBy(", ")
+---
+"UPDATE user_conditions SET " ++ updateClause ++ " updated_at = :updatedAt WHERE condition_id = :conditionId AND user_id :userId" ]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="inputParam" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	userId: vars.userId,
+	conditionId: vars.conditionId,
+	isActive: vars.condition.isActive,
+	managementStatus: vars.condition.managementStatus,
+	diagnosedAt:notes:vars.condition.diagnosedAt,
+	notes: vars.condition.notes,
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:update doc:name="Update Condition" doc:id="0ebe7a8e-bc80-42cb-84f8-e7bd3473a60d" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[#[payload]]]></db:sql>
+			<db:input-parameters ><![CDATA[#[vars.inputParam]]]></db:input-parameters>
+		</db:update>
+		<db:select doc:name="Select Condition" doc:id="c4d3130e-0b8e-4091-81f2-9df3ea65f168" config-ref="NUTRISENSE_DB_CONFIG" >
+			<db:sql ><![CDATA[SELECT condition_id, user_id, condition_type, management_status,
+diagnosed_at, notes, is_active, created_at, updated_at
+FROM user_conditions
+WHERE condition_id = :conditionId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	conditionId: vars.conditionId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="df9fcbce-0655-4611-829c-270ee3ab0a86" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+import returnCondition from dwl::transforms
+---
+returnCondition(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="END" doc:id="820e341a-8937-4904-8979-92f690933f18" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition updated successfully",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 </mule>
