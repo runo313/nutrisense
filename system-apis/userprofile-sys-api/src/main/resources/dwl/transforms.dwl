@@ -49,3 +49,28 @@ fun transformPreferences (user_preference)=
 	createdAt: user_preference.created_at,
 	updatedAt: user_preference.updated_at
 }else null
+fun returnGoal (payload)=
+{
+	goalId: payload[0].goal_id,
+	userId: payload[0].user_id,
+	goalType: payload[0].goal_type,
+	goalDirection: payload[0].goal_direction,
+	targetValue: payload[0].target_value,
+	targetUnit: payload[0].target_unit,
+	isPrimary: payload[0].is_primary,
+	isActive: payload[0].is_active,
+	setAt: payload[0].set_at,
+	achievedAt: payload[0].achieved_at
+}
+fun returnCondition (payload)= 
+{
+	"conditionId": payload[0].condition_id,
+	"userId": payload[0].user_id,
+	"conditionType": payload[0].condition_type,
+	"managementStatus": payload[0].management_status,
+	"diagnosedAt": payload[0].diagnosed_at,
+	"notes": payload[0].notes,
+	"isActive": payload[0].is_active,
+	"createdAt": payload[0].created_at,
+	"updatedAt": payload[0].updated_at
+}
