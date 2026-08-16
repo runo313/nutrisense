@@ -161,7 +161,7 @@ WHERE user_id = :userId]]></db:sql>
 	userId: vars.userId
 }]]]></db:input-parameters>
 				</db:select>
-				<ee:transform doc:name="Merge" doc:id="827d5d3c-5015-45b1-aa58-18c184f12c35" >
+				<ee:transform doc:name="Merge Current Profile" doc:id="827d5d3c-5015-45b1-aa58-18c184f12c35" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -221,6 +221,28 @@ output application/java
 		<logger level="INFO" doc:name="END" doc:id="44d8df4b-22ba-4cba-83e2-dcfda764e438" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","PATCH profile request complete",message,vars.correlationId, vars.flowName)]'/>
 	</flow>
 	<flow name="delete-profile-flow" doc:id="ac8a5397-06c4-4af4-bb8e-982f6ad2f7ad" >
-		<logger level="INFO" doc:name="Logger" doc:id="1546e53a-d044-4f41-85e0-0ee60b99ded1" />
+		<ee:transform doc:name="Transform Message" doc:id="ce372b0b-e3a0-4e00-b259-c211f98dc9bd">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="333f3d2c-62c5-4a91-a7bf-393850497d22" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","Delete profile request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="d6239fbb-f0bb-4493-9133-17a848ff943b" name="validate-profile-exists-subflow" />
+		<db:update doc:name="Soft Delete Profile" doc:id="7c010dc2-a6ba-4f5d-95e0-91bc27946951" config-ref="NUTRISENSE_DB_CONFIG" >
+			<db:sql ><![CDATA[UPDATE users SET deleted_at = now()
+WHERE user_id = :userId AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:update>
+		<set-variable value="204" doc:name="204 Deleted" doc:id="7a6488e3-d13b-44f6-9584-56e94fa17a2a" variableName="httpStatus" />
 	</flow>
 </mule>
