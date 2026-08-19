@@ -74,3 +74,20 @@ fun returnCondition (payload)=
 	"createdAt": payload[0].created_at,
 	"updatedAt": payload[0].updated_at
 }
+
+fun returnPreference (payload)=
+{
+  preferenceId: payload[0].preference_id,
+  userId: payload[0].user_id,
+  insightFrequency: payload[0].insight_frequency,
+  preferredWearableMetrics: payload[0].preferred_wearable_metrics,
+  preferredNutritionMetrics: payload[0].preferred_nutrition_metrics,
+  typicalBreakfastTime: if(payload[0].typical_breakfast_time != null) payload[0].typical_breakfast_time != null as String {format: "HH:mm:ss"} else null,
+  typicalLunchTime: if(payload[0].typical_lunch_time != null) payload[0].typical_lunch_time != null as String {format: "HH:mm:ss"} else null,
+  typicalDinnerTime: if(payload[0].typical_dinner_time != null)payload[0].typical_dinner_time as String {format: "HH:mm:ss"} else null,
+  typicalSleepTime: if (payload[0].typical_sleep_time != null) payload[0].typical_sleep_time as String {format: "HH:mm:ss"} else null,
+  targetSleepDurationHrs: payload[0].target_sleep_duration_hrs,
+  unitsSystem: payload[0].units_system,
+  createdAt: payload[0].created_at,
+  updatedAt: payload[0].updated_at
+} 
