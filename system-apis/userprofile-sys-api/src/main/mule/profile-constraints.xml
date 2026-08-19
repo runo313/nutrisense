@@ -1,15 +1,163 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="get-constraints-flow" doc:id="6934a9ed-01a8-49a2-a35e-98d97cf37286" >
-		<logger level="INFO" doc:name="Logger" doc:id="68e88ac7-69e7-4b6b-808f-a70d4bc9ba37" />
+		<ee:transform doc:name="Transform Message" doc:id="cb718185-eaa6-473a-bc32-d5a7867bbd78">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="c57d6fb8-2948-4371-8f08-9dc35a5264a5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET constraint request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="c035299a-00e0-4ec5-b7cb-fe93cdc9c85f" name="validate-profile-exists-subflow" />
+		<db:select doc:name="Select Constraint" doc:id="4298731f-e0d8-49ef-9ee4-d5ee939d157b" config-ref="NUTRISENSE_DB_CONFIG" >
+			<db:sql ><![CDATA[SELECT constraint_id, user_id, constraint_type, constraint_value, severity, is_active, created_at
+FROM dietary_constraints
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="d3f580e5-e48c-4c3b-8895-6a0a8f4aba02" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import transformConstrains from dwl::transforms
+---
+transformConstrains(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="END" doc:id="42e87f6f-5056-4528-b5fc-78b9b22cb08a" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET constraint request complete",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 	<flow name="create-constraint-flow" doc:id="fa698785-2a41-4331-abe1-ea75459c35b3" >
-		<logger level="INFO" doc:name="Logger" doc:id="d0f1af46-ddd8-4cb7-8dd1-c6f166aa6811" />
+		<ee:transform doc:name="Transform Message" doc:id="6b1236b9-9d42-4c70-bc50-9883730a17fa">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="constraint" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="569ce7ee-c6d7-47cc-b7b0-fd23a261f969" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Create constraint request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="4ea808ce-9337-4265-be78-1551dfef9461" name="validate-profile-exists-subflow" />
+		<db:insert doc:name="Insert Constraints" doc:id="16fccad3-160a-45e8-8274-cd4fba10a793" config-ref="NUTRISENSE_DB_CONFIG" autoGenerateKeys="true" target="constraint_id" targetValue="#[payload.generatedKeys.constraint_id]">
+			<db:sql ><![CDATA[INSERT INTO dietary_constraints (user_id, constraint_type, constraint_value,severity, is_active, created_at)
+VALUES (:userId, :constraintType::constraint_type_enum,
+:constraintValue::constraint_value_enum, :severity::severity_enum, true, now())
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId,
+	constraintType: vars.constraint.constraintType,
+	constraintValue: vars.constraint.constraintValue,
+	severity: vars.constraint.severity
+}]]]></db:input-parameters>
+			<db:auto-generated-keys-column-names >
+				<db:auto-generated-keys-column-name value="constraint_id" />
+			</db:auto-generated-keys-column-names>
+		</db:insert>
+		<db:select doc:name="Select Constraint" doc:id="3f3ff9fc-5e8b-4355-b5b8-897cbff740ed" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT constraint_id, user_id, constraint_type, constraint_value, severity, is_active, created_at
+FROM dietary_constraints
+WHERE constraint_id = :constraintId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	constraintId: vars.constraint_id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="d944dd4d-6954-42ef-87ad-793bd6a51045" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import returnConstraint from dwl::transforms
+---
+returnConstraint(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="END" doc:id="01615114-3b3a-45ad-9c4e-43a2952e0cb2" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Constraint created successfully",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 	<flow name="delete-constraint-flow" doc:id="1bbf1b4d-6109-4ba3-9ade-25078327b4f2" >
-		<logger level="INFO" doc:name="Logger" doc:id="86b9b2a4-ca72-4238-a157-3455aa8c4ac7" />
+		<ee:transform doc:name="Transform Message" doc:id="cf7158fe-4b57-4128-b4d8-0ae9a07accdd">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="constraintId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'constraintId']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="49cd884e-dc0b-4705-bb8d-431b0ba5772b" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	constraintId: vars.constraintId&#10;}&#10;---&#10;buildLog("INFO","Delete constraint request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="ee045d18-c89d-4892-be32-64ac6d466a1f" name="validate-profile-exists-subflow" />
+		<db:select doc:name="Select Constraint Id" doc:id="27c8168e-f458-44ae-9826-47c5cfaabe96" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT constraint_id FROM dietary_constraints
+WHERE constraint_id = :constraintId
+AND user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	constraintId: vars.constraintId,
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="c7eab889-1c07-4a29-b403-0c646f57aad5" >
+			<when expression="#[isEmpty(payload)]">
+				<ee:transform doc:name="Constraint not found" doc:id="0814ae9a-38a1-48e6-b0f4-100f80c60833" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-404",
+  message: "Constraint not found",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="END" doc:id="a8f3f1a8-b6be-4a2a-ba2f-ed20418d9b1f" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	constraintId: vars.constraintId&#10;}&#10;---&#10;buildLog("INFO","DELETE constraint failed",message,vars.correlationId, vars.flowName)]' />
+			</when>
+			<otherwise >
+				<db:delete doc:name="Delete Dietary Constraints" doc:id="42cf53cc-f56c-4758-b722-cf9f902e97ab" config-ref="NUTRISENSE_DB_CONFIG">
+					<db:sql ><![CDATA[DELETE FROM dietary_constraints
+WHERE constraint_id = :constraintId
+AND user_id = :userId]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	constraintId: vars.constraintId,
+	userId: vars.userId
+}]]]></db:input-parameters>
+				</db:delete>
+				<set-variable value="204" doc:name="Status" doc:id="41e77f44-3414-4284-a5a8-19157157fe69" variableName="httpStatus"/>
+				<logger level="INFO" doc:name="END" doc:id="ad31e133-f0da-43cc-bec4-098f938899b3" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	constraintId: vars.constraintId&#10;}&#10;---&#10;buildLog("INFO","DELETE constraint complete",message,vars.correlationId, vars.flowName)]' />
+			</otherwise>
+		</choice>
 	</flow>
 </mule>
