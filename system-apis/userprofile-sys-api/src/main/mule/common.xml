@@ -1,14 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="validate-uuid-subflow" doc:id="bd7d09b2-c956-44f1-996e-3ba3aae5e7a9" >
 		<logger level="INFO" doc:name="Logger" doc:id="b4d4632d-ad93-4abf-884c-70ed2b9d5bd3" />
 	</flow>
-	<flow name="validate-profile-exists-subflow" doc:id="280f001c-49f5-463c-9cc9-2e9d136d0bdd" >
-		<logger level="INFO" doc:name="Logger" doc:id="d7734e28-42b9-4f1d-bca6-1cc62a7120c9" />
-	</flow>
+	<sub-flow name="fetch-full-profile-subflow" doc:id="94e4ecc1-97bb-4b31-b0b4-13066766a519" >
+		<db:select doc:name="Select User" doc:id="d12eff45-c346-4f64-8e1a-fd753e09f8c2" config-ref="NUTRISENSE_DB_CONFIG" target="user" >
+			<db:sql ><![CDATA[SELECT user_id, name, email, date_of_birth, biological_sex, 
+height_cm, weight_kg, activity_baseline, daily_caloric_target,
+created_at, updated_at
+FROM users
+WHERE user_id = :userId
+AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select User Goal" doc:id="64bcdaa9-1339-4c8a-ba21-a6023fa8a042" config-ref="NUTRISENSE_DB_CONFIG" target="user_goal" >
+			<db:sql ><![CDATA[SELECT goal_id, user_id, goal_type, goal_direction, target_value,
+target_unit, is_primary, is_active, set_at, achieved_at
+FROM user_goals
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select Conditions" doc:id="5a90aa86-6b9c-406a-bbe3-7e155254cdf9" config-ref="NUTRISENSE_DB_CONFIG" target="user_conditions" >
+			<db:sql ><![CDATA[SELECT condition_id, user_id, condition_type, management_status,
+diagnosed_at, notes, is_active, created_at, updated_at
+FROM user_conditions
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select Dietary Constraints" doc:id="cca91a9b-e8df-432d-80fe-f9aff84844d7" config-ref="NUTRISENSE_DB_CONFIG" target="dietary_constraints" >
+			<db:sql ><![CDATA[SELECT constraint_id, user_id, constraint_type, 
+constraint_value, severity, is_active, created_at
+FROM dietary_constraints
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select User Preference" doc:id="ecc59ffb-da41-41e1-986c-9f58e7d9a77e" config-ref="NUTRISENSE_DB_CONFIG" target="user_preference" >
+			<db:sql ><![CDATA[SELECT preference_id, user_id, insight_frequency, preferred_wearable_metrics,
+preferred_nutrition_metrics, typical_breakfast_time, typical_lunch_time,
+typical_dinner_time, typical_sleep_time, target_sleep_duration_hrs,
+units_system, created_at, updated_at
+FROM user_preferences
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="608a5873-46e1-40c9-ae76-ec63dfabed2f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	userId: vars.user[0].user_id,
+	name: vars.user[0].name,
+	email: vars.user[0].email,
+	dateOfBirth: vars.user[0].date_of_birth,
+	biologicalSex: vars.user[0].biological_sex,
+	heightCm: vars.user[0].height_cm,
+	weightKg: vars.user[0].weight_kg,
+	activityBaseline: vars.user[0].activity_baseline,
+	dailyCaloricTarget: vars.user[0].daily_caloric_target,
+	createdAt: vars.user[0].created_at,
+	updatedAt: vars.user[0].updated_at,
+	goals: vars.user_goal map (goal)->{
+		goalId: goal.goalId,
+		userId: goal.user_id,
+		goalType: goal.goal_type,
+		goalDirection: goal.goal_direction,
+		targetValue: goal.target_value,
+		targetUnit: goal.target_unit,
+		isPrimary: goal.is_primary,
+		isActive: goal.is_active,
+		setAt: goal.set_at,
+		achievedAt: goal.achieved_at
+	},
+	conditions: vars.user_conditions map (condition) ->{
+		conditionId: condition.condition_id,
+		userId: condition.user_id,
+		conditionType: condition.condition_type,
+		diagnosedAt: condition.diagnosed_at,
+		notes: condition.notes,
+		managementStatus: condition.management_status,
+		isActive: condition.is_active,
+		createdAt: condition.created_at
+	},
+	constraints: vars.dietary_constraints map (row)->{
+		constraintId: row.constraint_id,
+		userId: row.user_id,
+		constraintType: row.constraint_type,
+		constraintValue: row.constraint_value,
+		severity: row.severity,
+		isActive: row.is_active,
+		createdAt: row.created_at
+	},
+	preferences: if(sizeOf(vars.user_preference) > 0)
+	{
+	  preferenceId: vars.user_preference.preference_id,
+      userId: vars.user_preference.user_id,
+      insightFrequency: vars.user_preference.insight_frequency,
+      preferredWearableMetrics: vars.user_preference.preferred_wearable_metrics,
+      preferredNutritionMetrics: vars.user_preference.preferred_nutrition_metrics,
+      typicalBreakfastTime: vars.user_preference.typical_breakfast_time,
+      typicalLunchTime: vars.user_preference.typical_lunch_time,
+      typicalDinnerTime: vars.user_preference.typical_dinner_time,
+      typicalSleepTime: vars.user_preference.typical_sleep_time,
+      targetSleepDurationHrs: vars.user_preference.target_sleep_duration_hrs,
+      unitsSystem: vars.user_preference.units_system,
+      createdAt: vars.user_preference.created_at,
+      updatedAt: vars.user_preference.updated_at
+	}else null
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="validate-profile-exists-subflow" doc:id="906d2400-ab0f-4d29-8ff0-9fae6416e625" >
+		<db:select doc:name="Select User Id" doc:id="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" config-ref="NUTRISENSE_DB_CONFIG" target="user_id">
+			<db:sql><![CDATA[SELECT user_id FROM users 
+WHERE (user_id = :userId OR email = :email)
+AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: vars.user.userId default vars.userId,
+	email: vars.user.email
+}]]]></db:input-parameters>
+		</db:select>
+		<validation:is-false doc:name="Check Profile exists" doc:id="03e3a82e-e959-48ed-a6e8-e651002f2fb5" expression="#[sizeOf(vars.user_id) == 0]" message="A profile with this userId or email does not exist"/>
+	</sub-flow>
 	<flow name="compute-caloric-target-subflow" doc:id="35cff560-1a0d-4e45-aa3a-f70ed0a5c638" >
 		<logger level="INFO" doc:name="Logger" doc:id="eb86eee3-8798-44fe-a799-ec6599c81efd" />
 	</flow>
