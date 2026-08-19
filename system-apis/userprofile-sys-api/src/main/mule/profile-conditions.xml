@@ -71,15 +71,16 @@ output application/java
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="ad940bd3-1def-422d-af1d-f4812fbe39b5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition creation started",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="START" doc:id="ad940bd3-1def-422d-af1d-f4812fbe39b5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	condition: vars.condition&#10;}&#10;---&#10;buildLog("INFO","Condition creation started",message,vars.correlationId, vars.flowName)]' />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="1b1e119b-3523-4d50-badc-b940323204b3" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select condition Id" doc:id="b2b7cfda-12bd-4257-b976-7de4b3266689" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions
 WHERE user_id = :userId
-AND condition_type = :conditionType
+AND condition_type = :conditionType::condition_type_enum
 AND is_active = true]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
-	conditionType: vars.condition.conditionType
+	conditionType: vars.condition.conditionType,
+	userId: vars.userId
 }]]]></db:input-parameters>
 		</db:select>
 		<choice doc:name="Choice" doc:id="80aef568-cc1d-4503-8bc1-a8e376e04a70" >
@@ -108,12 +109,13 @@ output application/json
 				<db:insert doc:name="Insert Condition" doc:id="16e76912-7566-42e9-bb49-5bb2c22e63bb" config-ref="NUTRISENSE_DB_CONFIG" autoGenerateKeys="true" target="conditionId" targetValue="#[payload.generatedKeys.condition_id]">
 			<db:sql><![CDATA[INSERT INTO user_conditions 
 (user_id, condition_type, management_status, diagnosed_at, notes, is_active, created_at, updated_at)
-VALUES (:userId, :conditionType, :managementStatus, :diagnosedAt, :notes, true, now(), now())]]></db:sql>
+VALUES (:userId, :conditionType::condition_type_enum, :managementStatus::management_status_enum,
+:diagnosedAt, :notes, true, now(), now())]]></db:sql>
 			<db:input-parameters><![CDATA[#[{
 	userId: vars.userId,
 	conditionType: vars.condition.conditionType,
 	managementStatus: vars.condition.managementStatus,
-	diagnosedAt:notes:vars.condition.diagnosedAt,
+	diagnosedAt:vars.condition.diagnosedAt,
 	notes: vars.condition.notes,
 }]]]></db:input-parameters>
 			<db:auto-generated-keys-column-names>
@@ -132,7 +134,7 @@ WHERE condition_id = :conditionId]]></db:sql>
 				<ee:transform doc:name="Transform Message" doc:id="2536fdb3-78cf-48d7-a3f9-9bffade8a8b0">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
-output application/java
+output application/json
 import returnCondition from dwl::transforms
 ---
 returnCondition(payload)]]></ee:set-payload>
@@ -179,12 +181,12 @@ keysOf(vars.condition) some ((key) -> ['managementStatus',"diagnosedAt","notes",
 	conditionId: vars.conditionId
 }]]]></db:input-parameters>
 		</db:select>
-		<validation:is-false doc:name="Condition does not exist" doc:id="c96f9cb6-4cb8-4cd9-802c-642b9a7075f9" expression="#[sizeOf( vars.existingConditionId) &gt; 0]" message="Condition does not exist" />
+		<validation:is-false doc:name="Condition does not exist" doc:id="c96f9cb6-4cb8-4cd9-802c-642b9a7075f9" expression="#[sizeOf( vars.existingConditionId) == 0]" message="Condition does not exist" />
 		<ee:transform doc:name="SQL" doc:id="135e4be2-3ffc-465e-b08e-bc42fa0f88e3" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
-var setManagementStatus = if (vars.condition.managementStatus != null) "management_status = :managementStatus" else ""
+var setManagementStatus = if (vars.condition.managementStatus != null) "management_status = :managementStatus::management_status_enum" else ""
 var setDiagnosedAt = if (vars.condition.diagnosedAt != null) "diagnosed_at = :diagnosedAt "else ""
 var setNotes = if (vars.condition.notes != null) "notes = :notes" else ""
 var setIsActive = if (vars.condition.isActive != null) "is_active = :isActive" else ""
@@ -192,7 +194,7 @@ var updateClause = [setManagementStatus, setDiagnosedAt, setNotes, setIsActive]
 filter ($ != "")
 joinBy(", ")
 ---
-"UPDATE user_conditions SET " ++ updateClause ++ " updated_at = :updatedAt WHERE condition_id = :conditionId AND user_id :userId" ]]></ee:set-payload>
+"UPDATE user_conditions SET " ++ updateClause ++ ", updated_at = now() WHERE condition_id = :conditionId AND user_id = :userId" ]]></ee:set-payload>
 			</ee:message>
 			<ee:variables >
 				<ee:set-variable variableName="inputParam" ><![CDATA[%dw 2.0
@@ -224,7 +226,7 @@ WHERE condition_id = :conditionId]]></db:sql>
 		<ee:transform doc:name="Transform Message" doc:id="df9fcbce-0655-4611-829c-270ee3ab0a86" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
-output application/java
+output application/json
 import returnCondition from dwl::transforms
 ---
 returnCondition(payload)]]></ee:set-payload>
