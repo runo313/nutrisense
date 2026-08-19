@@ -1,12 +1,176 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="get-preferences-flow" doc:id="0e0d3642-db1a-4647-b37d-c89cf91b2f8f" >
 		<logger level="INFO" doc:name="Logger" doc:id="72d2f189-4157-4f2e-a8c3-e431df4c8bdd" />
 	</flow>
 	<flow name="patch-preferences-flow" doc:id="710463e4-efef-4171-a39c-4c08e4250187" >
-		<logger level="INFO" doc:name="Logger" doc:id="2c21ab18-75f6-4dae-8ebc-3961cb5c4746" />
+		<ee:transform doc:name="Transform Message" doc:id="eedd234e-1996-4eb8-a094-b2a785c66b8f">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="preference" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	preferredWearableMetrics: payload.preferredWearableMetrics default null,
+	insightFrequency: payload.insightFrequency default null,
+	preferredNutritionMetrics: payload.preferredNutritionMetrics default null,
+	typicalBreakfastTime: payload.typicalBreakfastTime default null,
+	typicalLunchTime: payload.typicalLunchTime default null,
+	typicalDinnerTime: payload.typicalDinnerTime default null,
+	typicalSleepTime: payload.typicalSleepTime default null,
+	targetSleepDurationHrs: payload.targetSleepDurationHrs default null,
+	unitsSystem: payload.unitsSystem default null
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="6fba96fc-0d80-49fe-b1f1-cafbc1bbbb43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	payload: vars.preference&#10;}&#10;---&#10;buildLog("INFO","Preference creation started",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="9d44b84d-8447-417f-a7db-790d9628e13f" name="validate-profile-exists-subflow" />
+		<db:select doc:name="Select User Id" doc:id="05fc1f83-ff60-4191-82c6-71e7463014ef" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT user_id from user_preferences WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Check user Id already exists" doc:id="67fdad8d-7039-496c-b5ed-c155af16196b" >
+			<when expression="#[isEmpty(payload)]">
+				<ee:transform doc:name="Insert SQL" doc:id="2d0fc357-efe7-4fee-a198-25e34cacf1fb">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+"INSERT INTO user_preferences 
+(user_id, insight_frequency, preferred_wearable_metrics,
+ preferred_nutrition_metrics, typical_breakfast_time,
+ typical_lunch_time, typical_dinner_time, typical_sleep_time,
+ target_sleep_duration_hrs, units_system, created_at, updated_at)
+VALUES (:userId, 
+COALESCE(:insightFrequency::insight_frequency_enum, 'daily'),
+COALESCE(string_to_array(:preferredWearableMetrics, ',')::wearable_metric_enum[], '{}'),
+COALESCE(string_to_array(:preferredNutritionMetrics, ',')::nutrition_metric_enum[], '{}'),
+:typicalBreakfastTime::time, :typicalLunchTime::time,
+:typicalDinnerTime::time, :typicalSleepTime::time,
+:targetSleepDurationHrs, 
+COALESCE(:unitsSystem::units_system_enum, 'metric'), 
+now(), now())
+"
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="inputParam"><![CDATA[%dw 2.0
+output application/java
+---
+{
+	userId: vars.userId,
+	insightFrequency: vars.preference.insightFrequency default null,
+	preferredWearableMetrics: if ( vars.preference.preferredWearableMetrics != null and sizeOf(vars.preference.preferredWearableMetrics) > 0 ) (vars.preference.preferredWearableMetrics joinBy ",")
+  else null,
+	preferredNutritionMetrics: if ( vars.preference.preferredNutritionMetrics != null and sizeOf(vars.preference.preferredNutritionMetrics) > 0 ) (vars.preference.preferredNutritionMetrics joinBy ",")
+  else null,
+	typicalBreakfastTime: vars.preference.typicalBreakfastTime default null,
+	typicalLunchTime: vars.preference.typicalLunchTime default null,
+	typicalDinnerTime: vars.preference.typicalDinnerTime default null,
+	typicalSleepTime: vars.preference.typicalSleepTime default null,
+	targetSleepDurationHrs: vars.preference.targetSleepDurationHrs default null,
+	unitsSystem: vars.preference.unitsSystem default null
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+				<db:insert doc:name="Insert" doc:id="0cbaba3a-bb15-4153-a31f-a96985fff9a4" config-ref="NUTRISENSE_DB_CONFIG">
+				<db:sql><![CDATA[#[payload]]]></db:sql>
+				<db:input-parameters><![CDATA[#[vars.inputParam]]]></db:input-parameters>
+			</db:insert>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Update SQL" doc:id="25133eb8-6f84-4774-a7f2-59b1918f08dd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+var setInsightFrequency = if ( vars.preference.insightFrequency != null ) "insight_frequency = :insightFrequency::insight_frequency_enum" else ""
+var setWearableMetrics = if ( vars.preference.preferredWearableMetrics != null ) "preferred_wearable_metrics = string_to_array(:preferredWearableMetrics, ',')::wearable_metric_enum[]" else ""
+var setNutritionMetrics = if ( vars.preference.preferredNutritionMetrics != null ) "preferred_nutrition_metrics = string_to_array(:preferredNutritionMetrics, ',')::nutrition_metric_enum[]" else ""
+var setBreakfastTime = if ( vars.preference.typicalBreakfastTime != null ) "typical_breakfast_time = :typicalBreakfastTime::time" else ""
+var setLunchTime = if ( vars.preference.typicalLunchTime != null ) "typical_lunch_time = :typicalLunchTime::time" else ""
+var setDinnerTime = if ( vars.preference.typicalDinnerTime != null ) "typical_dinner_time = :typicalDinnerTime::time" else ""
+var setSleepTime = if ( vars.preference.typicalSleepTime != null ) "typical_sleep_time = :typicalSleepTime::time" else ""
+var setTargetSleep = if ( vars.preference.targetSleepDurationHrs != null ) "target_sleep_duration_hrs = :targetSleepDurationHrs" else ""
+var setUnitsSystem = if ( vars.preference.unitsSystem != null ) "units_system = :unitsSystem::units_system_enum" else ""
+var updateClauses = [setInsightFrequency, setWearableMetrics, setNutritionMetrics, 
+	setBreakfastTime, setLunchTime, setDinnerTime, setSleepTime,setTargetSleep, setUnitsSystem] filter ($ != "") joinBy ", "
+---
+"UPDATE user_preferences SET " ++ updateClauses ++ ", updated_at = now() WHERE user_id = :userId"]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="inputParam" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	userId: vars.userId,
+	insightFrequency: vars.preference.insightFrequency default null,
+	preferredWearableMetrics: if ( vars.preference.preferredWearableMetrics != null and sizeOf(vars.preference.preferredWearableMetrics) > 0 ) (vars.preference.preferredWearableMetrics joinBy ",")
+  else null,
+	preferredNutritionMetrics: if ( vars.preference.preferredNutritionMetrics != null and sizeOf(vars.preference.preferredNutritionMetrics) > 0 ) (vars.preference.preferredNutritionMetrics joinBy ",")
+  else null,
+	typicalBreakfastTime: vars.preference.typicalBreakfastTime default null,
+	typicalLunchTime: vars.preference.typicalLunchTime default null,
+	typicalDinnerTime: vars.preference.typicalDinnerTime default null,
+	typicalSleepTime: vars.preference.typicalSleepTime default null,
+	targetSleepDurationHrs: vars.preference.targetSleepDurationHrs default null,
+	unitsSystem: vars.preference.unitsSystem default null
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<db:update doc:name="Update User Preferences" doc:id="21f6ea0f-6260-4a1f-80ef-14597b4d96af" config-ref="NUTRISENSE_DB_CONFIG">
+					<db:sql ><![CDATA[#[payload]]]></db:sql>
+					<db:input-parameters ><![CDATA[#[vars.inputParam]]]></db:input-parameters>
+				</db:update>
+			</otherwise>
+		</choice>
+		<db:select doc:name="Select Updated Preferences" doc:id="efaa39a5-bb94-4dda-8031-14b9a1d4a985" config-ref="NUTRISENSE_DB_CONFIG">
+			<db:sql ><![CDATA[SELECT preference_id, user_id, insight_frequency, preferred_wearable_metrics,
+preferred_nutrition_metrics, typical_breakfast_time, typical_lunch_time,
+typical_dinner_time, typical_sleep_time, target_sleep_duration_hrs,
+units_system, created_at, updated_at
+FROM user_preferences
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="02b387c4-e88d-459d-b23d-c4cc86495b8c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  preferenceId: payload[0].preference_id,
+  userId: payload[0].user_id,
+  insightFrequency: payload[0].insight_frequency,
+  preferredWearableMetrics: payload[0].preferred_wearable_metrics,
+  preferredNutritionMetrics: payload[0].preferred_nutrition_metrics,
+  typicalBreakfastTime: payload[0].typical_breakfast_time,
+  typicalLunchTime: payload[0].typical_lunch_time,
+  typicalDinnerTime: payload[0].typical_dinner_time,
+  typicalSleepTime: payload[0].typical_sleep_time,
+  targetSleepDurationHrs: payload[0].target_sleep_duration_hrs,
+  unitsSystem: payload[0].units_system,
+  createdAt: payload[0].created_at,
+  updatedAt: payload[0].updated_at
+} ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="END" doc:id="1ed1b06a-c130-4dbe-bece-5466737be7dd" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preferences updated successfully",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 </mule>
