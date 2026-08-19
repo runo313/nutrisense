@@ -1,7 +1,7 @@
 %dw 2.0
 fun transformGoal (user_goal)=
 	user_goal map (goal)->{
-	goalId: goal.goalId,
+	goalId: goal.goal_id,
 	userId: goal.user_id,
 	goalType: goal.goal_type,
 	goalDirection: goal.goal_direction,

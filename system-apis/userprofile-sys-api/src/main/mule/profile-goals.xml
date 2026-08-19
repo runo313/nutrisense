@@ -47,6 +47,7 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="2bacfc89-57b9-4871-9d27-e06af0d42b43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request complete",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="create-goal-flow" doc:id="9dc5b22b-bd0b-4a6a-a436-cc176474d762" >
 		<ee:transform doc:name="set variables" doc:id="37bbfc3b-05ae-4de7-baab-018e32bde4c1">
@@ -160,6 +161,7 @@ returnGoal(payload)
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Goal created successfully" doc:id="8aee1f94-cf01-4f5e-b37c-c3f518932c79" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.goal_id&#10;}&#10;---&#10;buildLog("INFO","Goal created successfully",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="patch-goal-flow" doc:id="e82c5d4d-61bd-428f-ac9a-78755f92ac8f" >
 		<ee:transform doc:name="set variables" doc:id="eb6fe35d-ca1d-4c3f-b707-fa64eb40d785">
@@ -191,7 +193,9 @@ import some from dw::core::Arrays
 keysOf(vars.goal) some ((key) -> ['isActive',"achievedAt","targetValue","targetUnit","isPrimary"] contains  (key as String ))]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<validation:is-true doc:name="At least one field is required" doc:id="ce68df7c-6893-470e-b049-9af7e317d15b" expression="#[payload]" message="At least one goal field must be provided"/>
+		<validation:is-true doc:name="At least one field is required" doc:id="ce68df7c-6893-470e-b049-9af7e317d15b" expression="#[payload]" message="At least one goal field must be provided">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:REQUIRED_FIELD" />
+		</validation:is-true>
 		<db:select doc:name="Select Goal Id" doc:id="431dc61c-8b7c-4666-ab39-fe7b595c45f5" config-ref="NUTRISENSE_DB_CONFIG" target="existingPrimaryGoalId">
 			<db:sql ><![CDATA[SELECT goal_id, is_primary, is_active 
 FROM user_goals 
@@ -202,7 +206,9 @@ AND user_id = :userId]]></db:sql>
 	userId: vars.userId
 }]]]></db:input-parameters>
 		</db:select>
-		<validation:is-false doc:name="Goal does not exist" doc:id="5654b355-ae81-4208-9510-58cc0f1161f3" expression="#[sizeOf( vars.existingPrimaryGoalId) &gt; 0]" message="Goal does not exist"/>
+		<validation:is-false doc:name="Goal does not exist" doc:id="5654b355-ae81-4208-9510-58cc0f1161f3" expression="#[isEmpty(vars.existingPrimaryGoalId) ]" message="Goal does not exist">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:GOAL_NOT_FOUND" />
+		</validation:is-false>
 		<choice doc:name="Choice" doc:id="0225d3e1-0f95-49bf-8abe-33a84d7166b7" >
 			<when expression="#[vars.goal.isPrimary]">
 				<logger level="INFO" doc:name="Update Primary Goal" doc:id="555710cd-1aca-4a66-84b7-41c1649f3b61" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.existingPrimaryGoalId&#10;	&#10;}&#10;---&#10;buildLog("INFO","Updating Primary Goal",message,vars.correlationId, vars.flowName)]' />
@@ -227,7 +233,7 @@ var setGoalDirection = if (vars.goal.goalDirection != null) "goal_direction = :g
 var setTargetValue = if (vars.goal.targetValue != null) "target_value = :targetValue" else ""
 var setTargetUnit = if (vars.goal.targetUnit != null) "target_unit = :targetUnit" else""
 var setIsPrimary = if (vars.goal.isPrimary != null) "is_primary = true" else ""
-var setIsActive = if (vars.goal.isActive != null) "is_active :isActive" else ""
+var setIsActive = if (vars.goal.isActive != null) "is_active = :isActive" else ""
 var setachievedAt = if (vars.goal.achievedAt != null) "achieved_at = :achievedAt" else ""
 var setClauses = [setGoalDirection,setTargetValue,setTargetUnit,setIsPrimary,setIsActive,setachievedAt] 
 filter ( $ != "")
@@ -245,9 +251,13 @@ output application/java
 	targetValue: vars.goal.targetValue,
 	targetUnit: vars.goal.targetUnit,
 	isPrimary: vars.goal.isPrimary,
-	achievedAt: vars.goal.achievedAt}]]></ee:set-variable>
+	achievedAt: vars.goal.achievedAt as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"},
+	isActive: vars.goal.isActive
+	
+}]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Update Primary Goal" doc:id="e5b74e72-659f-44fb-93c3-42ec1bb0f974" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	payload: payload,&#10;	inputParam: vars.inputParam&#10;}&#10;---&#10;buildLog("INFO","SQL",message,vars.correlationId, vars.flowName)]' />
 		<db:update doc:name="Update User Goals" doc:id="590971ae-75f8-4b13-902a-3de8ff15e417" config-ref="NUTRISENSE_DB_CONFIG" >
 			<db:sql ><![CDATA[#[payload]]]></db:sql>
 			<db:input-parameters ><![CDATA[#[vars.inputParam]]]></db:input-parameters>
@@ -258,7 +268,7 @@ target_unit, is_primary, is_active, set_at, achieved_at
 FROM user_goals
 WHERE goal_id = :goalId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
-	goalId: vars.goal_id
+	goalId: vars.goalId
 }]]]></db:input-parameters>
 		</db:select>
 		<ee:transform doc:name="Transform payload" doc:id="696e6111-a46f-419f-9cf5-50417005b250" >
@@ -271,5 +281,6 @@ returnGoal(payload)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Goal updated successfully" doc:id="a11735a5-876e-4821-a556-744e3f4b97d8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.goal_id&#10;}&#10;---&#10;buildLog("INFO","Goal updated successfully",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 </mule>
