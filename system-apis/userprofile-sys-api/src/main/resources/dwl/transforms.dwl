@@ -91,3 +91,14 @@ fun returnPreference (payload)=
   createdAt: payload[0].created_at,
   updatedAt: payload[0].updated_at
 } 
+
+fun returnConstraint(payload) = 
+{
+	"constraintId": payload[0].constraint_id,
+	"userId": payload[0].user_id,
+	"constraintType": payload[0].constraint_type,
+	"constraintValue": payload[0].constraint_value,
+	"severity": payload[0].severity,
+	"isActive": payload[0].is_active,
+	"createdAt": payload[0].created_at
+}
