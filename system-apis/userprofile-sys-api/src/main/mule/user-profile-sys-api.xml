@@ -135,7 +135,7 @@ output application/json
     <flow name="patch:\profiles\(userId)\goals\(goalId):application\json:user-profile-sys-api-config">
         <flow-ref doc:name="patch-goal-flow" doc:id="4bf6ed8f-1c4f-4c3a-b588-1b393e4b4b84" name="patch-goal-flow"/>
     </flow>
-    <flow name="patch:\profiles\(userId):application\json:user-profile-sys-api-config">
+    <flow name="patch:\profiles\(userId):application\json:user-profile-sys-api-config" doc:id="1cf21eac-f645-4087-ad19-64b8f7f7bde1">
         <flow-ref doc:name="patch-profile-flow" doc:id="fc3ecca7-d810-46d0-bf8a-f27432300843" name="patch-profile-flow"/>
     </flow>
     <flow name="get:\profiles\(userId)\conditions:user-profile-sys-api-config">

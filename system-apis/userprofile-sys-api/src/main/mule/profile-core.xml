@@ -180,10 +180,11 @@ output application/java
 correlationId]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="37a2e07d-f2ca-4631-a857-c6f0b0271160" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request",message,vars.correlationId, vars.flowName)]'/>
+		<logger level="INFO" doc:name="START" doc:id="37a2e07d-f2ca-4631-a857-c6f0b0271160" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request",message,vars.correlationId, vars.flowName)]'/>
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="3e63be88-6cae-4593-bf51-9b5cfbcff6d9" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="bdeebc41-4454-44c1-88a7-a441c5946cca" name="validate-profile-exists-subflow" />
 		<flow-ref doc:name="fetch-full-profile-subflow" doc:id="d6c04187-4db1-4903-be6c-e787a7d8a8b0" name="fetch-full-profile-subflow"/>
-		<logger level="INFO" doc:name="END" doc:id="300a1aa0-4005-4ab3-9290-54c700696642" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request complete",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="END" doc:id="300a1aa0-4005-4ab3-9290-54c700696642" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="patch-profile-flow" doc:id="bcbd1ba6-8093-40a4-90f9-9721ccce2c8d" >
@@ -208,7 +209,8 @@ output application/java
 attributes.uriParams.'userId']]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="024dd04e-7f58-4a48-acfd-fc103c1bad1d" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","PATCH profile request",message,vars.correlationId, vars.flowName)]'/>
+		<logger level="INFO" doc:name="START" doc:id="024dd04e-7f58-4a48-acfd-fc103c1bad1d" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","PATCH profile request",message,vars.correlationId, vars.flowName)]'/>
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="d50c02b1-00ea-4d3d-b173-358206aa4a5a" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="2fe48534-15ae-4ce8-966b-5e800ba537d0" name="validate-profile-exists-subflow" />
 		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import some from dw::core::Arrays&#10;---&#10;keysOf(vars.user) some ((key) -&gt; &#10;	(['name', 'email', 'dateOfBirth', 'biologicalSex', 'heightCm', 'weightKg', 'activityBaseline'] &#10;	contains (key as String)&#10;))]" doc:name="Check Caloric Target Needs Recalculation" doc:id="176c1bb4-cd58-4134-a2a5-8f1448c7609a" variableName="needsRecalculation"/>
 		<validation:is-true doc:name="One field is required" doc:id="d185df0a-19d2-4cf5-9234-8fe6b1c7f2cd" expression="#[vars.needsRecalculation]" message="At least one profile field must be provided" />
@@ -280,7 +282,7 @@ output application/java
 			<db:input-parameters ><![CDATA[#[vars.inputParam]]]></db:input-parameters>
 		</db:update>
 		<flow-ref doc:name="fetch-full-profile-subflow" doc:id="94fad2d5-1ad3-4c28-886e-320c03784422" name="fetch-full-profile-subflow"/>
-		<logger level="INFO" doc:name="END" doc:id="44d8df4b-22ba-4cba-83e2-dcfda764e438" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","PATCH profile request complete",message,vars.correlationId, vars.flowName)]'/>
+		<logger level="INFO" doc:name="END" doc:id="44d8df4b-22ba-4cba-83e2-dcfda764e438" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","PATCH profile request complete",message,vars.correlationId, vars.flowName)]'/>
 		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="delete-profile-flow" doc:id="ac8a5397-06c4-4af4-bb8e-982f6ad2f7ad" >
@@ -297,7 +299,8 @@ output application/java
 flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="333f3d2c-62c5-4a91-a7bf-393850497d22" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","Delete profile request",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="START" doc:id="333f3d2c-62c5-4a91-a7bf-393850497d22" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Delete profile request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="3f5822a7-08d7-4242-8be5-32ecd894f85f" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="d6239fbb-f0bb-4493-9133-17a848ff943b" name="validate-profile-exists-subflow" />
 		<db:update doc:name="Soft Delete Profile" doc:id="7c010dc2-a6ba-4f5d-95e0-91bc27946951" config-ref="NUTRISENSE_DB_CONFIG" >
 			<db:sql ><![CDATA[UPDATE users SET deleted_at = now()
@@ -306,7 +309,8 @@ WHERE user_id = :userId AND deleted_at IS NULL]]></db:sql>
 	userId: vars.userId
 }]]]></db:input-parameters>
 		</db:update>
-		<set-variable value="204" doc:name="204 Deleted" doc:id="7a6488e3-d13b-44f6-9584-56e94fa17a2a" variableName="httpStatus" />
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;204]" doc:name="204 Deleted" doc:id="7a6488e3-d13b-44f6-9584-56e94fa17a2a" variableName="httpStatus" />
+		<logger level="INFO" doc:name="END" doc:id="384223fe-2c1d-4101-913f-ff15013af72f" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Delete profile request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
 	</flow>
 </mule>
