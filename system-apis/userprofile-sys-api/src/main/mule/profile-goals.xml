@@ -21,6 +21,7 @@ flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="d34200d3-36b5-4b5c-9272-59cef613f895" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET goal request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="b24714ea-37b4-4770-957d-7674166c3a55" name="validate-uuid-subflow"/>
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="a18e8cc0-d47f-4de0-8f0d-3bf4089e705b" name="validate-profile-exists-subflow"/>
 		<db:select doc:name="Select User Goal" doc:id="1ccc12e0-8946-4efe-89eb-9ccef8dca4c9" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql><![CDATA[SELECT goal_id, user_id, goal_type, goal_direction, target_value,
@@ -74,6 +75,7 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="d21bbb0c-0059-46b3-b230-3cfbe4845475" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","Create goal started",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="1f4355cf-fae9-4c8e-9ce1-20335d7b31c8" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="10ca53a2-89df-4969-a09a-3eb7246d630f" name="validate-profile-exists-subflow"/>
 		<validation:is-false doc:name="weight_management + no direction" doc:id="89f19c16-8d99-4561-a105-010a7c66039b" expression='#[vars.user.goalType == "weight_management" and vars.user.goalDirection == null]' message="goal direction is required for weight management goals"/>
 		<db:select doc:name="Select units_system" doc:id="06008a15-00e6-41e7-929b-8e05807e068f" config-ref="NUTRISENSE_DB_CONFIG" target="userPreferences.units_system">
@@ -183,6 +185,7 @@ payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="69b1e1ce-67f0-439b-911c-57af0bd633de" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.user.goalId&#10;}&#10;---&#10;buildLog("INFO","PATCH goal request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="9179f777-1a5a-47e4-bd6b-5d97700e903d" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="1ce6b66a-5ffd-4f2f-ac6e-383049631324" name="validate-profile-exists-subflow" />
 		<ee:transform doc:name="Check At least one field is provided" doc:id="a88e9716-4081-48d8-b30e-55b0d936cfd8" >
 			<ee:message >
