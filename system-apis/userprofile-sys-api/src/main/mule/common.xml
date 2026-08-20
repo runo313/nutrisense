@@ -6,9 +6,6 @@
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="validate-uuid-subflow" doc:id="bd7d09b2-c956-44f1-996e-3ba3aae5e7a9" >
-		<logger level="INFO" doc:name="Logger" doc:id="b4d4632d-ad93-4abf-884c-70ed2b9d5bd3" />
-	</flow>
 	<sub-flow name="fetch-full-profile-subflow" doc:id="94e4ecc1-97bb-4b31-b0b4-13066766a519" >
 		<db:select doc:name="Select User" doc:id="d12eff45-c346-4f64-8e1a-fd753e09f8c2" config-ref="NUTRISENSE_DB_CONFIG" target="user" >
 			<db:sql ><![CDATA[SELECT user_id, name, email, date_of_birth, biological_sex, 
@@ -140,9 +137,31 @@ AND deleted_at IS NULL]]></db:sql>
 	email: vars.user.email
 }]]]></db:input-parameters>
 		</db:select>
-		<validation:is-false doc:name="Check Profile exists" doc:id="03e3a82e-e959-48ed-a6e8-e651002f2fb5" expression="#[sizeOf(vars.user_id) == 0]" message="A profile with this userId or email does not exist"/>
+		<validation:is-false doc:name="Check Profile exists" doc:id="03e3a82e-e959-48ed-a6e8-e651002f2fb5" expression="#[sizeOf(vars.user_id) == 0]" message="A profile with this userId or email does not exist">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:PROFILE_NOT_FOUND" />
+		</validation:is-false>
 	</sub-flow>
-	<flow name="compute-caloric-target-subflow" doc:id="35cff560-1a0d-4e45-aa3a-f70ed0a5c638" >
-		<logger level="INFO" doc:name="Logger" doc:id="eb86eee3-8798-44fe-a799-ec6599c81efd" />
-	</flow>
+	<sub-flow name="validate-uuid-subflow" doc:id="84d297b4-f413-4995-b152-f8846fd279d7" >
+		<set-variable value="#[vars.userId default vars.user.userId]" doc:name="User Id" doc:id="ed77d4d0-ea80-4b2c-94b5-af6278ba8a2a" variableName="userId"/>
+		<!-- [STUDIO:"Check User Id"]<validation:is-false doc:name="Check User Id" doc:id="03694cd9-b9a2-4abf-b87f-d96c90571ea0" expression="#[not (vars.userId matches /^[0-9a-fA-F&#93;{8}-[0-9a-fA-F&#93;{4}-[0-9a-fA-F&#93;{4}-[0-9a-fA-F&#93;{4}-[0-9a-fA-F&#93;{12}$/)&#93;" message="Invalid Id format. Must be a valid UUID." >
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+		</validation:is-false> [STUDIO] -->
+		<choice doc:name="Choice" doc:id="840c8540-66a3-4722-ad94-32080022cca2" >
+			<when expression="#[vars.goalId !=null]">
+				<validation:is-false doc:name="Check Goal Id" doc:id="7469b234-bf66-47ed-b2ae-415adc427321" expression="#[not (vars.goalId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Id format. Must be a valid UUID." >
+					<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+				</validation:is-false>
+			</when>
+			<when expression="#[vars.conditionId != null]">
+				<validation:is-false doc:name="Check Condition Id" doc:id="a7ac332d-46da-4b0f-a725-b8c2eaf24357" expression="#[not (vars.conditionId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Id format. Must be a valid UUID." >
+					<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+				</validation:is-false>
+			</when>
+			<when expression="#[vars.constraintId != null]">
+				<validation:is-false doc:name="Check Constraint Id" doc:id="288189ec-4c4a-490b-a6c6-21733f198cee" expression="#[not (vars.constraintId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Id format. Must be a valid UUID.">
+					<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+				</validation:is-false>
+			</when>
+		</choice>
+	</sub-flow>
 </mule>

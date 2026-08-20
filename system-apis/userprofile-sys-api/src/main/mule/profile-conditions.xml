@@ -21,6 +21,7 @@ flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="f92f59cc-008d-49c9-9aeb-05ba52a119f1" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET goal request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="b1cafcae-b29c-4904-8dec-c981b2c41d70" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="e015b189-e300-47fc-bccd-e377072dd92c" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select Conditions" doc:id="59b199e6-37ad-42f4-ae6c-ae9ba5b789f3" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT condition_id, user_id, condition_type, management_status,
@@ -47,6 +48,7 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="cf9913fe-5475-40d7-9bde-ec67f913b72b" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET conditions request complete",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="create-condition-flow" doc:id="dcf07453-999a-4e52-b606-e9927ac406f1" >
 		<ee:transform doc:name="Transform Message" doc:id="0bc4b2a9-3794-4721-9b13-b2e38b5e9e20">
@@ -72,6 +74,7 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="ad940bd3-1def-422d-af1d-f4812fbe39b5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	condition: vars.condition&#10;}&#10;---&#10;buildLog("INFO","Condition creation started",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="5645320b-9d57-484b-aaa9-f8b377ab10ec" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="1b1e119b-3523-4d50-badc-b940323204b3" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select condition Id" doc:id="b2b7cfda-12bd-4257-b976-7de4b3266689" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions
@@ -143,6 +146,7 @@ returnCondition(payload)]]></ee:set-payload>
 				<logger level="INFO" doc:name="END" doc:id="893dd87b-868f-49f9-8a5a-c0e1de03bd19" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition created successfully",message,vars.correlationId, vars.flowName)]' />
 			</otherwise>
 		</choice>
+		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="patch-condition-flow" doc:id="497eabe5-e6bb-4855-bd51-b76aeef0b4a3" >
 		<ee:transform doc:name="set variables" doc:id="ab6c6b69-6a5f-432e-8271-0f6b1a7c1d9c">
@@ -164,6 +168,7 @@ payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="fb12acef-e40b-4db0-aac9-0ecae548daf8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	conditionId: vars.conditionId&#10;}&#10;---&#10;buildLog("INFO","PATCH condition request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="146a66a5-8a58-411a-8e9a-de87bf9fcc65" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="94368f94-23c8-4546-b741-f78ed573e5b6" name="validate-profile-exists-subflow" />
 		<ee:transform doc:name="Check At least one field is provided" doc:id="654759ea-420e-4f16-ba7f-c2929894fc7b" >
 			<ee:message >
@@ -174,14 +179,18 @@ import some from dw::core::Arrays
 keysOf(vars.condition) some ((key) -> ['managementStatus',"diagnosedAt","notes","isActive"] contains  (key as String ))]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<validation:is-true doc:name="At least one field is required" doc:id="79a6a54e-6945-426c-8989-0c631b68b7e0" expression="#[payload]" message="At least one condition field must be provided" />
+		<validation:is-true doc:name="At least one field is required" doc:id="79a6a54e-6945-426c-8989-0c631b68b7e0" expression="#[payload]" message="At least one condition field must be provided" >
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:REQUIRED_FIELD" />
+		</validation:is-true>
 		<db:select doc:name="Select Condition Id" doc:id="f542275d-0c41-49b6-8fbb-0212f57dd325" config-ref="NUTRISENSE_DB_CONFIG" target="existingConditionId">
 			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions WHERE condition_id = :conditionId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	conditionId: vars.conditionId
 }]]]></db:input-parameters>
 		</db:select>
-		<validation:is-false doc:name="Condition does not exist" doc:id="c96f9cb6-4cb8-4cd9-802c-642b9a7075f9" expression="#[sizeOf( vars.existingConditionId) == 0]" message="Condition does not exist" />
+		<validation:is-false doc:name="Condition does not exist" doc:id="c96f9cb6-4cb8-4cd9-802c-642b9a7075f9" expression="#[sizeOf( vars.existingConditionId) == 0]" message="Condition does not exist" >
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:CONDITION_NOT_FOUND" />
+		</validation:is-false>
 		<ee:transform doc:name="SQL" doc:id="135e4be2-3ffc-465e-b08e-bc42fa0f88e3" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -233,5 +242,6 @@ returnCondition(payload)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="820e341a-8937-4904-8979-92f690933f18" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition updated successfully",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 </mule>

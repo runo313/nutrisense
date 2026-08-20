@@ -20,6 +20,7 @@ flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="c57d6fb8-2948-4371-8f08-9dc35a5264a5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET constraint request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="dc37a514-9f2d-49d5-a908-fb2cba9ccbd8" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="c035299a-00e0-4ec5-b7cb-fe93cdc9c85f" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select Constraint" doc:id="4298731f-e0d8-49ef-9ee4-d5ee939d157b" config-ref="NUTRISENSE_DB_CONFIG" >
 			<db:sql ><![CDATA[SELECT constraint_id, user_id, constraint_type, constraint_value, severity, is_active, created_at
@@ -39,6 +40,7 @@ transformConstrains(payload)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="42e87f6f-5056-4528-b5fc-78b9b22cb08a" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET constraint request complete",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="create-constraint-flow" doc:id="fa698785-2a41-4331-abe1-ea75459c35b3" >
 		<ee:transform doc:name="Transform Message" doc:id="6b1236b9-9d42-4c70-bc50-9883730a17fa">
@@ -59,6 +61,7 @@ payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="569ce7ee-c6d7-47cc-b7b0-fd23a261f969" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Create constraint request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="06b0c039-ff95-40db-bdd8-54d8fe5e4660" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="4ea808ce-9337-4265-be78-1551dfef9461" name="validate-profile-exists-subflow" />
 		<db:insert doc:name="Insert Constraints" doc:id="16fccad3-160a-45e8-8274-cd4fba10a793" config-ref="NUTRISENSE_DB_CONFIG" autoGenerateKeys="true" target="constraint_id" targetValue="#[payload.generatedKeys.constraint_id]">
 			<db:sql ><![CDATA[INSERT INTO dietary_constraints (user_id, constraint_type, constraint_value,severity, is_active, created_at)
@@ -93,6 +96,7 @@ returnConstraint(payload)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="01615114-3b3a-45ad-9c4e-43a2952e0cb2" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Constraint created successfully",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="delete-constraint-flow" doc:id="1bbf1b4d-6109-4ba3-9ade-25078327b4f2" >
 		<ee:transform doc:name="Transform Message" doc:id="cf7158fe-4b57-4128-b4d8-0ae9a07accdd">
@@ -113,6 +117,7 @@ attributes.uriParams.'constraintId']]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="49cd884e-dc0b-4705-bb8d-431b0ba5772b" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	constraintId: vars.constraintId&#10;}&#10;---&#10;buildLog("INFO","Delete constraint request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="4f33753b-ce59-402d-95df-708bb98f4506" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="ee045d18-c89d-4892-be32-64ac6d466a1f" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select Constraint Id" doc:id="27c8168e-f458-44ae-9826-47c5cfaabe96" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT constraint_id FROM dietary_constraints
@@ -159,5 +164,6 @@ AND user_id = :userId]]></db:sql>
 				<logger level="INFO" doc:name="END" doc:id="ad31e133-f0da-43cc-bec4-098f938899b3" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	constraintId: vars.constraintId&#10;}&#10;---&#10;buildLog("INFO","DELETE constraint complete",message,vars.correlationId, vars.flowName)]' />
 			</otherwise>
 		</choice>
+		<error-handler ref="error-handler" />
 	</flow>
 </mule>

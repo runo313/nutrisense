@@ -77,7 +77,9 @@ output application/java
 		<logger level="INFO" doc:name="START" doc:id="d21bbb0c-0059-46b3-b230-3cfbe4845475" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","Create goal started",message,vars.correlationId, vars.flowName)]' />
 		<flow-ref doc:name="validate-uuid-subflow" doc:id="1f4355cf-fae9-4c8e-9ce1-20335d7b31c8" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="10ca53a2-89df-4969-a09a-3eb7246d630f" name="validate-profile-exists-subflow"/>
-		<validation:is-false doc:name="weight_management + no direction" doc:id="89f19c16-8d99-4561-a105-010a7c66039b" expression='#[vars.user.goalType == "weight_management" and vars.user.goalDirection == null]' message="goal direction is required for weight management goals"/>
+		<validation:is-false doc:name="weight_management + no direction" doc:id="89f19c16-8d99-4561-a105-010a7c66039b" expression='#[vars.user.goalType == "weight_management" and vars.user.goalDirection == null]' message="goal direction is required for weight management goals">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:REQUIRED_FIELD" />
+		</validation:is-false>
 		<db:select doc:name="Select units_system" doc:id="06008a15-00e6-41e7-929b-8e05807e068f" config-ref="NUTRISENSE_DB_CONFIG" target="userPreferences.units_system">
 			<db:sql ><![CDATA[SELECT units_system FROM user_preferences
 WHERE user_id  = :userId]]></db:sql>

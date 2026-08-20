@@ -20,6 +20,7 @@ flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="e858d175-77ca-4dc6-893f-5c2ac40ce8a3" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET preference request",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="0d230613-2fa6-47cf-8108-8c82fbfad959" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="9d65927b-b9e5-4e2f-9886-38af5eb9d3d6" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select Preferences" doc:id="06728e2d-2c84-4fff-b4ca-4fc591db42e0" config-ref="NUTRISENSE_DB_CONFIG" >
 			<db:sql ><![CDATA[SELECT preference_id, user_id, insight_frequency, preferred_wearable_metrics,
@@ -42,6 +43,7 @@ returnPreference(payload)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="72072bcd-d72f-45a9-b3d3-2cc73c13a4d0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET Preferences request successful",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="patch-preferences-flow" doc:id="710463e4-efef-4171-a39c-4c08e4250187" >
 		<ee:transform doc:name="Transform Message" doc:id="eedd234e-1996-4eb8-a094-b2a785c66b8f">
@@ -72,6 +74,7 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="6fba96fc-0d80-49fe-b1f1-cafbc1bbbb43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	payload: vars.preference&#10;}&#10;---&#10;buildLog("INFO","Preference creation started",message,vars.correlationId, vars.flowName)]' />
+		<flow-ref doc:name="validate-uuid-subflow" doc:id="cb8dc828-cfd0-4834-a53d-7fa91386bec5" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="9d44b84d-8447-417f-a7db-790d9628e13f" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select User Id" doc:id="05fc1f83-ff60-4191-82c6-71e7463014ef" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT user_id from user_preferences WHERE user_id = :userId]]></db:sql>
@@ -194,5 +197,6 @@ returnPreference(payload)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="1ed1b06a-c130-4dbe-bece-5466737be7dd" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preferences updated successfully",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="error-handler" />
 	</flow>
 </mule>

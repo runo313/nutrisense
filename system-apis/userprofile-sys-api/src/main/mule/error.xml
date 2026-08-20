@@ -1,15 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-	<flow name="profile-read-error-handler" doc:id="891c1472-f682-4cfb-833a-2086656d5cc1" >
-		<logger level="INFO" doc:name="Logger" doc:id="38f01fb8-b61a-4bb3-b0e6-b35bed9d3a82" />
-	</flow>
-	<flow name="profile-write-error-handler" doc:id="406f8855-ad72-4446-a695-0820d31c0bbd" >
-		<logger level="INFO" doc:name="Logger" doc:id="35fa8533-7637-4b2e-a699-59659e4aec18" />
-	</flow>
-	<flow name="profile-delete-error-handler" doc:id="427e8cea-daf9-49c8-9cc3-183f81da2421" >
-		<logger level="INFO" doc:name="Logger" doc:id="2b74fbf9-8c77-441d-a52b-754915b1efc6" />
-	</flow>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="error-handler" doc:id="bc1dcc93-3583-44c2-aa62-ddbd646333cc" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="da5b9d34-f679-4af8-a17d-64cfcebdcafd" type="APP:PROFILE_NOT_FOUND">
+			<logger level="ERROR" doc:name="Error" doc:id="903ac370-3141-45a3-890f-1c87b199af51" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Profile Not Found",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Profile Not Found" doc:id="22a6b6b3-8e02-4e30-8a91-6db3019c78e9" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-404",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e9c049e0-d236-4edb-9ed3-a44534e6b334" type="APP:GOAL_NOT_FOUND">
+			<logger level="ERROR" doc:name="Error" doc:id="1c0e3e19-c39d-47f7-831d-90b9bdf64b82" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Goal Not Found",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Goal Not Found" doc:id="ede8fdb5-5b53-4327-a94c-efc4f79584de" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-404",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4c1c376-1432-4df6-889b-4b90ece5d174" type="APP:REQUIRED_FIELD">
+			<logger level="ERROR" doc:name="Error" doc:id="bc0748b4-385a-4fde-a5b9-9555d98ab104" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Required Fields Not Provided",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="No Provided field" doc:id="00ceea1b-5d6e-497e-8ca6-9323b068b6eb" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a82ea142-ab6a-4f36-b260-03fa6d3d78cd" type="APP:INVALID_ID_FORMAT">
+			<logger level="ERROR" doc:name="Error" doc:id="8f129449-6727-44bd-a9d1-f9e377b8e015" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","INVALID_ID_FORMAT",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Invalid Id format" doc:id="47580bd5-0cf9-442c-8c42-477e09aefa60" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="70d931fa-60f3-475c-bad7-038cc6d71817" type="APP:CONDITION_NOT_FOUND">
+			<logger level="ERROR" doc:name="Error" doc:id="58980562-74b5-4518-999f-420c06d22c5a" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Condition Not Found",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Condition Not Found" doc:id="60882182-c710-4672-b617-63de1c20a444" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-404",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
 </mule>
