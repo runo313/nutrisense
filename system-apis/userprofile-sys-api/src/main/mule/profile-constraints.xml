@@ -38,6 +38,12 @@ import transformConstrains from dwl::transforms
 ---
 transformConstrains(payload)]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="42e87f6f-5056-4528-b5fc-78b9b22cb08a" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET constraint request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
@@ -94,6 +100,12 @@ import returnConstraint from dwl::transforms
 ---
 returnConstraint(payload)]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+201]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="01615114-3b3a-45ad-9c4e-43a2952e0cb2" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Constraint created successfully",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
@@ -160,7 +172,7 @@ AND user_id = :userId]]></db:sql>
 	userId: vars.userId
 }]]]></db:input-parameters>
 				</db:delete>
-				<set-variable value="204" doc:name="Status" doc:id="41e77f44-3414-4284-a5a8-19157157fe69" variableName="httpStatus"/>
+				<set-variable value="#[204]" doc:name="Status" doc:id="41e77f44-3414-4284-a5a8-19157157fe69" variableName="httpStatus"/>
 				<logger level="INFO" doc:name="END" doc:id="ad31e133-f0da-43cc-bec4-098f938899b3" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	constraintId: vars.constraintId&#10;}&#10;---&#10;buildLog("INFO","DELETE constraint complete",message,vars.correlationId, vars.flowName)]' />
 			</otherwise>
 		</choice>
