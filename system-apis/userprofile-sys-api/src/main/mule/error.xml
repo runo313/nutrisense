@@ -5,9 +5,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<error-handler name="error-handler" doc:id="bc1dcc93-3583-44c2-aa62-ddbd646333cc" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="da5b9d34-f679-4af8-a17d-64cfcebdcafd" type="APP:PROFILE_NOT_FOUND">
-			<logger level="ERROR" doc:name="Error" doc:id="903ac370-3141-45a3-890f-1c87b199af51" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Profile Not Found",logMessage,vars.correlationId , vars.flowName)]' />
-			<ee:transform doc:name="Profile Not Found" doc:id="22a6b6b3-8e02-4e30-8a91-6db3019c78e9" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="05320b3f-ef2e-4a20-b7d8-1c371d8d5118" type="APP:GOAL_NOT_FOUND">
+			<logger level="ERROR" doc:name="Error" doc:id="55d30ca3-78b0-4295-8583-290e11e66b7b" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Goal Not Found",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Goal Not Found" doc:id="84feeb23-de85-4168-bf69-d3237224d698" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -25,73 +25,31 @@ output application/json
 					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
 				</ee:variables>
 			</ee:transform>
-		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e9c049e0-d236-4edb-9ed3-a44534e6b334" type="APP:GOAL_NOT_FOUND">
-			<logger level="ERROR" doc:name="Error" doc:id="1c0e3e19-c39d-47f7-831d-90b9bdf64b82" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Goal Not Found",logMessage,vars.correlationId , vars.flowName)]' />
-			<ee:transform doc:name="Goal Not Found" doc:id="ede8fdb5-5b53-4327-a94c-efc4f79584de" >
-				<ee:message >
-					<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-  code: "USER-PROFILE-404",
-  message: error.description,
-  correlationId: correlationId,
-  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
-  originLayer: "system"
-}
-]]></ee:set-payload>
-				</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
-				</ee:variables>
-			</ee:transform>
-		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4c1c376-1432-4df6-889b-4b90ece5d174" type="APP:REQUIRED_FIELD">
-			<logger level="ERROR" doc:name="Error" doc:id="bc0748b4-385a-4fde-a5b9-9555d98ab104" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Required Fields Not Provided",logMessage,vars.correlationId , vars.flowName)]' />
-			<ee:transform doc:name="No Provided field" doc:id="00ceea1b-5d6e-497e-8ca6-9323b068b6eb" >
-				<ee:message >
-					<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-  code: "USER-PROFILE-400",
-  message: error.description,
-  correlationId: correlationId,
-  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
-  originLayer: "system"
-}
-]]></ee:set-payload>
-				</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
-				</ee:variables>
-			</ee:transform>
-		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a82ea142-ab6a-4f36-b260-03fa6d3d78cd" type="APP:INVALID_ID_FORMAT">
-			<logger level="ERROR" doc:name="Error" doc:id="8f129449-6727-44bd-a9d1-f9e377b8e015" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","INVALID_ID_FORMAT",logMessage,vars.correlationId , vars.flowName)]' />
-			<ee:transform doc:name="Invalid Id format" doc:id="47580bd5-0cf9-442c-8c42-477e09aefa60" >
-				<ee:message >
-					<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-  code: "USER-PROFILE-400",
-  message: error.description,
-  correlationId: correlationId,
-  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
-  originLayer: "system"
-}
-]]></ee:set-payload>
-				</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
-				</ee:variables>
-			</ee:transform>
-		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="70d931fa-60f3-475c-bad7-038cc6d71817" type="APP:CONDITION_NOT_FOUND">
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d7b0504b-a3f4-4a11-a8e0-0a799be778ab" type="APP:CONDITION_NOT_FOUND">
 			<logger level="ERROR" doc:name="Error" doc:id="58980562-74b5-4518-999f-420c06d22c5a" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Condition Not Found",logMessage,vars.correlationId , vars.flowName)]' />
-			<ee:transform doc:name="Condition Not Found" doc:id="60882182-c710-4672-b617-63de1c20a444" >
+			<ee:transform doc:name="Condition Not Found" doc:id="60882182-c710-4672-b617-63de1c20a444">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-404",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6c107cbf-86ea-4c25-9ed2-0132912cd43a" type="APP:PROFILE_NOT_FOUND">
+			<logger level="ERROR" doc:name="Error" doc:id="0cfac8d0-cf64-43ce-8070-a45325f1230c" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Profile Not Found",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Profile Not Found" doc:id="3e3aac6c-cf29-4920-bba0-a231b5d06bfa" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -107,6 +65,185 @@ output application/json
 				</ee:message>
 				<ee:variables >
 					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="1e59e52d-db95-41f2-b598-9f23068d7ec9" type="APP:INVALID_ID_FORMAT">
+			<logger level="ERROR" doc:name="Error" doc:id="0258016b-57bc-4558-8147-2a9774a8e2d0" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","INVALID_ID_FORMAT",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Invalid Id format" doc:id="eaa446b8-5f5a-43d9-96d6-605000da36e2" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="cba7d247-5f06-43bb-be79-09eebe661e5d" type="APP:REQUIRED_FIELD">
+			<logger level="ERROR" doc:name="Error" doc:id="73f84cf3-35b8-4222-b9f9-1236a67333f7" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId default vars.user.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Required Fields Not Provided",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="No Provided field" doc:id="e9d54d3a-a8b8-4c37-9be5-50506a5716c7" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="a40fbaa1-1aef-41f8-b651-d22b0abccf86" type="ANY">
+			<logger level="ERROR" doc:name="Error" doc:id="29349c45-6173-4af2-b4ed-c9437bd68ae2" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","ERROR",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="No Provided field" doc:id="1f109db4-9fd1-4ed8-8234-a865cfc0e8bf" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-500",
+  message: "Server Unavailable",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+	</error-handler>
+	<error-handler name="apikit-error-handler" doc:id="c568dd14-def2-4e8c-83df-cd778173f8a5" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2662fe1f-a13a-433d-8469-69c5310a2314" type="APIKIT:BAD_REQUEST" >
+			<ee:transform doc:name="Transform Message" doc:id="20a3f62c-9470-4a6d-a0e7-28ac65498a02" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-400",
+  message: "Bad Request: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="1502322f-5487-4feb-afa3-4aa4dc7bb120" type="APIKIT:NOT_FOUND" >
+			<ee:transform doc:name="Transform Message" doc:id="2308b817-23ad-4454-8f56-d883be89f825" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-404",
+  message: "Resource not found: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate2" doc:id="a7a24904-b2c4-4127-9989-47252e358367" type="APIKIT:METHOD_NOT_ALLOWED" >
+			<ee:transform doc:name="Transform Message" doc:id="a3bf3ce8-2ae1-4ff8-936a-bf4251f9e3ee" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-405",
+  message: "Method Not allowed: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[405]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate3" doc:id="6e072cc9-8ce9-4337-beb0-e826e0eeaef9" type="APIKIT:NOT_ACCEPTABLE" >
+			<ee:transform doc:name="Transform Message" doc:id="d6acf5d2-7af9-47f1-806d-3a1fc510ad3c" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-406",
+  message: "Not Acceptable: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[406]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate4" doc:id="1f5138f5-bee6-4859-8bbf-f39d9d3f0374" type="APIKIT:UNSUPPORTED_MEDIA_TYPE" >
+			<ee:transform doc:name="Transform Message" doc:id="1c44923d-2a97-455f-9473-bf06d51ddfb6" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-415",
+  message: "Unsupported media type: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[415]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate5" doc:id="a44a6a7d-b3c5-4fa6-a3e0-4c86f33da52c" type="APIKIT:NOT_IMPLEMENTED" >
+			<ee:transform doc:name="Transform Message" doc:id="0a7dc585-31aa-49e3-8ec9-a9bde064fb73" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "USER-PROFILE-501",
+  message: "Not implemented: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "system"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>
