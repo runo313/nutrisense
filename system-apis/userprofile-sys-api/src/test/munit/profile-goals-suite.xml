@@ -69,7 +69,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<flow-ref doc:name="Flow Reference" doc:id="10404b23-5013-4c90-8aae-3029477b07bf" name="post:\profiles\(userId)\goals:application\json:user-profile-sys-api-config"/>
 		</munit:execution>
 		<munit:validation >
-			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="a766163b-3de4-4569-8619-818f9acfe378" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that http status 201" doc:id="a766163b-3de4-4569-8619-818f9acfe378" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
 			<munit-tools:assert-that doc:name="Assert Goal Type" doc:id="8e5f460d-8f1a-44fe-825d-fc258e09ea7d" message="activity baseline is incorrect" expression="#[payload.goalType]" is='#[MunitTools::equalTo("sleep_improvement")]' />
 		</munit:validation>
 	</munit:test>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="profile-conditions-suite.xml" />
+	<munit:test name="should_create_condition_and_return_201" doc:id="71c8d8e2-e30e-4122-b1ba-f15bd2538c5d">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="62f3d03f-f063-4a70-a89a-d6531752c3b3" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Condition Id" doc:id="469d8d7a-2682-46bb-9319-ac58324d6f3c" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b2b7cfda-12bd-4257-b976-7de4b3266689" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" mediaType="application/java" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Insert Condition" doc:id="d3a46de0-9ff3-4db7-830a-71748f195910" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="16e76912-7566-42e9-bb49-5bb2c22e63bb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="conditionId" value='#[[{"condition_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901"}]]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Condition" doc:id="8997349b-5953-41e4-8e44-623113953b11" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="cfb241b6-2717-4515-bd67-a68ca1397a4f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/condition.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="96fa93dd-5dbc-4ac1-9be8-142560a12e43" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  conditionType: "hypertension",&#10;  managementStatus: "diet_controlled",&#10;  diagnosedAt: "2022-03-15",&#10;  notes: "Monitoring blood pressure weekly"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="5821e012-af49-439e-a48c-aced00a15284" name="post:\profiles\(userId)\conditions:application\json:user-profile-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 201" doc:id="fe320f2b-efc2-447f-b986-ec1445f8424a" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
+			<munit-tools:assert-that doc:name="Assert Goal Type" doc:id="5796874f-716f-44a0-874e-579cfd1a0deb" expression="#[payload.conditionType]" is='#[MunitTools::equalTo("hypertension")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="profile-conditions-suiteTest" doc:id="012dd546-c622-4a18-83e8-167d49042e39">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="a8d8a57a-f1d0-46a2-8eac-a0d11ca8cbb8" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Condition Id" doc:id="a7b4b466-adb7-4b42-87f1-fabc85a111aa" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b2b7cfda-12bd-4257-b976-7de4b3266689" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{"condition_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901"}]]' mediaType="application/java" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="0dc83bee-5f58-49a4-bcf2-af84b0079ed1" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  conditionType: "hypertension",&#10;  managementStatus: "diet_controlled",&#10;  diagnosedAt: "2022-03-15",&#10;  notes: "Monitoring blood pressure weekly"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="7a1d0615-b138-474d-b3bb-3ae91cd4c236" name="post:\profiles\(userId)\conditions:application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 409" doc:id="dfd1e1e7-8654-4d08-8e7d-eff4b195c44b" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(409)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_patch_condition_and_return_200" doc:id="03d05b3d-482c-460b-8e54-f3cee9613b84">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="2f4d41b6-bdba-4396-bffb-8ff71845f241" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Condition Id " doc:id="a3a3003d-248c-4ef3-83c0-61e102baacbc" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f542275d-0c41-49b6-8fbb-0212f57dd325" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="existingConditionId" value='#[[{"condition_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901","is_active": true}]]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update Condition" doc:id="699bc15d-8696-4243-b644-925297577a42" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0ebe7a8e-bc80-42cb-84f8-e7bd3473a60d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Condition Id" doc:id="130a9665-6c16-4f68-b044-f1f9cc3e7b19" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c4d3130e-0b8e-4091-81f2-9df3ea65f168" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{"condition_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901"}]]' mediaType="application/java" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="16883de2-213f-41ed-91c9-442982d08908">
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  managementStatus: "medication_managed"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "james2822",&#10;    conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="e361955d-e2b7-4e0e-8ada-b9f09803c7f5" name="patch:\profiles\(userId)\conditions\(conditionId):application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="0f1b621e-635d-40a3-a4c7-31cbf946b26f" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_get_condition_and_return_404" doc:id="29f1096f-ac40-4fbe-bdb3-f51189ef6317" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="941bbad0-11ef-436b-bc0f-be7b948404b4" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="user_id" value="#[[]]" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Set Event" doc:id="4c80597d-3418-4872-af2b-b01ebb417c99" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "james2822"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="792e6c76-b80d-4e2c-b5c6-66a311e49aff" name="get:\profiles\(userId)\conditions:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="324ede12-27a5-44f6-bcb4-6ac66ad21b58" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+			<munit-tools:assert-that doc:name="Assert Error Message" doc:id="db862cda-bb15-46c4-95ff-a4f8c87708fb" expression="#[payload.message]" is='#[MunitTools::equalTo("A profile with this userId or email does not exist")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_patch_condition_and_return_404" doc:id="d729d7da-e588-46fd-b092-9a5c6b94f5ce">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="b8ebe8b2-e469-40f8-aa7e-fcdb89014c69" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Condition Id " doc:id="89c1a294-8b43-4a68-afc2-9eaf158414b8" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f542275d-0c41-49b6-8fbb-0212f57dd325" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="existingConditionId" value="#[[]]" mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="f50f0718-7b82-4bd5-b510-39fcce1a02eb" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  managementStatus: "medication_managed"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "james2822",&#10;    conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="bbc9e15f-55ce-4eb8-b24b-f7fdcc0a8fb8" name="patch:\profiles\(userId)\conditions\(conditionId):application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="d2f156e9-c2ec-411d-8ed2-ed0b1c1701ac" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>
