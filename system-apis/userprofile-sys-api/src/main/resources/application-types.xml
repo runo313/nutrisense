@@ -2587,4 +2587,5 @@ type auto_84d297b4_f413_4995_b152_f8846fd279d7_Output_Variables_flowName = Strin
       </types:output-event>
     </types:processor-declaration>
   </types:enrichment>
+  <types:enrichment select="#811f919f-7f1a-47f5-81fe-ceaf5304b91b"/>
 </types:mule>

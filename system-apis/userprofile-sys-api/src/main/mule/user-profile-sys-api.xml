@@ -12,113 +12,7 @@
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="user-profile-sys-api-config" />
-        <error-handler>
-            <on-error-propagate type="APIKIT:BAD_REQUEST">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Bad request"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_FOUND">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Resource not found"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Method not allowed"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Not acceptable"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Unsupported media type"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Not Implemented"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-        </error-handler>
-    </flow>
-    <flow name="user-profile-sys-api-console">
-        <http:listener config-ref="user-profile-sys-api-httpListenerConfig" path="/console/*">
-            <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:response>
-            <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:error-response>
-        </http:listener>
-        <apikit:console config-ref="user-profile-sys-api-config" />
-        <error-handler>
-            <on-error-propagate type="APIKIT:NOT_FOUND">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Resource not found"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-        </error-handler>
+		<error-handler ref="apikit-error-handler" />
     </flow>
     <flow name="delete:\profiles\(userId)\constraints\(constraintId):user-profile-sys-api-config">
 		<flow-ref doc:name="delete-constraint-flow" doc:id="04ca23ac-0872-41a9-9bec-e6ccab435e9b" name="delete-constraint-flow"/>
@@ -126,25 +20,26 @@ output application/json
     <flow name="delete:\profiles\(userId):user-profile-sys-api-config">
         <flow-ref doc:name="delete-profile-flow" doc:id="30fc2bc8-7a10-4e4a-9f80-d36177b98bd1" name="delete-profile-flow"/>
     </flow>
-    <flow name="patch:\profiles\(userId)\preferences:application\json:user-profile-sys-api-config">
+    <flow name="patch:\profiles\(userId)\preferences:application\json:user-profile-sys-api-config" doc:id="21164e0a-fe60-4fe8-8d10-ded97b7ec3e0">
         <flow-ref doc:name="patch-preferences-flow" doc:id="743fce7e-8b9d-4d9f-8920-2ce22b64ca3a" name="patch-preferences-flow"/>
     </flow>
-    <flow name="patch:\profiles\(userId)\conditions\(conditionId):application\json:user-profile-sys-api-config">
+    <flow name="patch:\profiles\(userId)\conditions\(conditionId):application\json:user-profile-sys-api-config" doc:id="9b49d0c3-00ed-4b56-816d-d6e67feac4f1">
         <flow-ref doc:name="patch-condition-flow" doc:id="4f7d5031-83b0-406f-9329-8f8cf3b37210" name="patch-condition-flow"/>
     </flow>
     <flow name="patch:\profiles\(userId)\goals\(goalId):application\json:user-profile-sys-api-config">
         <flow-ref doc:name="patch-goal-flow" doc:id="4bf6ed8f-1c4f-4c3a-b588-1b393e4b4b84" name="patch-goal-flow"/>
+		
     </flow>
     <flow name="patch:\profiles\(userId):application\json:user-profile-sys-api-config" doc:id="1cf21eac-f645-4087-ad19-64b8f7f7bde1">
         <flow-ref doc:name="patch-profile-flow" doc:id="fc3ecca7-d810-46d0-bf8a-f27432300843" name="patch-profile-flow"/>
     </flow>
-    <flow name="get:\profiles\(userId)\conditions:user-profile-sys-api-config">
+    <flow name="get:\profiles\(userId)\conditions:user-profile-sys-api-config" doc:id="17a5ccc7-f9b8-4e05-8895-fc39731bd036">
         <flow-ref doc:name="get-conditions-flow" doc:id="3bc04008-e416-4b7f-9177-c3ee392a416a" name="get-conditions-flow"/>
     </flow>
-    <flow name="get:\profiles\(userId)\constraints:user-profile-sys-api-config">
+    <flow name="get:\profiles\(userId)\constraints:user-profile-sys-api-config" doc:id="65c91e69-5927-4568-9009-6e4f3f2192ab">
         <flow-ref doc:name="get-constraints-flow" doc:id="69bd6c4a-cf41-437f-86d8-882dff519331" name="get-constraints-flow"/>
     </flow>
-    <flow name="get:\profiles\(userId)\goals:user-profile-sys-api-config">
+    <flow name="get:\profiles\(userId)\goals:user-profile-sys-api-config" doc:id="e49dbb14-c3a6-4c07-b4a4-18a7b5632b13">
         <flow-ref doc:name="get-goals-flow" doc:id="8a88a9d9-345a-44d2-affc-62a914465ecc" name="get-goals-flow"/>
     </flow>
     <flow name="get:\health:user-profile-sys-api-config">
@@ -160,16 +55,16 @@ output application/json
             </ee:message>
         </ee:transform>
     </flow>
-    <flow name="get:\profiles\(userId)\preferences:user-profile-sys-api-config">
+    <flow name="get:\profiles\(userId)\preferences:user-profile-sys-api-config" doc:id="5355ccb1-74cc-4dd8-9f5f-61f7e280637d">
         <flow-ref doc:name="get-preferences-flow" doc:id="fab6fc2f-d2ec-49fb-af5e-a15837a605bc" name="get-preferences-flow"/>
     </flow>
     <flow name="get:\profiles\(userId):user-profile-sys-api-config">
         <flow-ref doc:name="get-profile-flow" doc:id="77705aa6-280c-408d-9529-45aa941765af" name="get-profile-flow"/>
     </flow>
-    <flow name="post:\profiles\(userId)\conditions:application\json:user-profile-sys-api-config">
+    <flow name="post:\profiles\(userId)\conditions:application\json:user-profile-sys-api-config" doc:id="36f5dcd5-d5fe-4b2d-aae0-d4b316ae6674">
         <flow-ref doc:name="create-condition-flow" doc:id="54f88ee8-902c-4a0b-8831-9b67bb036431" name="create-condition-flow"/>
     </flow>
-    <flow name="post:\profiles\(userId)\constraints:application\json:user-profile-sys-api-config">
+    <flow name="post:\profiles\(userId)\constraints:application\json:user-profile-sys-api-config" doc:id="5275f2e7-7e95-4c96-9151-fa9ed3e43642">
         <flow-ref doc:name="create-constraint-flow" doc:id="b7d7bef1-3b8e-44e0-881b-bb7d876a4854" name="create-constraint-flow"/>
     </flow>
     <flow name="post:\profiles\(userId)\goals:application\json:user-profile-sys-api-config">
