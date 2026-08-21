@@ -49,6 +49,7 @@ output application/java
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="2bacfc89-57b9-4871-9d27-e06af0d42b43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
+		
 	</flow>
 	<flow name="create-goal-flow" doc:id="9dc5b22b-bd0b-4a6a-a436-cc176474d762" >
 		<ee:transform doc:name="set variables" doc:id="37bbfc3b-05ae-4de7-baab-018e32bde4c1">
@@ -163,9 +164,16 @@ import returnGoal from dwl::transforms
 returnGoal(payload)
 ]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="Goal created successfully" doc:id="8aee1f94-cf01-4f5e-b37c-c3f518932c79" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.goal_id&#10;}&#10;---&#10;buildLog("INFO","Goal created successfully",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
+		
 	</flow>
 	<flow name="patch-goal-flow" doc:id="e82c5d4d-61bd-428f-ac9a-78755f92ac8f" >
 		<ee:transform doc:name="set variables" doc:id="eb6fe35d-ca1d-4c3f-b707-fa64eb40d785">
@@ -186,7 +194,7 @@ output application/java
 payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="69b1e1ce-67f0-439b-911c-57af0bd633de" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.user.goalId&#10;}&#10;---&#10;buildLog("INFO","PATCH goal request",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="START" doc:id="69b1e1ce-67f0-439b-911c-57af0bd633de" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	goalId: vars.goalId&#10;}&#10;---&#10;buildLog("INFO","PATCH goal request",message,vars.correlationId, vars.flowName)]' />
 		<flow-ref doc:name="validate-uuid-subflow" doc:id="9179f777-1a5a-47e4-bd6b-5d97700e903d" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="1ce6b66a-5ffd-4f2f-ac6e-383049631324" name="validate-profile-exists-subflow" />
 		<ee:transform doc:name="Check At least one field is provided" doc:id="a88e9716-4081-48d8-b30e-55b0d936cfd8" >
@@ -216,7 +224,7 @@ AND user_id = :userId]]></db:sql>
 		</validation:is-false>
 		<choice doc:name="Choice" doc:id="0225d3e1-0f95-49bf-8abe-33a84d7166b7" >
 			<when expression="#[vars.goal.isPrimary]">
-				<logger level="INFO" doc:name="Update Primary Goal" doc:id="555710cd-1aca-4a66-84b7-41c1649f3b61" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.existingPrimaryGoalId&#10;	&#10;}&#10;---&#10;buildLog("INFO","Updating Primary Goal",message,vars.correlationId, vars.flowName)]' />
+				<logger level="INFO" doc:name="Update Primary Goal" doc:id="555710cd-1aca-4a66-84b7-41c1649f3b61" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	goalId: vars.existingPrimaryGoalId&#10;	&#10;}&#10;---&#10;buildLog("INFO","Updating Primary Goal",message,vars.correlationId, vars.flowName)]' />
 				<db:update doc:name="Set Existing Goal to False" doc:id="e0fda80e-31a4-44fc-83b9-e38386f301a0" config-ref="NUTRISENSE_DB_CONFIG" >
 					<db:sql ><![CDATA[UPDATE user_goals SET is_primary = false 
 WHERE goal_id = :goalId]]></db:sql>
@@ -262,7 +270,6 @@ output application/java
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Update Primary Goal" doc:id="e5b74e72-659f-44fb-93c3-42ec1bb0f974" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	payload: payload,&#10;	inputParam: vars.inputParam&#10;}&#10;---&#10;buildLog("INFO","SQL",message,vars.correlationId, vars.flowName)]' />
 		<db:update doc:name="Update User Goals" doc:id="590971ae-75f8-4b13-902a-3de8ff15e417" config-ref="NUTRISENSE_DB_CONFIG" >
 			<db:sql ><![CDATA[#[payload]]]></db:sql>
 			<db:input-parameters ><![CDATA[#[vars.inputParam]]]></db:input-parameters>
@@ -284,8 +291,15 @@ import returnGoal from dwl::transforms
 ---
 returnGoal(payload)]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Goal updated successfully" doc:id="a11735a5-876e-4821-a556-744e3f4b97d8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.goal_id&#10;}&#10;---&#10;buildLog("INFO","Goal updated successfully",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="Goal updated successfully" doc:id="a11735a5-876e-4821-a556-744e3f4b97d8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	goalId: vars.goal_id&#10;}&#10;---&#10;buildLog("INFO","Goal updated successfully",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
+		
 	</flow>
 </mule>
