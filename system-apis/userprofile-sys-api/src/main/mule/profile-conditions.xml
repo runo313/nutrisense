@@ -142,6 +142,12 @@ import returnCondition from dwl::transforms
 ---
 returnCondition(payload)]]></ee:set-payload>
 					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+201]]></ee:set-variable>
+					</ee:variables>
 				</ee:transform>
 				<logger level="INFO" doc:name="END" doc:id="893dd87b-868f-49f9-8a5a-c0e1de03bd19" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition created successfully",message,vars.correlationId, vars.flowName)]' />
 			</otherwise>
@@ -240,6 +246,12 @@ import returnCondition from dwl::transforms
 ---
 returnCondition(payload)]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="820e341a-8937-4904-8979-92f690933f18" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition updated successfully",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />

@@ -168,7 +168,7 @@ returnGoal(payload)
 				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
 output application/java
 ---
-200]]></ee:set-variable>
+201]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="Goal created successfully" doc:id="8aee1f94-cf01-4f5e-b37c-c3f518932c79" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId,&#10;	goalId: vars.goal_id&#10;}&#10;---&#10;buildLog("INFO","Goal created successfully",message,vars.correlationId, vars.flowName)]' />
