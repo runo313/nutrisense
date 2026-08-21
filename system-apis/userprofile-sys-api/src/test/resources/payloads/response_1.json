@@ -1,0 +1,15 @@
+[
+	{
+		"user_id": "james2822",
+		"name": "James Doe",
+		"email": "james@example.com",
+		"date_of_birth": "1995-06-15",
+		"biological_sex": "male",
+		"height_cm": 180.0,
+		"weight_kg": 78.5,
+		"activity_baseline": "very_active",
+		"daily_caloric_target": 2950,
+		"created_at": "2026-08-01 00:00:00+00",
+		"updated_at": "2026-08-18 00:00:00+00"
+	}
+]

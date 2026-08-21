@@ -1,0 +1,15 @@
+[
+	{
+		"user_id": "james2822",
+		"name": "James Cold",
+		"email": "jcold@gmail.com",
+		"date_of_birth": "2000-01-15",
+		"biological_sex": "male",
+		"height_cm": 175,
+		"weight_kg": 75,
+		"activity_baseline": "moderately_active",
+		"daily_caloric_target": 2800,
+		"created_at": "2026-07-13T08:00:00-04:00",
+		"updated_at": "2026-07-13T08:00:00-04:00"
+	}
+]

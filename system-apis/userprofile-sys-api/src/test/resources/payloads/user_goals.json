@@ -1,0 +1,12 @@
+[{
+  "goal_id": "e275b95b-bcfc-43dc-a2f0-3a743365a831",
+  "user_id": "james2822",
+  "goal_type": "sleep_improvement",
+  "goal_direction": "improve",
+  "target_value": 8.0,
+  "target_unit": "hrs",
+  "is_primary": false,
+  "is_active": true,
+  "set_at": "2026-08-18 00:00:00+00",
+  "achieved_at": null
+}]
