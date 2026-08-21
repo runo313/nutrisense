@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="profile-preferences-suite.xml" />
+	<munit:test name="should_upsert_preferences_insert_path_and_return_200" doc:id="d17a27b7-3027-4e3f-a83f-80579773e582" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="2c3df7d4-270c-4f1b-b636-71a76170fc70" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="user_id" value='#["james2822"]' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select User Id" doc:id="853e8095-f773-4c03-a405-5a08814c6f13" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="05fc1f83-ff60-4191-82c6-71e7463014ef" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" mediaType="application/java" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Insert Preference" doc:id="ecc9e857-db0b-4def-94d7-867b90f53697" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0cbaba3a-bb15-4153-a31f-a96985fff9a4" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select User Preference" doc:id="d7fb49b1-36ab-4ed0-b9df-e6b7617067ee" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="efaa39a5-bb94-4dda-8031-14b9a1d4a985" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/preferences.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="16315295-3d52-4279-b3b8-1a2ee16338e0" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  insightFrequency: "weekly",&#10;  preferredWearableMetrics: ["heart_rate", "hrv"],&#10;  unitsSystem: "imperial"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="de2764e3-327a-438f-9aed-4a405fe390ee" name="patch:\profiles\(userId)\preferences:application\json:user-profile-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 201" doc:id="7badbb03-d4ea-4220-b027-9261ac98fdfe" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
+			<munit-tools:assert-that doc:name="Assert that Constraint Value" doc:id="d18c253e-9508-47e1-ac9b-838e4d327271" expression="#[payload.insightFrequency]" is='#[MunitTools::equalTo("weekly")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_upsert_preferences_update_path_and_return_200" doc:id="e75073f2-05f8-4a70-8efa-a7ab5d8fa53a" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="e528b698-266a-4d83-9a56-1a4df2175eee" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="user_id" value='#["james2822"]' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select User Id" doc:id="c570c9d5-765b-493e-9e6f-c38f258e2970" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="05fc1f83-ff60-4191-82c6-71e7463014ef" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{"user_id": "james2822"}]]' mediaType="application/java" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update Preference" doc:id="3dc6170f-3b0c-4ee8-bc61-73ee5cd83478" processor="db:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="21f6ea0f-6260-4a1f-80ef-14597b4d96af" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select User Preference" doc:id="1773a35e-8242-4757-ab5b-592dedaf32cd" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="efaa39a5-bb94-4dda-8031-14b9a1d4a985" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/preferences.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="17acb9de-dd0a-48cd-b062-7616bfa2650f" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  insightFrequency: "weekly",&#10;  preferredWearableMetrics: ["heart_rate", "hrv"],&#10;  unitsSystem: "imperial"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="df421371-c45d-4a13-b7bc-b794ccb54241" name="patch:\profiles\(userId)\preferences:application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="4ceefc13-378b-4df8-9b6d-0e871477dc9c" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
+			<munit-tools:assert-that doc:name="Assert that Constraint Value" doc:id="b2d3aebf-793c-4477-b01c-c72ad61ace78" expression="#[payload.insightFrequency]" is='#[MunitTools::equalTo("weekly")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_get_preferences_return_200" doc:id="e88eabfe-ddeb-4afb-9c7d-a2fb976afd26" >
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="df731e21-7e5b-46b9-bc16-36a2994881d4" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="user_id" value='#["james2822"]' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select User Preference" doc:id="41024798-44ea-4015-a50d-da69a367613c" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="06728e2d-2c84-4fff-b4ca-4fc591db42e0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/preferences.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="e1f48aab-3757-42af-9d6b-d46e7f52f109" >
+				<munit:payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  &#10;}]" />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="a7d1b2ea-6403-4e21-b225-722d7a43d487" name="get:\profiles\(userId)\preferences:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="8379d657-96cc-43f6-ba01-73485a8fc890" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_upsert_preferences_return_400" doc:id="0b98d29b-1d47-4f1b-8ec0-cb5ef7851181" >
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="f1c0b678-3732-40fc-aeec-87a9714a53c1" >
+				<munit:payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  &#10;}]" />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="f80497a5-79e4-4078-8731-8de872fc6232" name="patch:\profiles\(userId)\preferences:application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 400" doc:id="3cbdb499-a937-407f-b359-d614f0225f93" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" />
+			<munit-tools:assert-that doc:name="Assert that Error Message" doc:id="1111ab69-a18d-4156-9a1b-2f911ec3fcee" expression="#[payload.message]" is='#[MunitTools::equalTo("At least one preference field must be provided")]' />
+		</munit:validation>
+	</munit:test>
+
+</mule>

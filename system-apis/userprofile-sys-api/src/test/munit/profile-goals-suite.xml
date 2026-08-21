@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="profile-goals-suite.xml" />
+	<munit:test name="should_create_goal_and_return_201" doc:id="673e80dc-a653-4060-acaa-d7ba1eedc074">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="d4e0a418-4199-4b0f-8f12-ae35a2bc16d2" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select User Preference" doc:id="b21428d9-48ae-4e87-9a67-5b21c09e08e3" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="06008a15-00e6-41e7-929b-8e05807e068f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="userPreferences" value="#[[]]" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Is Primary Goal" doc:id="cfa3c7c3-4f5f-45bc-9020-40a9dd0d9484" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="fa4510f4-01aa-41b7-af4d-d44ae4222bc0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;[{&#10;is_primary: true,&#10;goal_id: "e275b95b-bcfc-43dc-a2f0-3a743365a831"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Set Existing Goal to False" doc:id="d415528c-91d5-4d80-98d7-8b2981c983bf" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="69c772d2-34a3-4f10-b38e-db3434fceb0c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Insert Into User Goals" doc:id="81ba4781-0628-4c97-b214-3da72b445a0a" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="3345d050-6a6f-4977-a6e1-2fdf6886c98a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="goal_id" value='#[[{"goal_id": "e275b95b-bcfc-43dc-a2f0-3a743365a831"}]]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Goal" doc:id="f6cb3a30-f0b5-4ec3-9965-70ba0f9dd94a" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="41385b78-ece0-4f88-8d2d-1290515e6d0d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/user_goals.json") read "application/json"]' mediaType="application/java" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="1de4e215-631e-49c6-b57d-06b327d5c784" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  goalType: "sleep_improvement",&#10;  targetValue: 8.0,&#10;  isPrimary: false&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="10404b23-5013-4c90-8aae-3029477b07bf" name="post:\profiles\(userId)\goals:application\json:user-profile-sys-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 201" doc:id="a766163b-3de4-4569-8619-818f9acfe378" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
+			<munit-tools:assert-that doc:name="Assert Goal Type" doc:id="8e5f460d-8f1a-44fe-825d-fc258e09ea7d" message="activity baseline is incorrect" expression="#[payload.goalType]" is='#[MunitTools::equalTo("sleep_improvement")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_patch_goal_and_return_200" doc:id="5e7b5e7b-ab20-409a-b3e4-4571593729d1">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="780532c4-938a-4647-bb45-46dd57be642f" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Goal Id" doc:id="8f34bebf-27f7-46ab-9320-b9c1d1445331" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="431dc61c-8b7c-4666-ab39-fe7b595c45f5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="existingPrimaryGoalId" value='#[[{ "goal_id": "e275b95b-bcfc-43dc-a2f0-3a743365a831","is_primary": true,"is_active": true}]]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update Primary Goal" doc:id="614e167e-31b3-4f91-9af3-3f1e5c51bcef" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e0fda80e-31a4-44fc-83b9-e38386f301a0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update User goals" doc:id="5f048f3e-8006-4bf4-a440-a3eb4a35c936" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="590971ae-75f8-4b13-902a-3de8ff15e417" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Goal" doc:id="d8110054-6e19-4076-aca2-de0ff50bb56c" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e9c24cf2-51e3-4b48-acb7-b4532d15ec83" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/user_goals.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="deab042d-d4b0-4188-991b-afd463369398" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  isActive: false,&#10;  achievedAt: "2026-08-18T08:00:00-04:00"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "james2822",&#10;    goalId: "e275b95b-bcfc-43dc-a2f0-3a743365a831"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="a8b597d9-fed1-434a-97f0-23bb202d6756" name="patch:\profiles\(userId)\goals\(goalId):application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="47661b79-45c9-4404-a0f5-fb9231e21193" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_patch_goal_and_return_404" doc:id="9075042c-a845-4eea-81f3-1a4be4d010e2" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="deeb09b6-4474-4f34-bf88-7b905f5f0317" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select Goal Id" doc:id="6db68ab1-4982-4dac-865c-0fc8eeb34b3c" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="431dc61c-8b7c-4666-ab39-fe7b595c45f5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="existingPrimaryGoalId" value="#[[]]" mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d59f404f-0775-40fe-987e-35213f1d222d" >
+				<munit:payload value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  isActive: false,&#10;  achievedAt: "2026-08-18T08:00:00-04:00"&#10;}]' />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    userId: "james2822",&#10;    goalId: "e275b95b-bcfc-43dc-a2f0-3a743365a831"&#10;  },&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="f89f3aec-ae59-48b0-a13e-cecf7b4bd94c" name="patch:\profiles\(userId)\goals\(goalId):application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 404" doc:id="bd1e1a9e-6acf-4f93-89b2-15e55f96adad" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(404)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_goals_200" doc:id="b7a90596-b4cc-44a4-85df-76c5d7360158" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="2ed4c958-0bc7-440f-962e-8f27cd8600be" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Select User Goal" doc:id="1aa1a7a0-d662-4fcd-a963-2b8e72bad742" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="1ccc12e0-8946-4efe-89eb-9ccef8dca4c9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/user_goals.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="281bc75d-bf79-432f-b732-bfa34408b1b6" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="get:\profiles\(userId" doc:id="3758b9f9-43d6-4f07-9c6a-e4edaca3dd01" name="get:\profiles\(userId)\goals:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="57ddb3f9-6d54-4cf0-8b43-adcce99ec608" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert user Id" doc:id="e6f99f6f-4786-42fd-bc5a-ddd896bbb8e4" message="User id is not as expected" expression="#[payload[0].userId]" is='#[MunitTools::equalTo("james2822")]' />
+		</munit:validation>
+	</munit:test>
+
+</mule>

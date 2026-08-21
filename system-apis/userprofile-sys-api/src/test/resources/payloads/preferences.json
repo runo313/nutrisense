@@ -1,0 +1,15 @@
+[{
+  "preference_id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+  "user_id": "james2822",
+  "insight_frequency": "weekly",
+  "preferred_wearable_metrics": ["heart_rate", "hrv"],
+  "preferred_nutrition_metrics": [],
+  "typical_breakfast_time": null,
+  "typical_lunch_time": null,
+  "typical_dinner_time": null,
+  "typical_sleep_time": null,
+  "target_sleep_duration_hrs": null,
+  "units_system": "imperial",
+  "created_at": "2026-08-18 00:00:00+00",
+  "updated_at": "2026-08-18 00:00:00+00"
+}]

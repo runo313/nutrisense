@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="fetch-full-profile-subflow" doc:id="94e4ecc1-97bb-4b31-b0b4-13066766a519" >
+		<db:select doc:name="Select User" doc:id="d12eff45-c346-4f64-8e1a-fd753e09f8c2" config-ref="NUTRISENSE_DB_CONFIG" target="user" >
+			<db:sql ><![CDATA[SELECT user_id, name, email, date_of_birth, biological_sex, 
+height_cm, weight_kg, activity_baseline, daily_caloric_target,
+created_at, updated_at
+FROM users
+WHERE user_id = :userId
+AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select User Goal" doc:id="64bcdaa9-1339-4c8a-ba21-a6023fa8a042" config-ref="NUTRISENSE_DB_CONFIG" target="user_goal" >
+			<db:sql ><![CDATA[SELECT goal_id, user_id, goal_type, goal_direction, target_value,
+target_unit, is_primary, is_active, set_at, achieved_at
+FROM user_goals
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select Conditions" doc:id="5a90aa86-6b9c-406a-bbe3-7e155254cdf9" config-ref="NUTRISENSE_DB_CONFIG" target="user_conditions" >
+			<db:sql ><![CDATA[SELECT condition_id, user_id, condition_type, management_status,
+diagnosed_at, notes, is_active, created_at, updated_at
+FROM user_conditions
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select Dietary Constraints" doc:id="cca91a9b-e8df-432d-80fe-f9aff84844d7" config-ref="NUTRISENSE_DB_CONFIG" target="dietary_constraints" >
+			<db:sql ><![CDATA[SELECT constraint_id, user_id, constraint_type, 
+constraint_value, severity, is_active, created_at
+FROM dietary_constraints
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<db:select doc:name="Select User Preference" doc:id="ecc59ffb-da41-41e1-986c-9f58e7d9a77e" config-ref="NUTRISENSE_DB_CONFIG" target="user_preference" >
+			<db:sql ><![CDATA[SELECT preference_id, user_id, insight_frequency, preferred_wearable_metrics,
+preferred_nutrition_metrics, typical_breakfast_time, typical_lunch_time,
+typical_dinner_time, typical_sleep_time, target_sleep_duration_hrs,
+units_system, created_at, updated_at
+FROM user_preferences
+WHERE user_id = :userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId: vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="608a5873-46e1-40c9-ae76-ec63dfabed2f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from dwl::transforms
+---
+{
+	userId: vars.user[0].user_id,
+	name: vars.user[0].name,
+	email: vars.user[0].email,
+	dateOfBirth: vars.user[0].date_of_birth,
+	biologicalSex: vars.user[0].biological_sex,
+	heightCm: vars.user[0].height_cm,
+	weightKg: vars.user[0].weight_kg,
+	activityBaseline: vars.user[0].activity_baseline,
+	dailyCaloricTarget: vars.user[0].daily_caloric_target,
+	createdAt: vars.user[0].created_at,
+	updatedAt: vars.user[0].updated_at,
+	goals: transformGoal(vars.user_goal) ,
+	conditions: transformConditions(vars.user_conditions) ,
+	constraints: transformConstrains(vars.dietary_constraints),
+	preferences: transformPreferences(vars.user_preference)
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="validate-profile-exists-subflow" doc:id="906d2400-ab0f-4d29-8ff0-9fae6416e625" >
+		<db:select doc:name="Select User Id" doc:id="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" config-ref="NUTRISENSE_DB_CONFIG" target="user_id">
+			<db:sql><![CDATA[SELECT user_id FROM users 
+WHERE (user_id = :userId OR email = :email)
+AND deleted_at IS NULL]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: vars.user.userId default vars.userId,
+	email: vars.user.email
+}]]]></db:input-parameters>
+		</db:select>
+		<validation:is-false doc:name="Check Profile exists" doc:id="03e3a82e-e959-48ed-a6e8-e651002f2fb5" expression="#[sizeOf(vars.user_id) == 0]" message="A profile with this userId or email does not exist">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:PROFILE_NOT_FOUND" />
+		</validation:is-false>
+	</sub-flow>
+	<sub-flow name="validate-uuid-subflow" doc:id="84d297b4-f413-4995-b152-f8846fd279d7" >
+		<set-variable value="#[vars.userId default vars.user.userId]" doc:name="User Id" doc:id="ed77d4d0-ea80-4b2c-94b5-af6278ba8a2a" variableName="userId"/>
+		<!-- [STUDIO:"Check User Id"]<validation:is-false doc:name="Check User Id" doc:id="03694cd9-b9a2-4abf-b87f-d96c90571ea0" expression="#[not (vars.userId matches /^[0-9a-fA-F&#93;{8}-[0-9a-fA-F&#93;{4}-[0-9a-fA-F&#93;{4}-[0-9a-fA-F&#93;{4}-[0-9a-fA-F&#93;{12}$/)&#93;" message="Invalid Id format. Must be a valid UUID." >
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+		</validation:is-false> [STUDIO] -->
+		<choice doc:name="Choice" doc:id="840c8540-66a3-4722-ad94-32080022cca2" >
+			<when expression="#[vars.goalId !=null]">
+				<validation:is-false doc:name="Check Goal Id" doc:id="7469b234-bf66-47ed-b2ae-415adc427321" expression="#[not (vars.goalId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Id format. Must be a valid UUID." >
+					<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+				</validation:is-false>
+			</when>
+			<when expression="#[vars.conditionId != null]">
+				<validation:is-false doc:name="Check Condition Id" doc:id="a7ac332d-46da-4b0f-a725-b8c2eaf24357" expression="#[not (vars.conditionId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Id format. Must be a valid UUID." >
+					<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+				</validation:is-false>
+			</when>
+			<when expression="#[vars.constraintId != null]">
+				<validation:is-false doc:name="Check Constraint Id" doc:id="288189ec-4c4a-490b-a6c6-21733f198cee" expression="#[not (vars.constraintId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid Id format. Must be a valid UUID.">
+					<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_ID_FORMAT" />
+				</validation:is-false>
+			</when>
+		</choice>
+	</sub-flow>
+</mule>
