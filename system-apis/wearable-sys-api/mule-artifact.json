@@ -1,4 +1,5 @@
 {
     "minMuleVersion": "4.11.0",
-    "javaSpecificationVersions": ["17"]
+    "javaSpecificationVersions": ["17"],
+    "secureProperties":["MULE_MASTER_KEY","anypoint.platform.client_secret"]
 }
