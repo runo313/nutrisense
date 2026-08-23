@@ -20,7 +20,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 output application/json
 ---
 {
-  code: "WEARABLE-400",
+  code: "NUTRITION-400",
   message: "Bad Request: " ++ (error.description replace /\/\d+ / with "") as String ,
   correlationId: correlationId,
   timestamp: now(),
@@ -39,7 +39,7 @@ output application/json
 output application/json
 ---
 {
-  code: "WEARABLE-404",
+  code: "NUTRITION-404",
   message: "Resource not found: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
@@ -58,7 +58,7 @@ output application/json
 output application/json
 ---
 {
-  code: "WEARABLE-404",
+  code: "NUTRITION-405",
   message: "Method Not allowed: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
@@ -77,7 +77,7 @@ output application/json
 output application/json
 ---
 {
-  code: "WEARABLE-406",
+  code: "NUTRITION-406",
   message: "Not Acceptable: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
@@ -96,7 +96,7 @@ output application/json
 output application/json
 ---
 {
-  code: "WEARABLE-415",
+  code: "NUTRITION-415",
   message: "Unsupported media type: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
@@ -115,7 +115,7 @@ output application/json
 output application/json
 ---
 {
-  code: "WEARABLE-501",
+  code: "NUTRITION-501",
   message: "Not implemented: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),

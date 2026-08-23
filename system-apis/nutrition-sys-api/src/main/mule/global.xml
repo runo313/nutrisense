@@ -14,9 +14,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
 http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
-	<global-property doc:name="Global Property"
-		doc:id="6699f77c-ab03-45ab-83d4-933513c5aec5" name="env"
-		value="local" />
 	<configuration-properties
 		doc:name="Configuration properties"
 		doc:id="b222e6bb-da39-403b-86cb-ae2e0cd81184"
