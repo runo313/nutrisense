@@ -59,7 +59,7 @@ output application/json
 output application/json
 ---
 {
-  code: "WEARABLE-404",
+  code: "WEARABLE-405",
   message: "Method Not allowed: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
