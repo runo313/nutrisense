@@ -3,7 +3,7 @@
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="meal-log-sys-api-main">
-        <http:listener config-ref="meal-log-sys-api-httpListenerConfig" path="api/v1/nutrition-data-sapi/*">
+        <http:listener config-ref="meal-log-sys-api-httpListenerConfig" path="api/v1/meal-log-sapi/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>

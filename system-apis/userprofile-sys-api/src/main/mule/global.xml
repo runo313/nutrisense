@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
 	xmlns:db="http://www.mulesoft.org/schema/mule/db"
 	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
 	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
 http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
-http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
 
 	<http:listener-config
 		name="user-profile-sys-api-httpListenerConfig">
 		<http:listener-connection host="0.0.0.0"
-			port="${user.profile.https.port}" protocol="HTTPS">
-			<tls:context >
-				<tls:key-store type="${user.profile.keystore.type}" path="${user.profile.keystore.path}" alias="${user.profile.keystore.alias}" keyPassword="${secure::user.profile.keystore.keyPassword}" password="${secure::user.profile.keystore.password}" />
-			</tls:context>
+			port="${https.port}">
 		</http:listener-connection>
 	</http:listener-config>
 	<apikit:config name="user-profile-sys-api-config"
 		api="resource::cb90cdfe-fcc1-4bdc-a401-36bff2203ef6:user-profile-sys-api:1.0.0:raml:zip:user-profile-sys-api.raml"
 		outboundHeadersMapName="outboundHeaders"
 		httpStatusVarName="httpStatus" />
-	<global-property doc:name="Global Property"
-		doc:id="729d819d-1e0b-4632-a5a1-afd1e178d1da" name="env" value="local" />
 	<configuration-properties
 		doc:name="Configuration properties"
 		doc:id="f06ffe9d-d15b-443b-bb78-543ad357ee62"
@@ -45,5 +41,6 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 			password="${secure::nutrisense.db.password}"
 			driverClassName="${nutrisense.db.driver}" />
 	</db:config>
+	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="b2efde14-fa85-4130-b558-97b4118b07ea" flowRef="user-profile-sys-api-main" />
 
 </mule>

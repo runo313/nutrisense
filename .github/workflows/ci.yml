@@ -4,11 +4,15 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - test
 
 jobs:
   build-and-test:
     name: Build and MUnit Test
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout repository
@@ -47,12 +51,12 @@ jobs:
               - 'system-apis/wearable-sys-api/**'
             nutrition:
               - 'system-apis/nutrition-sys-api/**'
-            meal-log:
-              -'system-apis/meal-log-sys-api/**'
             userprofile:
               - 'system-apis/userprofile-sys-api/**'
             notification:
               - 'system-apis/notification-sys-api/**'
+            meal-log:
+              - 'system-apis/meal-log-sys-api/**'
             daily-insight:
               - 'process-apis/daily-insight-process-api/**'
             trend-analysis:
@@ -78,13 +82,6 @@ jobs:
           MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
           env: test
 
-      - name: Build and test meal-log-sys-api
-        if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: mvn clean install -pl system-apis/meal-log-sys-api -am
-        env:
-          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
-          env: test
-          
       - name: Build and test userprofile-sys-api
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: mvn clean install -pl system-apis/userprofile-sys-api -am
@@ -95,6 +92,13 @@ jobs:
       - name: Build and test notification-sys-api
         if: steps.changes.outputs.notification == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: mvn clean install -pl system-apis/notification-sys-api -am
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          env: test
+
+      - name: Build and test meal-log-sys-api
+        if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn clean install -pl system-apis/meal-log-sys-api -am
         env:
           MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
           env: test
@@ -141,3 +145,101 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    name: Deploy to CloudHub Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/test'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Maven settings
+        uses: whelk-io/maven-settings-xml-action@v22
+        with:
+          servers: >
+            [
+              {
+                "id": "anypoint-exchange-v3",
+                "username": "~~~Client~~~",
+                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+              },
+              {
+                "id": "mulesoft-releases",
+                "username": "~~~Client~~~",
+                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+              },
+              {
+                "id": "anypoint-platform-exchange",
+                "username": "~~~Client~~~",
+                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+              }
+            ]
+
+      - name: Detect changed modules
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            wearable:
+              - 'system-apis/wearable-sys-api/**'
+            nutrition:
+              - 'system-apis/nutrition-sys-api/**'
+            userprofile:
+              - 'system-apis/userprofile-sys-api/**'
+            meal-log:
+              - 'system-apis/meal-log-sys-api/**'
+            parent-pom:
+              - 'pom.xml'
+
+      - name: Deploy wearable-sys-api
+        if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn deploy -pl system-apis/wearable-sys-api -am -DskipTests
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+          ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
+          env: test
+
+      - name: Deploy nutrition-sys-api
+        if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn deploy -pl system-apis/nutrition-sys-api -am -DskipTests
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+          ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
+          env: test
+
+      - name: Deploy userprofile-sys-api
+        if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn deploy -pl system-apis/userprofile-sys-api -am -DskipTests
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+          ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
+          env: test
+
+      - name: Deploy meal-log-sys-api
+        if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: mvn deploy -pl system-apis/meal-log-sys-api -am -DskipTests
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+          ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
+          env: test
