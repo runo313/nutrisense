@@ -190,7 +190,7 @@ mappedFields joinBy ", "]]></ee:set-variable>
 }]]]></db:input-parameters>
 		</db:select>
 		<choice doc:name="Choice" doc:id="a419314d-1ab0-441c-a1b8-0429b8f75187" >
-			<when expression="#[sizeOf(payload) &gt; 0]" >
+			<when expression="#[!isEmpty(payload)]" >
 				<ee:transform doc:name="Transform Message" doc:id="f7d58253-8d79-49b6-a628-062491972acd">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -315,7 +315,7 @@ output application/json
 		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="d1699c94-555a-406b-b38a-10e67570527f" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Requested full food nutrient data '&#10;var foodId = {&#10;&quot;foodId&quot;: vars.foodId as String,&#10;portions: vars.portions&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,foodId, vars.correlationId , vars.flowName)]" />
         <choice doc:name="Choice" doc:id="bcc7288c-0861-457c-95e7-e5bbe4e87896" >
-			<when expression="#[(vars.portions as Boolean)== true]">
+			<when expression="#[(vars.portions as Boolean)]">
 				<db:select doc:name="Select Foods with Portion" doc:id="e47e87e7-4f85-42d0-9b46-e77bf832cdaf" config-ref="NUTRISENSE_DB_CONFIG" >
 					<db:sql ><![CDATA[SELECT f.fdc_id, f.food_name, f.category, f.source, f.serving_size_g,
        f.energy_kcal, f.protein_g, f.total_fat_g, f.saturated_fat_g,
@@ -347,7 +347,7 @@ WHERE fdc_id = :foodId]]></db:sql>
 			</otherwise>
 		</choice>
 		<choice doc:name="Choice" doc:id="65aaf825-fb90-475b-a5b2-ab4082553f07" >
-			<when expression="#[sizeOf(payload) &gt; 0]">
+			<when expression="#[!isEmpty(payload)]">
 				<ee:transform doc:name="Transform Message">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
