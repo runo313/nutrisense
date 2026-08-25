@@ -210,7 +210,7 @@ jobs:
           ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
           ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
           ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
-          env: test
+          env: SANDBOX
 
       - name: Deploy nutrition-sys-api
         if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
@@ -221,7 +221,7 @@ jobs:
           ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
           ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
           ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
-          env: test
+          env: SANDBOX
 
       - name: Deploy userprofile-sys-api
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
@@ -232,7 +232,7 @@ jobs:
           ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
           ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
           ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
-          env: test
+          env: SANDBOX
 
       - name: Deploy meal-log-sys-api
         if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
@@ -243,4 +243,4 @@ jobs:
           ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
           ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
           ANYPOINT_ENV_ID: ${{ secrets.ANYPOINT_ENV_ID }}
-          env: test
+          env: SANDBOX
