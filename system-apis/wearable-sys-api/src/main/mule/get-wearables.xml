@@ -39,7 +39,7 @@ constructInputParamsWearables(vars.userId,vars.queryParams)]]></ee:set-variable>
 					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
 				</db:select>
 				<choice doc:name="Choice" doc:id="a2980348-2550-4eb0-9640-710b358318cf" >
-					<when expression="#[sizeOf(payload) &gt; 0]" >
+					<when expression="#[!isEmpty(payload)]" >
 						<ee:transform doc:name="Transform Message" doc:id="90a57a26-fa88-4c97-b8ef-dab16638327b" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
@@ -99,7 +99,7 @@ constructInputParamsWearables(vars.userId,vars.queryParams)]]></ee:set-variable>
 					<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
 				</db:select>
 				<choice doc:name="Choice" doc:id="f28e558b-a55b-4fb4-90c0-ba11cd6ca83a" >
-					<when expression="#[sizeOf(payload) &gt; 0]" >
+					<when expression="#[!isEmpty(payload)]" >
 						<ee:transform doc:name="Transform Message" doc:id="19d645a9-736c-41ae-b75c-22dce9cabb33" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
@@ -172,7 +172,7 @@ transformWorkOuts(payload)
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="5d924eb0-3c4e-442d-94aa-86a261bdb748" >
-					<when expression="#[sizeOf(payload) &gt; 0]" >
+					<when expression="#[!isEmpty(payload)]" >
 						<ee:transform doc:name="Transform Message" doc:id="2f2b7b79-7352-4846-a67a-0c9061db9e6d" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
