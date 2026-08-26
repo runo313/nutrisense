@@ -30,7 +30,7 @@
 					<cloudHub2Deployment>
 						<uri>https://anypoint.mulesoft.com</uri>
 						<provider>MC</provider>
-						<environment>${env}</environment>
+						<environment>Sandbox</environment>
 						<target>Cloudhub-US-East-2</target>
 						<applicationName>wearable-sys-api</applicationName>
 						<businessGroupId>${ANYPOINT_ORG_ID}</businessGroupId>
