@@ -218,6 +218,7 @@ jobs:
         if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
+            -Dmaven.deploy.skip=true \
             -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
@@ -229,6 +230,7 @@ jobs:
         if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
+            -Dmaven.deploy.skip=true \
             -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
@@ -240,6 +242,7 @@ jobs:
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
+            -Dmaven.deploy.skip=true \
             -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
@@ -251,6 +254,7 @@ jobs:
         if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
+            -Dmaven.deploy.skip=true \
             -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
