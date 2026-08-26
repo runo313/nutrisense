@@ -84,7 +84,7 @@ transformPointMetricsSummary(vars.resolvedStartDate,vars.resolvedEndDate,payload
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="7fdc7020-c7ca-46c3-ae16-f525e3a87fcb" >
-					<when expression="#[sizeOf(payload) &gt; 0]" >
+					<when expression="#[!isEmpty(payload)]" >
 						<ee:transform doc:name="Transform Message" doc:id="2b0e1acf-c463-4de5-9339-69f64830e513" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
@@ -179,7 +179,7 @@ transformWorkoutsSummary(vars.resolvedStartDate,vars.resolvedEndDate,vars.sql1Re
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="0672675f-1e9b-44c4-bd49-cdceaf4d3d4a" >
-					<when expression="#[sizeOf(payload.by_activity_type) &gt; 0]" >
+					<when expression="#[!isEmpty(payload.by_activity_type)]" >
 						<ee:transform doc:name="Transform Message" doc:id="775eaae9-a884-445b-b7fe-d309a1c44d69" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
@@ -251,7 +251,7 @@ transformSleepSummary(vars.resolvedStartDate,vars.resolvedEndDate,payload)]]></e
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="c561bed1-589b-4a60-b36b-c675d691c07b" >
-					<when expression="#[sizeOf(payload.stages) &gt; 0]" >
+					<when expression="#[!isEmpty(payload.stages)]" >
 						<ee:transform doc:name="Transform Message" doc:id="368f39a1-d4da-4b8c-acc0-f703559cd020" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
