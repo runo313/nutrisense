@@ -73,7 +73,7 @@ jobs:
         if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl system-apis/wearable-sys-api -am
 
@@ -81,7 +81,7 @@ jobs:
         if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl system-apis/nutrition-sys-api -am
 
@@ -89,7 +89,7 @@ jobs:
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl system-apis/userprofile-sys-api -am
 
@@ -97,7 +97,7 @@ jobs:
         if: steps.changes.outputs.notification == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl system-apis/notification-sys-api -am
 
@@ -105,7 +105,7 @@ jobs:
         if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl system-apis/meal-log-sys-api -am
 
@@ -113,7 +113,7 @@ jobs:
         if: steps.changes.outputs.daily-insight == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl process-apis/daily-insight-process-api -am
 
@@ -121,7 +121,7 @@ jobs:
         if: steps.changes.outputs.trend-analysis == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl process-apis/trend-analysis-process-api -am
 
@@ -129,7 +129,7 @@ jobs:
         if: steps.changes.outputs.personal-dashboard == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl experience-apis/personal-dashboard-exp-api -am
 
@@ -137,7 +137,7 @@ jobs:
         if: steps.changes.outputs.coach-provider == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn clean install \
-            -Denv=Sandbox \
+            -Denv=test \
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
             -pl experience-apis/coach-provider-exp-api -am
 
@@ -218,7 +218,7 @@ jobs:
         if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
-            -Denv=Sandbox \
+            -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
@@ -229,7 +229,7 @@ jobs:
         if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
-            -Denv=Sandbox \
+            -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
@@ -240,7 +240,7 @@ jobs:
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
-            -Denv=Sandbox \
+            -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
@@ -251,7 +251,7 @@ jobs:
         if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
           mvn deploy -DmuleDeploy \
-            -Denv=Sandbox \
+            -Denv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
