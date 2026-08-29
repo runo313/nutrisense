@@ -43,7 +43,7 @@
 						<environment>${environment}</environment>
 						<target>Cloudhub-US-East-2</target>
 						<muleVersion>4.12.2</muleVersion>
-						<applicationName>wearable-sys-api</applicationName>
+						<applicationName>nutrition-sys-api</applicationName>
 						<businessGroupId>${ANYPOINT_ORG_ID}</businessGroupId>
 						<connectedAppClientId>${ANYPOINT_CLIENT_ID}</connectedAppClientId>
 						<connectedAppClientSecret>${ANYPOINT_CLIENT_SECRET}</connectedAppClientSecret>
