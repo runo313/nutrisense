@@ -3,7 +3,7 @@ type: object
 displayName: Workout
 properties:
   user_id:
-    type: string
+    type: integer
     description: Unique identifier for the user
   activity_type:
     type: string
@@ -31,4 +31,4 @@ properties:
     type: array
     description: statistics for metrics recorded during the workout
     items: !include workout-statistics-type.raml
-example: !include workout-example.raml
+example: !include ../examples/workout-example.raml

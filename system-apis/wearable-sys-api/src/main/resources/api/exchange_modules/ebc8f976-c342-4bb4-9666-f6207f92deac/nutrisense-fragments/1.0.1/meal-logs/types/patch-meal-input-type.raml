@@ -1,0 +1,16 @@
+#%RAML 1.0 DataType
+type: object
+displayName: PatchMealInput
+description: Request body for partially updating a meal. Only mealType and consumedAt are patchable. At least one field must be provided.
+properties:
+  mealType:
+    type: string
+    enum: [breakfast, lunch, dinner, snack]
+    required: false
+    description: Updated meal classification
+  consumedAt:
+    type: datetime
+    required: false
+    description: Updated consumption timestamp
+example:
+  mealType: lunch

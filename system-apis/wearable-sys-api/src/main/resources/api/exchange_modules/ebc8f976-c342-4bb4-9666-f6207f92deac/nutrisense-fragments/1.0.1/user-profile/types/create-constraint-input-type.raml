@@ -1,0 +1,21 @@
+#%RAML 1.0 DataType
+type: object
+displayName: CreateConstraintInput
+description: Request body for adding a dietary constraint
+properties:
+  constraintType:
+    type: string
+    enum: [allergy, intolerance, preference]
+    description: Type of dietary constraint
+  constraintValue:
+    type: string
+    enum: [gluten, dairy, nuts, shellfish, eggs, soy, meat, pork, alcohol, vegetarian, vegan, halal, kosher, gluten_free]
+    description: The specific dietary constraint
+  severity:
+    type: string
+    enum: [strict, moderate, preferred]
+    description: Severity level of the constraint
+example:
+  constraintType: "allergy"
+  constraintValue: "gluten"
+  severity: "strict"

@@ -1,0 +1,38 @@
+#%RAML 1.0 DataType
+type: object
+displayName: PatchProfileInput
+description: Request body for partially updating a user profile.
+properties:
+  name:
+    type: string
+    required: false
+    description: Updated full name
+  email:
+    type: string
+    required: false
+    description: Updated email address
+  dateOfBirth:
+    type: date-only
+    required: false
+    description: Updated date of birth
+  biologicalSex:
+    type: string
+    enum: [male, female, prefer_not_to_say]
+    required: false
+    description: Updated biological sex
+  heightCm:
+    type: number
+    required: false
+    description: Updated height in centimetres
+  weightKg:
+    type: number
+    required: false
+    description: Updated weight in kilograms
+  activityBaseline:
+    type: string
+    enum: [sedentary, lightly_active, moderately_active, very_active, athlete]
+    required: false
+    description: Updated activity baseline
+example:
+  weightKg: 72.5
+  activityBaseline: "very_active"

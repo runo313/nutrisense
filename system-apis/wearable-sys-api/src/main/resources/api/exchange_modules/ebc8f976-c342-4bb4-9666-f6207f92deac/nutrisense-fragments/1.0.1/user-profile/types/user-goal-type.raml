@@ -1,0 +1,51 @@
+#%RAML 1.0 DataType
+type: object
+displayName: UserGoal
+description: A single health goal associated with a user
+properties:
+  goalId:
+    type: string
+    description: UUID of the goal
+  userId:
+    type: string
+    description: Identifier of the user this goal belongs to
+  goalType:
+    type: string
+    enum: [weight_management, athletic_performance, chronic_condition_management, general_wellness, sleep_improvement, energy_optimization]
+    description: Category of health goal
+  goalDirection:
+    type: string
+    enum: [lose, gain, maintain, improve]
+    required: false
+    description: Direction of the goal. Nullable for goals where direction is not applicable
+  targetValue:
+    type: number
+    required: false
+    description: Numeric target associated with the goal 
+  targetUnit:
+    type: string
+    required: false
+    description: Unit of the target value
+  isPrimary:
+    type: boolean
+    description: Whether this is the user's primary goal
+  isActive:
+    type: boolean
+    description: Whether this goal is currently active
+  setAt:
+    type: datetime
+    description: Timestamp when this goal was set
+  achievedAt:
+    type: datetime
+    required: false
+    description: Timestamp when this goal was achieved. Null if not yet achieved
+example:
+  goalId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  userId: "runo313"
+  goalType: "weight_management"
+  goalDirection: "lose"
+  targetValue: 70.0
+  targetUnit: "kg"
+  isPrimary: true
+  isActive: true
+  setAt: "2026-07-13T08:00:00-04:00"

@@ -4,9 +4,8 @@ baseUri: https://localhost:8083/api/v1/wearables-sapi
 version: 1.0.0
 
 uses:
-  dataTypes: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/nutrisense-api-fragments/1.0.0/nutrisense-api-fragments-.raml
-  global: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/global-api-fragments/1.0.0/global-api-fragments.raml
-
+  dataTypes: /exchange_modules/ebc8f976-c342-4bb4-9666-f6207f92deac/nutrisense-fragments/1.0.1/nutrisense-api-fragments.raml
+  global: /exchange_modules/ebc8f976-c342-4bb4-9666-f6207f92deac/global-api-fragments/1.0.0/global-api-fragments.raml
 
 /health:
   get:
@@ -25,7 +24,7 @@ uses:
   /{userId}:
     uriParameters:
       userId:
-        type: string
+        type: integer
         description: Unique identifier of the user whose wearable data is being ingested
     post:
       description: Batch ingest of wearable data for a given user.
@@ -57,22 +56,8 @@ uses:
       securedBy: global.client-id-based
       is: global.paginated
       queryParameters:
-        metricType:
-          description: Filter by one or more metric types. only applicable when dataType=point_metrics
-          required: false
-          type: array
-          items:
-            type: string
-        stage:
-          description: Filter by one or more sleep stages. only applicable when dataType=sleep_sessions
-          required: false
-          type: array
-          items:
-            type: string
-            enum: [Core, Deep, REM, Awake]
-        activityType:
-          description: Filter by one or more activity types. only applicable when dataType= workouts
-          required: false
+        metricType?:
+          description: Filter by one or more metric types
           type: array
           items:
             type: string
@@ -128,21 +113,8 @@ uses:
             type: array
             items:
               type: string
-            description: Filter summaries by one or more metric types. Only applicable when dataType=point_metrics.
+            description: Filter summaries by one or more metric types. Not applicable whendataType=sleep_sessions.
             required: false
-          stage:
-            description: Filter by one or more sleep stages. only applicable when dataType=sleep_sessions
-            required: false
-            type: array
-            items:
-              type: string
-              enum: [Core, Deep, REM, Awake]
-          activityType:
-            description: Filter by one or more activity types. only applicable when dataType= workouts
-            required: false
-            type: array
-            items:
-              type: string
           startDate:
             type: date-only
             description: Start of the summary window. Must be paired with endDate.

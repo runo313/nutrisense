@@ -3,7 +3,7 @@ type: object
 displayName: PointMetric
 properties:
   user_id:
-    type: string
+    type: integer
     description: Unique identifier for the user
   metric_type:
     type: string
@@ -24,4 +24,4 @@ properties:
     type: number | nil
     required: false
     description: Duration in seconds 
-example: !include point-metric-example.raml
+example: !include ../examples/point-metric-example.raml

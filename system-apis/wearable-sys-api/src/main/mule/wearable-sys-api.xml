@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
-http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
-    
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
     <flow name="wearable-sys-api-main">
         <http:listener config-ref="wearable-sys-api-httpListenerConfig" path="/api/v1/wearables-sapi/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -139,14 +137,14 @@ output application/json
 {
   status: "UP",
   timestamp: now()
-} ]]></ee:set-payload>
+}]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cbb36d84-9107-4375-9437-597bff982488" type="ANY">
-				<ee:transform doc:name="Transform Message" doc:id="c12c418c-e1ab-410d-b35f-fef6aa1ab833" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cbb36d84-9107-4375-9437-597bff982488" type="ANY">
+                <ee:transform doc:name="Transform Message" doc:id="c12c418c-e1ab-410d-b35f-fef6aa1ab833">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -156,16 +154,16 @@ output application/json
   timestamp: now(),
   originLayer: "system"
 }]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</on-error-propagate>
-		</error-handler>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
     </flow>
     <flow name="get:\wearable-data\(userId)\summary:wearable-sys-api-config" doc:id="ec078086-70a6-400b-a025-bb34183b621a">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
-				<ee:set-variable variableName="queryParams" ><![CDATA[%dw 2.0
+                <ee:set-variable variableName="queryParams"><![CDATA[%dw 2.0
 output application/java
 ---
 {
@@ -177,20 +175,20 @@ output application/java
 	endDate: attributes.queryParams.endDate as Date default null,
 	duration: attributes.queryParams.duration default null
 }]]></ee:set-variable>
-				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
-				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+                <ee:set-variable variableName="flowName"><![CDATA[flow.name]]></ee:set-variable>
+                <ee:set-variable variableName="correlationId"><![CDATA[correlationId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <logger level="INFO" doc:name="START" doc:id="50a130c2-6633-42c6-92c3-7ff0b5676bab" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request wearables summary data from User: ' ++ vars.userId as String&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,vars.queryParams, vars.correlationId , vars.flowName)]" />
-		<flow-ref doc:name="validate-wearable-query-params-flow" doc:id="4f6faca2-9091-40cf-8b54-8bfac489ad31" name="validate-wearable-query-params-flow" />
-		<flow-ref doc:name="get-wearables-summary-data-flow" doc:id="36353ede-5255-461c-9d53-f18ad099927a" name="get-wearables-summary-data-flow"/>
-		<logger level="INFO" doc:name="END" doc:id="61bee9da-26be-4b50-abb0-5c493601cbff" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request wearables summary data from User Success'&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,vars.userId, vars.correlationId , vars.flowName)]" />
+        <logger level="INFO" doc:name="START" doc:id="50a130c2-6633-42c6-92c3-7ff0b5676bab" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Request wearables summary data from User: ' ++ vars.userId as String&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,vars.queryParams, vars.correlationId , vars.flowName)]" />
+        <flow-ref doc:name="validate-wearable-query-params-flow" doc:id="4f6faca2-9091-40cf-8b54-8bfac489ad31" name="validate-wearable-query-params-flow" />
+        <flow-ref doc:name="get-wearables-summary-data-flow" doc:id="36353ede-5255-461c-9d53-f18ad099927a" name="get-wearables-summary-data-flow" />
+        <logger level="INFO" doc:name="END" doc:id="61bee9da-26be-4b50-abb0-5c493601cbff" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Request wearables summary data from User Success'&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,vars.userId, vars.correlationId , vars.flowName)]" />
     </flow>
     <flow name="get:\wearable-data\(userId):wearable-sys-api-config" doc:id="29ab34e5-946c-4111-b2f3-e62b7b3ab308">
         <ee:transform doc:name="Transform Message" doc:id="95f38943-452d-4428-8ecd-ab85fe3bda45">
             <ee:variables>
-                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId' ]]></ee:set-variable>
-				<ee:set-variable variableName="queryParams" ><![CDATA[%dw 2.0
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+                <ee:set-variable variableName="queryParams"><![CDATA[%dw 2.0
 output application/java
 ---
 {
@@ -203,25 +201,25 @@ output application/java
 	limit: attributes.queryParams.limit as Number default 50,
 	offset: attributes.queryParams.offset as Number default 0
 }]]></ee:set-variable>
-				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
-				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
+                <ee:set-variable variableName="correlationId"><![CDATA[correlationId]]></ee:set-variable>
+                <ee:set-variable variableName="flowName"><![CDATA[flow.name]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="5dab921c-ef18-4da3-b085-d743243a1e78" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request wearables data from User: ' ++ vars.userId as String&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,vars.queryParams, vars.correlationId , vars.flowName)]" />
-		<flow-ref doc:name="validate-wearable-query-params-flow" doc:id="3bff5c7b-b084-4418-9dc4-927d0ddd68ea" name="validate-wearable-query-params-flow"/>
-		<flow-ref doc:name="get-wearable-data-flow" doc:id="ca9ee096-2d88-4658-b967-ca4951a2629f" name="get-wearable-data-flow"/>
-		<logger level="INFO" doc:name="END" doc:id="72eac526-0454-4360-a8cd-707b90631aec" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Request wearables data from User Success'&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,vars.userId, vars.correlationId , vars.flowName)]" />
+        <logger level="INFO" doc:name="START" doc:id="5dab921c-ef18-4da3-b085-d743243a1e78" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Request wearables data from User: ' ++ vars.userId as String&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,vars.queryParams, vars.correlationId , vars.flowName)]" />
+        <flow-ref doc:name="validate-wearable-query-params-flow" doc:id="3bff5c7b-b084-4418-9dc4-927d0ddd68ea" name="validate-wearable-query-params-flow" />
+        <flow-ref doc:name="get-wearable-data-flow" doc:id="ca9ee096-2d88-4658-b967-ca4951a2629f" name="get-wearable-data-flow" />
+        <logger level="INFO" doc:name="END" doc:id="72eac526-0454-4360-a8cd-707b90631aec" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Request wearables data from User Success'&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,vars.userId, vars.correlationId , vars.flowName)]" />
     </flow>
     <flow name="post:\wearable-data\(userId):application\json:wearable-sys-api-config" doc:id="d1dbd50f-c125-4d48-ace3-4fcc4090eeec">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
-				<ee:set-variable variableName="flowName" ><![CDATA[flow.name]]></ee:set-variable>
-				<ee:set-variable variableName="correlationId" ><![CDATA[correlationId]]></ee:set-variable>
+                <ee:set-variable variableName="flowName"><![CDATA[flow.name]]></ee:set-variable>
+                <ee:set-variable variableName="correlationId"><![CDATA[correlationId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <logger level="INFO" doc:name="START" doc:id="bedcaa88-4d8e-4f06-a464-965719358348" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Ingest Data Received",vars.userId, vars.correlationId , vars.flowName)]'/>
-		<flow-ref doc:name="wearables Flow" doc:id="3139f327-6f12-4236-b14f-140108e4ed4f" name="wearables-flow"/>
-		<logger level="INFO" doc:name="END" doc:id="3a96db8f-b979-4934-8a77-8fa7c9e0b619" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Ingest Success'&#10;var message= {&#10;	userId: vars.userId,&#10;	&quot;summary&quot;: payload&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,vars.userId, vars.correlationId , vars.flowName)]" />
+        <logger level="INFO" doc:name="START" doc:id="bedcaa88-4d8e-4f06-a464-965719358348" message="#[%dw 2.0&#xA;output application/json&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,&quot;Ingest Data Received&quot;,vars.userId, vars.correlationId , vars.flowName)]" />
+        <flow-ref doc:name="wearables Flow" doc:id="3139f327-6f12-4236-b14f-140108e4ed4f" name="wearables-flow" />
+        <logger level="INFO" doc:name="END" doc:id="3a96db8f-b979-4934-8a77-8fa7c9e0b619" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Ingest Success'&#xA;var message= {&#xA; userId: vars.userId,&#xA; &quot;summary&quot;: payload&#xA;}&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,vars.userId, vars.correlationId , vars.flowName)]" />
     </flow>
 </mule>

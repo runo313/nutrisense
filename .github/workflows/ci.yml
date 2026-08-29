@@ -217,47 +217,55 @@ jobs:
       - name: Deploy wearable-sys-api
         if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
-          mvn deploy -DmuleDeploy \
-            -Dmaven.deploy.skip=true \
-            -Denv=test \
+          mvn clean deploy -DmuleDeploy \
+            -Denvironment=test \
+            -DdeployEnv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
+            -DANYPOINT_ENV_CLIENT_ID=${{ secrets.ANYPOINT_ENV_CLIENT_ID }} \
+            -DANYPOINT_ENV_CLIENT_SECREt=${{ secrets.ANYPOINT_ENV_CLIENT_SECRET }}
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
-            -pl system-apis/wearable-sys-api -am -DskipTests
+            -DskipMunitTests = true
 
       - name: Deploy nutrition-sys-api
         if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
-          mvn deploy -DmuleDeploy \
-            -Dmaven.deploy.skip=true \
-            -Denv=test \
+          mvn clean deploy -DmuleDeploy \
+            -Denvironment=test \
+            -DdeployEnv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
+            -DANYPOINT_ENV_CLIENT_ID=${{ secrets.ANYPOINT_ENV_CLIENT_ID }} \
+            -DANYPOINT_ENV_CLIENT_SECREt=${{ secrets.ANYPOINT_ENV_CLIENT_SECRET }}
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
-            -pl system-apis/nutrition-sys-api -am -DskipTests
+            -DskipMunitTests = true
 
       - name: Deploy userprofile-sys-api
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
-          mvn deploy -DmuleDeploy \
-            -Dmaven.deploy.skip=true \
-            -Denv=test \
+          mvn clean deploy -DmuleDeploy \
+            -Denvironment=test \
+            -DdeployEnv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
+            -DANYPOINT_ENV_CLIENT_ID=${{ secrets.ANYPOINT_ENV_CLIENT_ID }} \
+            -DANYPOINT_ENV_CLIENT_SECREt=${{ secrets.ANYPOINT_ENV_CLIENT_SECRET }}
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
-            -pl system-apis/userprofile-sys-api -am -DskipTests
+            -DskipMunitTests = true
 
       - name: Deploy meal-log-sys-api
         if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
         run: |
-          mvn deploy -DmuleDeploy \
-            -Dmaven.deploy.skip=true \
-            -Denv=test \
+         mvn clean deploy -DmuleDeploy \
+            -Denvironment=test \
+            -DdeployEnv=test \
             -DANYPOINT_ORG_ID=${{ secrets.ANYPOINT_ORG_ID }} \
             -DANYPOINT_CLIENT_ID=${{ secrets.ANYPOINT_CLIENT_ID }} \
             -DANYPOINT_CLIENT_SECRET=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
+            -DANYPOINT_ENV_CLIENT_ID=${{ secrets.ANYPOINT_ENV_CLIENT_ID }} \
+            -DANYPOINT_ENV_CLIENT_SECREt=${{ secrets.ANYPOINT_ENV_CLIENT_SECRET }}
             -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
-            -pl system-apis/meal-log-sys-api -am -DskipTests
+            -DskipMunitTests = true
