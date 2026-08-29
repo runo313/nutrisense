@@ -1,0 +1,44 @@
+#%RAML 1.0 Library
+usage: NutriSense wearable domain types for use across NutriSense API specs.
+
+types:
+  PointMetric: !include wearables/types/point-metric-type.raml
+  SleepSession: !include wearables/types/sleep-session-type.raml
+  WorkoutStatistics: !include wearables/types/workout-statistics-type.raml
+  Workout: !include wearables/types/workout-type.raml
+  WearableIngest: !include wearables/types/wearable-ingest-type.raml
+  PointMetricSummary: !include wearables/types/point-metric-summary-type.raml
+  SleepSessionSummary: !include wearables/types/sleep-session-summary-type.raml
+  WorkoutSummary: !include wearables/types/workout-summary-type.raml
+  WearablesIngestResponse: !include wearables/types/wearable-ingest-response-type.raml
+  WearableSummaryResponse: !include wearables/types/wearable-summary-response-type.raml
+  FoodSummary: !include nutrition/types/food-summary-type.raml
+  FoodSearchResponse: !include nutrition/types/food-search-response-type.raml
+  FoodDetail: !include nutrition/types/food-detail-type.raml
+  NutrientProfile: !include nutrition/types/nutrient-profile-type.raml
+  AllergenFlags: !include nutrition/types/allergen-flags-type.raml
+  DietLabels: !include nutrition/types/diet-labels-type.raml
+  NutrientField: !include nutrition/types/nutrient-field-type.raml
+  RequestedNutrients: !include nutrition/types/requested-nutrients-response-type.raml
+  MealItem: !include meal-logs/types/meal-item-type.raml
+  Meal: !include meal-logs/types/meal-type.raml
+  MealItemInput: !include meal-logs/types/meal-item-input-type.raml
+  CreateMealInput: !include meal-logs/types/create-meal-input-type.raml
+  PatchMealInput: !include meal-logs/types/patch-meal-input-type.raml
+  PatchMealItemInput: !include meal-logs/types/patch-meal-item-input-type.raml
+  MealsResponse: !include meal-logs/types/meals-response-type.raml
+  WearableMetricPreference: !include user-profile/types/wearable-metric-preference-type.raml
+  NutritionMetricPreference: !include user-profile/types/nutrition-metric-preference-type.raml
+  UserProfile: !include user-profile/types/user-profile-type.raml
+  CreateProfileInput: !include user-profile/types/create-profile-input-type.raml
+  PatchProfileInput: !include user-profile/types/patch-profile-input-type.raml
+  UserGoal: !include user-profile/types/user-goal-type.raml
+  CreateGoalInput: !include user-profile/types/create-goal-input-type.raml
+  PatchGoalInput: !include user-profile/types/patch-goal-input-type.raml
+  UserCondition: !include user-profile/types/user-condition-type.raml
+  CreateConditionInput: !include user-profile/types/create-condition-input-type.raml
+  PatchConditionInput: !include user-profile/types/patch-condition-input-type.raml
+  DietaryConstraint: !include user-profile/types/dietary-constraint-type.raml
+  CreateConstraintInput: !include user-profile/types/create-constraint-input-type.raml
+  UserPreferences: !include user-profile/types/user-preferences-type.raml
+  PatchPreferencesInput: !include user-profile/types/patch-preferences-input-type.raml

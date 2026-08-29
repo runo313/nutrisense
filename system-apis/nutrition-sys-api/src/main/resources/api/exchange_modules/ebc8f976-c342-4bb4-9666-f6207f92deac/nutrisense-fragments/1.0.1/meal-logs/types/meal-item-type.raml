@@ -1,0 +1,32 @@
+#%RAML 1.0 DataType
+type: object
+displayName: MealItem
+description: A single food item within a meal, populated after creation with generated IDs and computed quantity
+properties:
+  itemId:
+    type: string
+    description: Unique identifier for this meal item
+  foodId:
+    type: integer
+    description: Reference to the food from the Nutrition System API
+  portionId:
+    type: integer | nil
+    required: false
+    description: Reference to the portion used.
+  portionAmount:
+    type: number | nil
+    required: false
+    description: Multiplier applied to the portion gram weight. 
+  quantityG:
+    type: number | nil
+    description: Final quantity in grams. 
+  loggedAt:
+    type: datetime
+    description: Timestamp when this item was recorded
+example:
+  itemId: "a1b2c-e5f6-7890-abcd"
+  foodId: 747448
+  portionId: 118808
+  portionAmount: 1.5
+  quantityG: 234.0
+  loggedAt: "2026-07-13T08:30:00-04:00"

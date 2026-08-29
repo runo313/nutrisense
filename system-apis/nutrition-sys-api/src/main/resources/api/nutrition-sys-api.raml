@@ -4,8 +4,8 @@ baseUri: https://localhost:8082/api/v1/nutrition-data-sapi
 version: 1.0.0
 
 uses:
-  global: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/global-api-fragments/1.0.0/global-api-fragments.raml
-  datatypes: /exchange_modules/cb90cdfe-fcc1-4bdc-a401-36bff2203ef6/nutrisense-api-fragments/1.1.1/nutrisense-api-fragments-.raml
+  datatypes: /exchange_modules/ebc8f976-c342-4bb4-9666-f6207f92deac/nutrisense-fragments/1.0.1/nutrisense-api-fragments.raml
+  global: /exchange_modules/ebc8f976-c342-4bb4-9666-f6207f92deac/global-api-fragments/1.0.0/global-api-fragments.raml
 
 /foods: 
   /search: 
@@ -106,7 +106,7 @@ uses:
           500:
             body:
               application/json:
-                type: global.Error
+                type: global.Error 
                
 /health:
   get:

@@ -1,0 +1,25 @@
+#%RAML 1.0 DataType
+type: object
+displayName: PatchConditionInput
+description: Request body for partially updating a medical condition
+properties:
+  managementStatus:
+    type: string
+    enum: [monitoring, diet_controlled, medication_managed, in_remission]
+    required: false
+    description: Updated management status
+  diagnosedAt:
+    type: date-only
+    required: false
+    description: Updated diagnosis date
+  notes:
+    type: string
+    required: false
+    description: Updated notes
+  isActive:
+    type: boolean
+    required: false
+    description: Updated active status
+example:
+  managementStatus: "medication_managed"
+  isActive: true

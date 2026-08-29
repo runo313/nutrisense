@@ -1,0 +1,26 @@
+#%RAML 1.0 DataType
+type: object
+displayName: CreateConditionInput
+description: Request body for recording a medical condition
+properties:
+  conditionType:
+    type: string
+    enum: [type2_diabetes, prediabetes, hypertension, high_cholesterol, anemia, celiac_disease, ibs, gerd, kidney_disease]
+    description: Type of medical condition
+  managementStatus:
+    type: string
+    enum: [monitoring, diet_controlled, medication_managed, in_remission]
+    description: Current management status
+  diagnosedAt:
+    type: date-only
+    required: false
+    description: Date of diagnosis
+  notes:
+    type: string
+    required: false
+    description: Free text notes
+example:
+  conditionType: "hypertension"
+  managementStatus: "diet_controlled"
+  diagnosedAt: "2022-03-15"
+  notes: "Monitoring blood pressure weekly"

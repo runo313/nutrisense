@@ -1,0 +1,106 @@
+#%RAML 1.0 DataType
+type: object
+displayName: UserProfile
+description: Full user profile including biometrics, goals, conditions, dietary constraints and preferences
+properties:
+  userId:
+    type: string
+    description: Identifier of the user
+  name:
+    type: string
+    description: Full name of the user
+  email:
+    type: string
+    description: Email address of the user
+  dateOfBirth:
+    type: date-only
+    description: Date of birth used for caloric target computation
+  biologicalSex:
+    type: string
+    enum: [male, female, prefer_not_to_say]
+    description: Biological sex
+  heightCm:
+    type: number
+    description: Height in centimetres
+  weightKg:
+    type: number
+    description: Weight in kilograms
+  activityBaseline:
+    type: string
+    enum: [sedentary, lightly_active, moderately_active, very_active, athlete]
+    description: Activity level used as multiplier in caloric target computation
+  dailyCaloricTarget:
+    type: integer
+    required: false
+    description: Computed daily caloric target in kcal via Mifflin-St Jeor.
+  createdAt:
+    type: datetime
+    description: Timestamp when this profile was created
+  updatedAt:
+    type: datetime
+    description: Timestamp when this profile was last updated
+  goals:
+    type: array
+    required: false
+    description: User health goals. Empty array if none set
+    items: !include user-goal-type.raml
+  conditions:
+    type: array
+    required: false
+    description: User medical conditions. Empty array if none recorded
+    items: !include user-condition-type.raml
+  constraints:
+    type: array
+    required: false
+    description: User dietary constraints. Empty array if none set
+    items: !include dietary-constraint-type.raml
+  preferences:
+    type: !include user-preferences-type.raml
+    required: false
+    description: User preferences. Absent until first preferences PATCH
+example:
+  userId: "james2822"
+  name: "James Cold"
+  email: "jcold@gmail.com"
+  dateOfBirth: "2000-01-15"
+  biologicalSex: "male"
+  heightCm: 175.0
+  weightKg: 75.0
+  activityBaseline: "moderately_active"
+  dailyCaloricTarget: 2800
+  createdAt: "2026-07-13T08:00:00-04:00"
+  updatedAt: "2026-07-13T08:00:00-04:00"
+  goals:
+    - goalId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      userId: "james2822"
+      goalType: "weight_management"
+      goalDirection: "lose"
+      targetValue: 70.0
+      targetUnit: "kg"
+      isPrimary: true
+      isActive: true
+      setAt: "2026-07-13T08:00:00-04:00"
+  conditions:
+    - conditionId: "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+      userId: "james2822"
+      conditionType: "hypertension"
+      managementStatus: "diet_controlled"
+      isActive: true
+      createdAt: "2026-07-13T08:00:00-04:00"
+  constraints:
+    - constraintId: "c3d4e5f6-a7b8-9012-cdef-123456789012"
+      userId: "james2822"
+      constraintType: "allergy"
+      constraintValue: "gluten"
+      severity: "strict"
+      isActive: true
+      createdAt: "2026-07-13T08:00:00-04:00"
+  preferences:
+    preferenceId: "d4e5f6a7-b8c9-0123-defa-234567890123"
+    userId: "james2822"
+    insightFrequency: "daily"
+    preferredWearableMetrics: ["heart_rate", "sleep"]
+    preferredNutritionMetrics: ["protein", "energy_kcal"]
+    unitsSystem: "metric"
+    createdAt: "2026-07-13T08:00:00-04:00"
+    updatedAt: "2026-07-13T08:00:00-04:00"

@@ -1,0 +1,44 @@
+#%RAML 1.0 DataType
+type: object
+displayName: Meal
+description: A meal record including all non-deleted items
+properties:
+  mealId:
+    type: string
+    description: Unique identifier for this meal
+  userId:
+    type: string
+    description: Identifier of the user this meal belongs to
+  mealType:
+    type: string
+    enum: [breakfast, lunch, dinner, snack]
+    description: Classification of the meal
+  consumedAt:
+    type: datetime
+    description: Timestamp when the user actually ate this meal 
+  loggedAt:
+    type: datetime
+    description: Timestamp when this meal was recorded in the system
+  items:
+    type: array
+    description: All non-deleted items belonging to this meal
+    items: !include meal-item-type.raml
+example:
+  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+  userId: "runo313"
+  mealType: "breakfast"
+  consumedAt: "2026-07-13T08:00:00-04:00"
+  loggedAt: "2026-07-13T08:30:00-04:00"
+  items:
+  - itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    foodId: 747448
+    portionId: 118808
+    portionAmount: 1.5
+    quantityG: 234.0
+    loggedAt: "2026-07-13T08:30:00-04:00"
+  - itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012"
+    foodId: 2684444
+    portionId: null
+    portionAmount: null
+    quantityG: 150.0
+    loggedAt: "2026-07-13T08:30:00-04:00"
