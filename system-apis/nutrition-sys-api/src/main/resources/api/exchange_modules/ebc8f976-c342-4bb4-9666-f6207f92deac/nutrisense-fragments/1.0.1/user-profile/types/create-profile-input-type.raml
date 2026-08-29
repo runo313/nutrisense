@@ -1,0 +1,40 @@
+#%RAML 1.0 DataType
+type: object
+displayName: CreateProfileInput
+description: Request body for creating a new user profile. dailyCaloricTarget is computed server-side and must not be included.
+properties:
+  userId:
+    type: string
+    description: Identifier
+  name:
+    type: string
+    description: Full name of the user
+  email:
+    type: string
+    description: Email address of the user. Must be unique
+  dateOfBirth:
+    type: date-only
+    description: Date of birth 
+  biologicalSex:
+    type: string
+    enum: [male, female, prefer_not_to_say]
+    description: Biological sex
+  heightCm:
+    type: number
+    description: Height in centimetres
+  weightKg:
+    type: number
+    description: Weight in kilograms
+  activityBaseline:
+    type: string
+    enum: [sedentary, lightly_active, moderately_active, very_active, athlete]
+    description: Activity level
+example:
+  userId: "james2822"
+  name: "James Cold"
+  email: "jcold@gmail.com"
+  dateOfBirth: "2000-01-15"
+  biologicalSex: "male"
+  heightCm: 175.0
+  weightKg: 75.0
+  activityBaseline: "moderately_active"

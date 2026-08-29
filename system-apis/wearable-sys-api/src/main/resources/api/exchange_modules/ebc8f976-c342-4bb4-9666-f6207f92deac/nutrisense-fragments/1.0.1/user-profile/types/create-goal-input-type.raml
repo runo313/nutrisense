@@ -1,0 +1,31 @@
+#%RAML 1.0 DataType
+type: object
+displayName: CreateGoalInput
+description: Request body for adding a new health goal
+properties:
+  goalType:
+    type: string
+    enum: [weight_management, athletic_performance, chronic_condition_management, general_wellness, sleep_improvement, energy_optimization]
+    description: Category of health goal
+  goalDirection:
+    type: string
+    enum: [lose, gain, maintain, improve]
+    required: false
+    description: Direction of the goal
+  targetValue:
+    type: number
+    required: false
+    description: Numeric target value
+  targetUnit:
+    type: string
+    required: false
+    description: Unit of the target value
+  isPrimary:
+    type: boolean
+    description: Whether this is the user's primary goal
+example:
+  goalType: "weight_management"
+  goalDirection: "lose"
+  targetValue: 70.0
+  targetUnit: "kg"
+  isPrimary: true

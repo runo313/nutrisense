@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	<http:listener-config
 		name="wearable-sys-api-httpListenerConfig">
 		<http:listener-connection host="0.0.0.0"
-			port="${https.port}">
+			port="${http.port}">
 		</http:listener-connection>
 	</http:listener-config>
 	<apikit:config name="wearable-sys-api-config"
@@ -27,5 +27,5 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	<db:config name="NUTRISENSE_DB_CONFIG" doc:name="Database Config" doc:id="713bd2e1-651f-4f4e-bb10-5ff8cee94675" >
 		<db:generic-connection url="${nutrisense.db.url}" user="${secure::nutrisense.db.user}" password="${secure::nutrisense.db.password}" driverClassName="${nutrisense.db.driver}"/>
 	</db:config>
-	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="98da85e9-eabe-4718-8a14-e7b28fbf3ce6" flowRef="wearable-sys-api-main" />
+	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="32260b32-b693-49b5-af45-27bf86ef796a" flowRef="wearable-sys-api-main" />
 </mule>

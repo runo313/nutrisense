@@ -1,0 +1,51 @@
+#%RAML 1.0 DataType
+type: object
+displayName: PatchPreferencesInput
+description: Request body for partially updating user preferences
+properties:
+  insightFrequency:
+    type: string
+    enum: [daily, weekly, both]
+    required: false
+    description: Updated insight frequency preference
+  preferredWearableMetrics:
+    type: array
+    required: false
+    description: Updated list of preferred wearable metrics
+    items:
+      type: !include wearable-metric-preference-type.raml
+  preferredNutritionMetrics:
+    type: array
+    required: false
+    description: Updated list of preferred nutrition metrics
+    items:
+      type: !include nutrition-metric-preference-type.raml
+  typicalBreakfastTime:
+    type: time-only
+    required: false
+    description: Updated typical breakfast time
+  typicalLunchTime:
+    type: time-only
+    required: false
+    description: Updated typical lunch time
+  typicalDinnerTime:
+    type: time-only
+    required: false
+    description: Updated typical dinner time
+  typicalSleepTime:
+    type: time-only
+    required: false
+    description: Updated typical sleep time
+  targetSleepDurationHrs:
+    type: number
+    required: false
+    description: Updated target sleep duration in hours
+  unitsSystem:
+    type: string
+    enum: [metric, imperial]
+    required: false
+    description: Updated preferred unit system
+example:
+  insightFrequency: "weekly"
+  preferredWearableMetrics: ["heart_rate", "hrv"]
+  unitsSystem: "imperial"

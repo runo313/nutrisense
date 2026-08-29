@@ -29,7 +29,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 			port="${api.port}"> </http:listener-connection>
 	</http:listener-config>
 	<apikit:config name="meal-log-sys-api-config"
-		api="resource::cb90cdfe-fcc1-4bdc-a401-36bff2203ef6:meal-log-sys-api:1.0.0:raml:zip:meal-log-sys-api.raml"
+		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:meal-log-sys-api:1.0.1:raml:zip:meal-log-sys-api.raml"
 		outboundHeadersMapName="outboundHeaders"
 		httpStatusVarName="httpStatus" />
 	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="108d5f90-96f5-4786-922d-2c0b547107d1" flowRef="meal-log-sys-api-main" />

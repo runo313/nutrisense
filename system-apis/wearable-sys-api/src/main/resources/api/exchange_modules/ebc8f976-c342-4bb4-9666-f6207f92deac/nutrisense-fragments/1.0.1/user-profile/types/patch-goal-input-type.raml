@@ -1,0 +1,33 @@
+#%RAML 1.0 DataType
+type: object
+displayName: PatchGoalInput
+description: Request body for partially updating a health goal
+properties:
+  goalDirection:
+    type: string
+    enum: [lose, gain, maintain, improve]
+    required: false
+    description: Updated goal direction
+  targetValue:
+    type: number
+    required: false
+    description: Updated target value
+  targetUnit:
+    type: string
+    required: false
+    description: Updated target unit
+  isPrimary:
+    type: boolean
+    required: false
+    description: Updated primary flag
+  isActive:
+    type: boolean
+    required: false
+    description: Updated active status
+  achievedAt:
+    type: datetime
+    required: false
+    description: Timestamp when goal was achieved
+example:
+  isActive: false
+  achievedAt: "2026-07-13T08:00:00-04:00"

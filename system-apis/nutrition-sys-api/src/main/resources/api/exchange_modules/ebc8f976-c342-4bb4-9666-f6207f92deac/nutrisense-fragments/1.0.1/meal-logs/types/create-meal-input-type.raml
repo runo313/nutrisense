@@ -1,0 +1,26 @@
+#%RAML 1.0 DataType
+type: object
+displayName: CreateMealInput
+description: Request body for creating a new meal with one or more items
+properties:
+  mealType:
+    type: string
+    enum: [breakfast, lunch, dinner, snack]
+    description: Classification of the meal
+  consumedAt:
+    type: datetime
+    description: When the user ate this meal.
+  items:
+    type: array
+    description: One or more food items to include in this meal
+    minItems: 1
+    items: !include meal-item-input-type.raml
+example:
+  mealType: "breakfast"
+  consumedAt: "2026-07-13T08:00:00-04:00"
+  items:
+    - foodId: 747448
+      portionId: 118808
+      portionAmount: 1.5
+    - foodId: 2684444
+      quantityG: 150.0
