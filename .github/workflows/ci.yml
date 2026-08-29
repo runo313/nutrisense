@@ -166,7 +166,7 @@ jobs:
     name: Deploy to CloudHub Test
     runs-on: ubuntu-latest
     needs: secrets-scan
-    if: github.event_name == 'push' && github.ref == 'refs/heads/test'
+    if: github.event_name == 'push'
 
     steps:
       - name: Checkout repository

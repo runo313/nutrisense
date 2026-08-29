@@ -22,7 +22,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		</http:listener-connection>
 	</http:listener-config>
 	<apikit:config name="user-profile-sys-api-config"
-		api="resource::cb90cdfe-fcc1-4bdc-a401-36bff2203ef6:user-profile-sys-api:1.0.0:raml:zip:user-profile-sys-api.raml"
+		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:user-profile-sys-api:1.0.1:raml:zip:user-profile-sys-api.raml"
 		outboundHeadersMapName="outboundHeaders"
 		httpStatusVarName="httpStatus" />
 	<configuration-properties
