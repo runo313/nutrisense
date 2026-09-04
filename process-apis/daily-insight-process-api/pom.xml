@@ -29,6 +29,34 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<configuration>
+					<classifier>mule-application</classifier>
+					<cloudhub2Deployment>
+						<uri>https://anypoint.mulesoft.com</uri>
+						<provider>MC</provider>
+						<environment>${environment}</environment>
+						<target>Cloudhub-US-East-2</target>
+						<muleVersion>4.12.2</muleVersion>
+						<applicationName>daily-insight-process-api</applicationName>
+						<businessGroupId>${ANYPOINT_ORG_ID}</businessGroupId>
+						<connectedAppClientId>${ANYPOINT_CLIENT_ID}</connectedAppClientId>
+						<connectedAppClientSecret>${ANYPOINT_CLIENT_SECRET}</connectedAppClientSecret>
+						<connectedAppGrantType>client_credentials</connectedAppGrantType>
+						<replicas>1</replicas>
+						<vCores>0.1</vCores>
+						<deploymentSettings>
+							<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
+						</deploymentSettings>
+						<properties>
+							<env>${deployEnv}</env>
+							<anypoint.platform.client_id>${ANYPOINT_ENV_CLIENT_ID}</anypoint.platform.client_id>
+						</properties>
+						<secureProperties>
+							<MULE_MASTER_KEY>${MULE_MASTER_KEY}</MULE_MASTER_KEY>
+							<anypoint.platform.client_secret>${ANYPOINT_ENV_CLIENT_SECRET}</anypoint.platform.client_secret>
+						</secureProperties>
+					</cloudhub2Deployment>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -44,6 +72,31 @@
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-sockets-connector</artifactId>
 			<version>1.2.7</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>ebc8f976-c342-4bb4-9666-f6207f92deac</groupId>
+			<artifactId>daily-insight-process-api</artifactId>
+			<version>1.0.0</version>
+			<classifier>raml</classifier>
+			<type>zip</type>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-apikit-module</artifactId>
+			<version>1.11.11</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-validation-module</artifactId>
+			<version>2.0.8</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>1.3.1</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
@@ -74,5 +127,14 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+
+	<distributionManagement>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Corporate Repository</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/ebc8f976-c342-4bb4-9666-f6207f92deac/maven</url>
+			<layout>default</layout>
+		</repository>
+	</distributionManagement>
 
 </project>
