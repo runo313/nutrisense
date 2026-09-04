@@ -1,0 +1,5 @@
+[allowlist]
+  paths = [
+    '''process-apis/daily-insight-process-api/src/main/resources/dwl/thresholds/threshold_metadata\.dwl''',
+    '''process-apis/daily-insight-process-api/src/main/resources/dwl/thresholds/static_thresholds\.dwl'''
+  ]
