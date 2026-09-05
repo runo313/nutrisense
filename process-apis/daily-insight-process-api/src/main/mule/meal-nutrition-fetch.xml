@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="fetch-meals-and-nutrition-subflow" doc:id="1eb6e659-be72-431a-855a-19877941b26d" >
+		<ee:transform doc:name="set vars" doc:id="e2573848-3884-4d2f-a0b9-caab260ee7f6">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="date" ><![CDATA[%dw 2.0
+output application/java
+---
+now() as Date]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Fetch Meals" doc:id="dcf04145-becc-489b-a7d2-ac54177f904e" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date&#10;}&#10;---&#10;buildLog("INFO","Fetching meals",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Get Logged Meals" doc:id="dd696a01-f4cd-4cab-a4f8-5a914fb5ab76" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals" responseTimeout="${nutrisense.sapi.timeout}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"date" : vars.date
+}]]]></http:query-params>
+			<http:response-validator >
+				<http:success-status-code-validator values="200,404" />
+			</http:response-validator>
+		</http:request>
+		<choice doc:name="Check Status code" doc:id="3ff77f74-0599-41de-89e1-56594970232f" >
+			<when expression="#[attributes.statusCode == 200]">
+				<logger level="INFO" doc:name="Meals retrieved" doc:id="0bffad7b-2ed7-4fc2-967d-60b401072697" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	count:sizeOf(payload.meals)&#10;}&#10;---&#10;buildLog("INFO","Meals retrieved",message,vars.correlationId, vars.flowName)]' />
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;payload.meals flatMap ((meal) -&gt; meal.items map ((item) -&gt; item.foodId)) distinctBy ((id) -&gt; id)]" doc:name="Unique Foood Ids" doc:id="436cded7-f1cc-4cfe-a969-abdcfcf48e81" variableName="uniqueFoodIds" />
+				<ee:transform doc:name="Unique Foood Ids" doc:id="7c658fa2-ce52-46dc-9849-f87e7538a524">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="uniqueFoodIds" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.meals flatMap ((meal) -> meal.items map ((item) -> item.foodId)) distinctBy ((id) -> id)]]></ee:set-variable>
+						<ee:set-variable variableName="loggedItems" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.meals flatMap ((meal) -> meal.items map ((item) -> {
+  foodId: item.foodId,
+  quantityG: item.quantityG
+}))]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<parallel-foreach doc:name="Parallel For Each" doc:id="a15e3fef-9f53-4a16-9c9f-4342903e65fe" collection="#[vars.uniqueFoodIds]">
+			<http:request doc:name="Fetch Nutrients" doc:id="24cc9923-b30a-46a1-bc00-7609ba04741d" config-ref="NUTRITION_SAPI_HTTP_CONFIG" path="/api/v1/nutrition-data-sapi/foods/{foodId}" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"foodId" : payload
+}]]]></http:uri-params>
+			<http:response-validator>
+				<http:success-status-code-validator values="200,404" />
+			</http:response-validator>
+		</http:request>
+		</parallel-foreach>
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;var successfulFoods = payload filter ((item) -&gt; item.attributes.statusCode == 200)&#10;---&#10;{&#10;	mealsLogged: true,&#10;	nutritionResolved: sizeOf(successfulFoods) &gt; 0,&#10;	foods: successfulFoods map ((item) -&gt; item.payload),&#10;	meals:vars.loggedItems&#10;}]" doc:name="Set Meal Status" doc:id="3ddea86a-de3c-4222-8bd6-8fdefaeedc92" variableName="mealStatus" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="No Meals retrieved" doc:id="c650f1ac-c069-4ae4-9112-8f979f570475" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","No Meals retrieved",message,vars.correlationId, vars.flowName)]' />
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	mealsLogged: false,&#10;	nutritionResolved: false,&#10;	meals: [],&#10;	foods: []&#10;}]" doc:name="Set Meal Status" doc:id="26b351c9-33f2-49b4-9323-cafdb5d8b231" variableName="mealStatus"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="3a7347b2-4c88-4fcd-9eda-b4eb0f24ec32" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.mealStatus]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

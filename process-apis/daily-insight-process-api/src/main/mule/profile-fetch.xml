@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="fetch-user-profile-subflow" doc:id="a03e0a60-4980-48a5-89b3-42ab94f28bd4" >
+		<ee:transform doc:name="set vars" doc:id="f737f725-b193-4dbc-842d-59f563bd1b11">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="bbaa64b0-860a-48b0-ada0-0a062cf5a92d" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Fetching user profile",message,vars.correlationId, vars.flowName)]' />
+		<scatter-gather doc:name="Fetch User Profile" doc:id="55bc589a-552d-4338-9fe1-df796a38215c">
+			<route>
+				<http:request doc:name="Get User Goals" doc:id="c376f9fa-9b08-4661-8e46-ff1501f6dd76" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}/goals" responseTimeout="${nutrisense.sapi.timeout}" target="user_goals">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+			</route>
+			<route>
+				<http:request doc:name="Get User Conditions" doc:id="919d9cdb-7541-4085-8071-261a95987d2f" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}/conditions" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+			</route>
+			<route>
+				<http:request doc:name="Get User Dietary Constraints" doc:id="8772192d-9f63-4ed3-8c09-4a151577f721" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}/constraints" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+			</route>
+			<route>
+				<http:request doc:name="Get User Preferences" doc:id="4845ae0a-ba16-4997-8f84-ca2daec0db57" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}/preferences" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+			</route>
+		</scatter-gather>
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  goals: payload[0].payload,&#10;  conditions: payload[1].payload,&#10;  constraints: payload[2].payload,&#10;  preferences: payload[3].payload&#10;}]" doc:name="User Profile" doc:id="3ca5b0cb-b1cf-49d1-8ef6-9cb6a2dfd26b" variableName="userProfile"/>
+	</sub-flow>
+</mule>
