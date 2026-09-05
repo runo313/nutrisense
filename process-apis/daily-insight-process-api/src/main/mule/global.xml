@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config
+		name="daily-insight-process-api-httpListenerConfig">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+	<apikit:config name="daily-insight-process-api-config"
+		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:daily-insight-process-api:1.0.0:raml:zip:daily-insight-process-api.raml"
+		outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+	<configuration-properties doc:name="Configuration properties" doc:id="85d2df20-bf02-4777-9f3e-f4ddacc6dc18" file="daily-insight-${env}.properties" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="339df8a1-67b3-408b-a6d1-b2d460f8a666" file="daily-insight-${env}.properties" key="${MULE_MASTER_KEY}" />
+	<http:request-config name="USERPROFILE_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="745db4b9-8f9e-42f8-976e-80c496c463da">
+		<http:request-connection protocol="HTTPS" host="${userprofile.baseUri}" port="${userprofile.port}"/>
+	</http:request-config>
+	<http:request-config name="WEARABLE_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="42d62407-2f5b-4a93-b319-b416e39ec6c6">
+		<http:request-connection protocol="HTTPS" host="${wearable.baseUri}" port="${wearable.port}"/>
+	</http:request-config>
+	<http:request-config name="NUTRITION_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="038cd5f1-61c4-462c-b09c-8ce3d50aaef5" >
+		<http:request-connection protocol="HTTPS" port="${nutrition.port}" host="${nutrition.baseUri}"/>
+	</http:request-config>
+	<http:request-config name="MEAL_LOG_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="5f8c4b76-acc0-4ac0-bd86-8b80c5c11f89" >
+		<http:request-connection port="${meal.port}" host="${meal.baseUri}" protocol="HTTPS"/>
+	</http:request-config>
+</mule>
