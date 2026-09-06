@@ -30,14 +30,14 @@ output application/java
   source_device: item.source_device,
   recorded_at: item.recorded_at as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"},
   duration_seconds: item.duration_seconds,
-  created_at: now() as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"}
+  //created_at: now() as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"}
 }]]></ee:set-variable>
 				<ee:set-variable variableName="sleep_sessions" ><![CDATA[payload.sleep_sessions map (item) -> {
   stage: item.stage,
   source_device: item.source_device,
   start_time: item.start_time as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"},
   end_time: item.end_time as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"},
-  created_at: now() as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"}
+  //created_at: now() as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"}
 }]]></ee:set-variable>
 				<ee:set-variable variableName="workouts" ><![CDATA[payload.workouts map (item) -> {
     activity_type: item.activity_type,
@@ -47,7 +47,7 @@ output application/java
     duration: item.duration as Number,
     duration_unit: item.duration_unit,
     energy_burned: item.energy_burned default null,
-    created_at: now()as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"},
+    //created_at: now()as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"},
     statistics: item.statistics map (stat) -> {
       metric_type: stat.metric_type,
       unit: stat.unit,
@@ -63,8 +63,8 @@ output application/java
 		<try doc:name="Try " doc:id="febbfd53-e682-4842-8018-0a205a7e2f8d" transactionalAction="ALWAYS_BEGIN">
 			<foreach doc:name="For Each Point Metrics" doc:id="94a3811c-da01-4cf1-9adc-504843f7c0d4" collection="#[vars.point_metrics]">
 				<db:insert doc:name="Insert Point Metrics Data" doc:id="a98472a7-e145-4d6e-a502-4422531aa1e8" config-ref="NUTRISENSE_DB_CONFIG" transactionalAction="ALWAYS_JOIN">
-					<db:sql ><![CDATA[INSERT INTO point_metrics (user_id, metric_type, value, unit, source_device, recorded_at, duration_seconds, created_at)
-VALUES (:user_id, :metric_type, :value, :unit, :source_device, :recorded_at, :duration_seconds, :created_at)
+					<db:sql ><![CDATA[INSERT INTO point_metrics (user_id, metric_type, value, unit, source_device, recorded_at, duration_seconds)
+VALUES (:user_id, :metric_type, :value, :unit, :source_device, :recorded_at, :duration_seconds)
 ON CONFLICT (user_id, metric_type, source_device, recorded_at) DO NOTHING]]></db:sql>
 					<db:input-parameters ><![CDATA[#[{
   user_id: vars.userId,
@@ -74,7 +74,7 @@ ON CONFLICT (user_id, metric_type, source_device, recorded_at) DO NOTHING]]></db
   source_device: payload.source_device,
   recorded_at: payload.recorded_at,
   duration_seconds: payload.duration_seconds,
-  created_at: payload.created_at
+  //created_at: payload.created_at
 }]]]></db:input-parameters>
 				</db:insert>
 				<choice doc:name="affected rows &gt; 0 " doc:id="d5a02c06-2ef9-4848-849d-0998a9dfdab5" >
@@ -88,8 +88,8 @@ ON CONFLICT (user_id, metric_type, source_device, recorded_at) DO NOTHING]]></db
 			</foreach>
 			<foreach doc:name="For Each Sleep Session" doc:id="baaa8183-55bc-4f8e-b1b5-a8c43c9e9b2c" collection="#[vars.sleep_sessions]">
 				<db:insert doc:name="Insert Sleep Sessions Data" doc:id="92e6e34f-53b2-4268-9773-fe8f4da333dd" config-ref="NUTRISENSE_DB_CONFIG" transactionalAction="ALWAYS_JOIN">
-					<db:sql ><![CDATA[INSERT INTO sleep_sessions (user_id, stage, start_time, end_time, source_device, duration_seconds, created_at)
-VALUES (:user_id, :stage, :start_time, :end_time, :source_device, EXTRACT(EPOCH FROM (:end_time::timestamp - :start_time::timestamp)), :created_at)
+					<db:sql ><![CDATA[INSERT INTO sleep_sessions (user_id, stage, start_time, end_time, source_device, duration_seconds)
+VALUES (:user_id, :stage, :start_time, :end_time, :source_device, EXTRACT(EPOCH FROM (:end_time::timestamp - :start_time::timestamp)))
 ON CONFLICT (user_id, source_device, start_time, stage) DO NOTHING]]></db:sql>
 					<db:input-parameters ><![CDATA[#[{
   user_id: vars.userId,
@@ -97,7 +97,7 @@ ON CONFLICT (user_id, source_device, start_time, stage) DO NOTHING]]></db:sql>
   start_time: payload.start_time,
   end_time: payload.end_time,
   source_device: payload.source_device,
-  created_at: payload.created_at
+  //created_at: payload.created_at
 }]]]></db:input-parameters>
 				</db:insert>
 				<choice doc:name="affected rows &gt; 0 " doc:id="23ffeac0-4403-4963-8479-caf0737142ad" >
@@ -113,8 +113,8 @@ ON CONFLICT (user_id, source_device, start_time, stage) DO NOTHING]]></db:sql>
 				<set-variable value="#[payload.statistics]" doc:name="Current Statistics" doc:id="088b2c4d-9719-4ce2-9d69-51c041df1c68" variableName="currentStatistics"/>
 				<set-variable value="#[payload]" doc:name="Current Workout" doc:id="44663255-64fb-458d-afdb-8a7e9e27d9c9" variableName="currentWorkOut"/>
 				<db:insert doc:name="Insert Work Out Data" doc:id="23224506-07f0-4523-83aa-632429ff1823" config-ref="NUTRISENSE_DB_CONFIG" transactionalAction="ALWAYS_JOIN" targetValue="#[payload[0]]">
-					<db:sql><![CDATA[INSERT INTO workouts (user_id, activity_type, start_time, end_time, source_device, duration, duration_unit, energy_burned, created_at)
-VALUES (:user_id, :activity_type, :start_time, :end_time, :source_device, :duration, :duration_unit, :energy_burned, :created_at)
+					<db:sql><![CDATA[INSERT INTO workouts (user_id, activity_type, start_time, end_time, source_device, duration, duration_unit, energy_burned)
+VALUES (:user_id, :activity_type, :start_time, :end_time, :source_device, :duration, :duration_unit, :energy_burned)
 ON CONFLICT (user_id, source_device, start_time, end_time) DO NOTHING
 ]]></db:sql>
 					<db:input-parameters><![CDATA[#[%dw 2.0
@@ -129,7 +129,7 @@ output application/java
   duration: payload.duration ,
   duration_unit: payload.duration_unit,
   energy_burned: payload.energy_burned,
-  created_at: payload.created_at
+  //created_at: payload.created_at
 }]]]></db:input-parameters>
 				</db:insert>
 				<choice doc:name="affected rows &gt; 0 " doc:id="7a9d40ca-3316-409f-b9ed-1a6819b1cc2b">
