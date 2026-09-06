@@ -8,7 +8,7 @@ CREATE TABLE point_metrics (
     duration_seconds  NUMERIC,              
     source_device TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
+    unit TEXT NOT NULL
     CONSTRAINT uq_point_metrics_identity
         UNIQUE (user_id, metric_type, source_device, recorded_at)
 );
@@ -40,10 +40,11 @@ CREATE TABLE workouts (
     activity_type     TEXT NOT NULL,
     start_time        TIMESTAMPTZ NOT NULL,
     end_time          TIMESTAMPTZ NOT NULL,
-    duration_minutes  NUMERIC NOT NULL,
+    duration          NUMERIC NOT NULL,
     energy_burned     NUMERIC,              -- nullable; sparsely populated in source data
     source_device     TEXT NOT NULL,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    duration_unit     TEXT 
 
     CONSTRAINT uq_workouts_identity
         UNIQUE (user_id, source_device, start_time, end_time)
