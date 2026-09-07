@@ -5,6 +5,23 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="orchestrate-daily-insight-flow" doc:id="1ecbc928-7b1b-4e55-a7d9-737b68406a3c" >
+		<ee:transform doc:name="set vars" doc:id="69e567dd-848d-4b4a-a64b-b83af3b04bb9">
+			<ee:variables>
+				<ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="date"><![CDATA[%dw 2.0
+output application/java
+---
+(attributes.queryParams.date as Date) default now() as Date]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 		<logger level="INFO" doc:name="START" doc:id="9882c033-1ea2-4510-8d00-3e9aa29305c4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Daily Insights Process Started",message,vars.correlationId, vars.flowName)]' />
 		<flow-ref doc:name="fetch-user-profile-subflow" doc:id="6fd28a75-dbc3-4468-9629-e377c507bd66" name="fetch-user-profile-subflow" />
 		<scatter-gather doc:name="Scatter-Gather" doc:id="a2f39c02-f85f-4c9b-a7b1-ec161b0a0651">
@@ -15,37 +32,32 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<flow-ref doc:name="fetch-meals-and-nutrition-subflow" doc:id="54adf44c-fc00-4073-80e2-ce93112e3d31" name="fetch-meals-and-nutrition-subflow" />
 			</route>
 		</scatter-gather>
-		<ee:transform doc:name="Set Meal And Wearable Status" doc:id="70e04a79-5c93-42b6-8ac9-aa25400e4fe2">
+		<flow-ref doc:name="evaluate-daily-insight-subflow" doc:id="cfcb8c06-a559-451d-b31b-af2074e446e8" name="evaluate-daily-insight-subflow"/>
+		<!-- [STUDIO:"Set Meal And Wearable Status"]<ee:transform doc:name="Set Meal And Wearable Status" doc:id="70e04a79-5c93-42b6-8ac9-aa25400e4fe2">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
+&#45;&#45;-
 {
 	varsWearable:vars.wearableStatus,
 	varsMeal:vars.mealStatus,
 	profile: vars.userProfile
-}]]></ee:set-payload>
+}&#93;&#93;></ee:set-payload>
 			</ee:message>
 			<ee:variables>
 			</ee:variables>
-		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="8716bed8-34da-49d9-b629-3b165886f1c9" >
-			<ee:message >
-			</ee:message>
-			<ee:variables >
-				<ee:set-variable resource="dwl/compute_total_nutients.dwl" variableName="dailyNutrients" />
-			</ee:variables>
-		</ee:transform>
+		</ee:transform> [STUDIO] -->
 		<ee:transform doc:name="Transform Message" doc:id="aa8df11e-753d-471f-a221-85f785d9d539" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	nutrients: vars.dailyNutrients
+	detail: vars.nutritionDetail
+	
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="cfbc18fe-792f-4d8a-b03e-e782c622c151" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	varsWearable:vars.wearableStatus,&#10;	varsMeal:vars.mealStatus&#10;}&#10;---&#10;buildLog("INFO","Daily Insights Process Complete",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="END" doc:id="cfbc18fe-792f-4d8a-b03e-e782c622c151" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Daily Insights Process Complete",message,vars.correlationId, vars.flowName)]' />
 	</flow>
 </mule>
