@@ -141,7 +141,7 @@ output application/json
         <logger level="INFO" message="get:\insights\daily\(userId)\preview:daily-insight-process-api-config" />
     </flow>
     <flow name="get:\insights\daily\(userId):daily-insight-process-api-config">
-        <flow-ref doc:name="fetch-user-profile-subflow" doc:id="e276b734-2a44-425b-aae7-938465902801" name="fetch-user-profile-subflow"/>
+        <flow-ref doc:name="orchestrate-daily-insight-flow" doc:id="e276b734-2a44-425b-aae7-938465902801" name="orchestrate-daily-insight-flow"/>
 		<error-handler ref="error-handler" />
     </flow>
     <flow name="post:\insights\daily\(userId)\regenerate:daily-insight-process-api-config">

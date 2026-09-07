@@ -88,7 +88,6 @@ now() as Date]]></ee:set-variable>
 		</scatter-gather>
 		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  goals: payload[0].payload,&#10;  conditions: payload[1].payload,&#10;  constraints: payload[2].payload,&#10;  preferences: payload[3].payload&#10;}]" doc:name="User Profile" doc:id="3ca5b0cb-b1cf-49d1-8ef6-9cb6a2dfd26b" variableName="userProfile"/>
 		<logger level="INFO" doc:name="Profile fetch Complete" doc:id="924c5988-c4f7-41ba-8686-0034acd5c952" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Profile fetch Complete",message,vars.correlationId, vars.flowName)]' />
-		<flow-ref doc:name="fetch-meals-and-nutrition-subflow" doc:id="529429e6-3ced-4021-9f80-fd09fefce207" name="fetch-meals-and-nutrition-subflow"/>
 	</sub-flow>
 	<sub-flow name="fetch-meals-and-nutrition-subflow" doc:id="595d582d-482c-4bdb-a673-6a49cc9b761b" >
 		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="bdf84413-34a3-4a0c-b9a7-10c3bd2b756f" variableName="flowName"/>
@@ -159,7 +158,6 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> {
 				<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	mealsLogged: false,&#10;	nutritionResolved: false,&#10;	meals: [],&#10;	foods: []&#10;}]" doc:name="Set Meal Status" doc:id="11337c60-29cb-48f5-ae43-23e611ffaec3" variableName="mealStatus" />
 			</otherwise>
 		</choice>
-		<flow-ref doc:name="fetch-wearable-data-subflow" doc:id="ef273ee1-288d-4587-9667-f9d50d692530" name="fetch-wearable-data-subflow"/>
 	</sub-flow>
 	<sub-flow name="fetch-wearable-data-subflow" doc:id="09a810ab-b72b-4752-a2b3-458781a92d6e" >
 		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="89340a59-dde1-4ed2-9418-4cf04ad63eef" variableName="flowName" />
