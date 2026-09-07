@@ -87,7 +87,7 @@ fun resolveProteinTarget(profile) = do {
   var goalType = profile.goals default [] filter ($.isPrimary == true) map ($.goalType)
   var primaryGoal = goalType[0] default null
   var primaryDirection = (profile.goals default [] filter ($.isPrimary == true) map ($.goalDirection))[0] default null
-  var activityBaseline = profile.activityBaseline default null
+  var activityBaseline = profile.profile.activityBaseline default null
 
   var matched = proteinCoefficients filter ((row) ->
     (row.match.goal_type == null or row.match.goal_type == primaryGoal)
@@ -103,10 +103,10 @@ fun resolveProteinTarget(profile) = do {
     direction: "lower",
     evaluation_scope: "daily",
     coefficient_id: selected.threshold_id,
-    target_g: (profile.weightKg * selected.range_min) as Number {format: "0.#"},
-    range_max_g: (profile.weightKg * selected.range_max) as Number {format: "0.#"},
-    soft_bound_g: (profile.weightKg * selected.soft_bound) as Number {format: "0.#"},
-    hard_bound_g: (profile.weightKg * selected.hard_bound) as Number {format: "0.#"},
+    target_g: (profile.profile.weightKg * selected.range_min) as Number {format: "0.#"},
+    range_max_g: (profile.profile.weightKg * selected.range_max) as Number {format: "0.#"},
+    soft_bound_g: (profile.profile.weightKg * selected.soft_bound) as Number {format: "0.#"},
+    hard_bound_g: (profile.profile.weightKg * selected.hard_bound) as Number {format: "0.#"},
     range_max_is_informational: true,
     source_body: selected.source_body,
     source_edition: selected.source_edition,
@@ -296,4 +296,11 @@ var caloricTargetMeta = {
   source_url: "https://pubmed.ncbi.nlm.nih.gov/2305711/",
   confidence: "guideline",
   notes: "Direction of concern depends on goal_direction, but both directions are flagged. Being under a computed target is never framed as success — see under_target_framing guard."
+}
+
+var caloricDeviationBounds = {
+  on_track_min_pct: 0.80,
+  on_track_max_pct: 1.20,
+  soft_min_pct: 0.60,
+  soft_max_pct: 1.40
 }
