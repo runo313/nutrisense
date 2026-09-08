@@ -1,5 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="evaluate-daily-insight-subflow" doc:id="df9d3250-d297-43b4-9dec-28a26fd6ee78" >
+		<ee:transform doc:name="Aggregate Nutrition" doc:id="eb1f689f-f60c-47f1-a756-d7f2da87890f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="nutritionAggregate" ><![CDATA[%dw 2.0
+output application/java
+
+var meal = vars.mealStatus
+
+// findFood: given a foodId, look up its full nutrition record.
+// meal.foods is an array of arrays (each food is wrapped in its own
+// single-element array), so we flatten it first to get a flat list
+// of food objects before filtering.
+fun findFood(foodId) = flatten(meal.foods) filter ((food) -> food.foodId == foodId)
+
+// scaleItem: for one logged meal entry ({foodId, quantityG}),
+// look up its reference food data and scale every nutrient value
+// from the "per servingSizeG" amount to the "per quantityG actually
+// eaten" amount.
+
+fun scaleItem(item) = do {
+    // The matching food record (null if not found)
+    var food = findFood(item.foodId)[0]
+    var factor = if (food != null)
+        (item.quantityG as Number) / (food.servingSizeG as Number)
+    else 0
+    ---
+    {
+        foodId: item.foodId,
+        name: food.name default null,
+        quantityG: item.quantityG,
+        servingSizeG: food.servingSizeG default null,
+        // Multiply every numeric nutrient by the scale factor.
+        // null for missing nutrients pass through unchanged
+        nutrients: if (food != null)
+            food.nutrients mapObject ((value, key) ->
+                { (key): if (value is Number) value * factor else value }
+            )
+        else {}
+        }
+    }
+// scaleAllItems: apply scaleItem to every logged meal entry,
+// dropping any entries where no matching food was found.
+fun scaleAllItems() = (meal.meals map ((item) -> scaleItem(item)))
+filter ($ != null)
+
+// sumNutrients: add up each nutrient across every scaled meal to get daily totals. 
+fun sumNutrients() = (scaleAllItems() map ((item) -> item.nutrients))
+    reduce ((nutrients, acc = {}) ->
+            nutrients mapObject ((value, key) ->
+                { (key): (value default 0) + (acc[key] default 0) }
+            )
+        )
+
+---
+{
+    scaledItems: scaleAllItems(),
+    dailyTotals: sumNutrients()
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Evaluate Calories and Macros" doc:id="a2533f75-dc63-4c83-bebf-a55370b6d9fd" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="nutritionDetail" ><![CDATA[%dw 2.0
+output application/java
+import evaluateCalories from dwl::computes::evaluateCalories
+import * from dwl::thresholds::derived_targets
+import evaluateProtein from dwl::computes::evaluateProtein
+import evaluateSaturatedFat from dwl::computes::evaluateSaturatedFat
+import evaluateFiber from dwl::computes::evaluateFiber
+import evaluateAmdrRange from dwl::computes::evaluateAmdrRange
+import evaluateCarbohydrate from dwl::computes::evaluateCarbohydrate
+import rowsForMetric from dwl::thresholds::static_thresholds
+
+var energykcal = (vars.nutritionAggregate.dailyTotals.energyKcal as Number) default 0 
+var calTarget = vars.userProfile.profile.dailyCaloricTarget as Number default null
+var resolvedProteins = resolveProteinTarget(vars.userProfile)
+var resolvedSaturatedFat= resolveSaturatedFatTarget(calTarget,vars.userProfile.conditions)
+var resolvedFiber = resolveFiberTarget(calTarget)
+var resolveAmdrFat = resolveAmdrTarget(amdrRanges[1], calTarget)
+var resolveAmdrCarb = resolveAmdrTarget(amdrRanges[0], calTarget)
+var row = rowsForMetric("carbohydrate_g") 
+
+
+var evalCal = evaluateCalories(energykcal,calTarget)
+var evalProtein = evaluateProtein(vars.nutritionAggregate.dailyTotals.proteinG, resolvedProteins)
+var evalSaturatedFat = evaluateSaturatedFat(vars.nutritionAggregate.dailyTotals.saturatedFatG,resolvedSaturatedFat)
+var evalFiber = evaluateFiber(vars.nutritionAggregate.dailyTotals.dietaryFiberG,resolvedFiber)
+var evalAmdrFat = evaluateAmdrRange(vars.nutritionAggregate.dailyTotals.totalFatG,resolveAmdrFat, "total_fat_g")
+var evalCarbohydrate = evaluateCarbohydrate(vars.nutritionAggregate.dailyTotals.carbohydratesG,resolveAmdrCarb,row)
+---
+{
+	cal: evalCal,
+	protein: evalProtein,
+	saturatedFat: evalSaturatedFat,
+	fiber: evalFiber,
+	fat: evalAmdrFat,
+	carbohydrate: evalCarbohydrate
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+</mule>
