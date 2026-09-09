@@ -286,6 +286,7 @@ fun computeCaloricTarget(weightKg, heightCm, age, biologicalSex, activityBaselin
   else null
 }
 
+
 var caloricTargetMeta = {
   metric_key: "energy_kcal",
   unit: "kcal",
@@ -298,6 +299,14 @@ var caloricTargetMeta = {
   notes: "Direction of concern depends on goal_direction, but both directions are flagged. Being under a computed target is never framed as success — see under_target_framing guard."
 }
 
+
+/**
+ * From the profile API, vars.userProfile is created storing daily_caloric_target computed by Mifflin-St Jeor e.g 2100
+ * vars.nutrientAggregation stores dailyTotals.energyKcal e.g 1028
+ * Being under a computed target is never framed as success.
+ * A user eating 1028 kcal against a 2100 target isn't "doing great at losing weight," they're under-fueling by more than half.
+ * So the actual evaluation id derived by how large is the deviation using a percentage-deviation threshold
+ */
 var caloricDeviationBounds = {
   on_track_min_pct: 0.80,
   on_track_max_pct: 1.20,
