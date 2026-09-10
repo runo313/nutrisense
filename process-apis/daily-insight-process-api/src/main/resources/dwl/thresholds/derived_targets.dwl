@@ -89,10 +89,14 @@ fun resolveProteinTarget(profile) = do {
   var primaryDirection = (profile.goals default [] filter ($.isPrimary == true) map ($.goalDirection))[0] default null
   var activityBaseline = profile.profile.activityBaseline default null
   
+
 /**
   * 3 protein coefficient rows: athletic (1.4-2.0 g/kg), deficit+active (1.6-2.4 g/kg), and general (1.2-1.6 g/kg, catches everyone else).
   * var matched: given this specific user's profile, which one of these three rows actually applies to them
   * (row.match.goal_type == null or row.match.goal_type == primaryGoal): either this row doesn't care about goal type at all, OR it does care and the user's goal type matches.
+  * The next two conditions do the exact same thing for goal_direction and activity_baseline_in respectively."doesn't care, or the user's actual value satisfies what this row wants."
+  * filter can return more than one row. Precedence exists so that when more than one row matches, you know which one should actually win. 
+  * after sorting, you just take the first element. 
   */
   var matched = proteinCoefficients filter ((row) ->
     (row.match.goal_type == null or row.match.goal_type == primaryGoal)
@@ -122,6 +126,7 @@ fun resolveProteinTarget(profile) = do {
 
 // ---------------------------------------------------------------------------
 // AMDR ranges — percentage of total calories, both bounds meaningful
+// Total fat is a true range — both too little and too much are flags
 // ---------------------------------------------------------------------------
 
 var amdrRanges = [

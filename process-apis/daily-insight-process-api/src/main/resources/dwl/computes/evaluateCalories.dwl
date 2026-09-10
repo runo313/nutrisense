@@ -40,7 +40,7 @@ var caloricTargetMeta = {
   source_edition: "Mifflin et al. 1990",
   source_url: "https://pubmed.ncbi.nlm.nih.gov/2305711/",
   confidence: "guideline",
-  notes: "Direction of concern depends on goal_direction, but both directions are flagged. Being under a computed target is never framed as success — see under_target_framing guard."
+  notes: "Direction of concern depends on goal_direction, but both directions are flagged. Being under a computed target is never framed as success. See under_target_framing guard."
 }
 
 /**
@@ -57,7 +57,6 @@ var caloricDeviationBounds = {
   soft_max_pct: 1.40
 }
 
-// pctOfTarget gives the raw ratio and check for bounds. 
 
 fun evaluateCalories(loggedKcal, caloricTarget)= if (caloricTarget == null) { 
 	metric_key: "energy_kcal", 

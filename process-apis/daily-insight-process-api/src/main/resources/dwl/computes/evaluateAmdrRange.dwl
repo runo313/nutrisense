@@ -1,4 +1,5 @@
 %dw 2.0
+// a shared function parameterized by metric_key. Used for total fat and carbohydrates. 
 
 fun evaluateAmdrRange(loggedValueG, resolvedRange, metricKey) = do {
   var status =
