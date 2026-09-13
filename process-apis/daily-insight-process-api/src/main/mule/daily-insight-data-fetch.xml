@@ -113,7 +113,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="Check Status code" doc:id="66c93b28-c9d2-434e-9340-fc7d31e6dd6a" >
 			<when expression="#[attributes.statusCode == 200]" >
 				<logger level="INFO" doc:name="Meals retrieved" doc:id="7dbc773e-84a9-4167-abab-4abc20341c5c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	count:sizeOf(payload.meals)&#10;}&#10;---&#10;buildLog("INFO","Meals retrieved",message,vars.correlationId, vars.flowName)]' />
-				<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;payload.meals flatMap ((meal) -&gt; meal.items map ((item) -&gt; item.foodId)) distinctBy ((id) -&gt; id)]" doc:name="Unique Foood Ids" doc:id="8bf2bba5-78c4-4029-9450-ffd7525f2542" variableName="uniqueFoodIds" />
 				<ee:transform doc:name="Unique Foood Ids" doc:id="11ee09e7-25a2-4eeb-a03e-38cade8195ab" >
 					<ee:message />
 					<ee:variables >
@@ -157,8 +156,21 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> {
 		</choice>
 	</sub-flow>
 	<sub-flow name="fetch-wearable-data-subflow" doc:id="09a810ab-b72b-4752-a2b3-458781a92d6e" >
-		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="89340a59-dde1-4ed2-9418-4cf04ad63eef" variableName="flowName" />
-		<logger level="INFO" doc:name="Fetch Wearable Data" doc:id="64ba27bc-0cf0-4f95-9258-c6f1b0b20e16" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	startDate: vars.date,&#10;	endDate: (vars.date as String) + |P1D|&#10;}&#10;---&#10;buildLog("INFO","Fetching wearable data",message,vars.correlationId, vars.flowName)]' />
+		<ee:transform doc:name="End Date" doc:id="aaefbec8-16fb-4a97-b78e-c27cde8d5919">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="endDate" ><![CDATA[%dw 2.0
+output application/java
+---
+(vars.date as String) + |P1D|]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Fetch Wearable Data" doc:id="64ba27bc-0cf0-4f95-9258-c6f1b0b20e16" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	startDate: vars.date,&#10;	endDate: vars.endDate&#10;}&#10;---&#10;buildLog("INFO","Fetching wearable data",message,vars.correlationId, vars.flowName)]' />
 		<http:request doc:name="Get Wearable Data" doc:id="ac1135b7-ae94-4339-8671-14c27256bc18" config-ref="WEARABLE_SAPI_HTTP_CONFIG" path="api/v1/wearables-sapi/wearable-data/{userId}" responseTimeout="${nutrisense.sapi.timeout}" target="dailyWearable" targetValue="#[output application/java --- { payload: payload, status: attributes.statusCode }]" >
 			<http:headers ><![CDATA[#[output application/java
 ---
@@ -174,8 +186,13 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> {
 			<http:query-params ><![CDATA[#[output application/java
 ---
 {
-	"endDate" : (vars.date as String) + |P1D|,
-	"startDate" : vars.date 
+	"endDate" : vars.endDate,
+	"startDate" : vars.date,
+	"limit": 150,
+	"metricType":"resting_heart_rate",
+	"metricType":"hrv",
+	"metricType":"step_count",
+	"metricType":"active_energy_burned",
 }]]]></http:query-params>
 			<http:response-validator >
 				<http:success-status-code-validator values="200,404" />
@@ -196,8 +213,9 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> {
 			<http:query-params ><![CDATA[#[output application/java
 ---
 {
-	"metricType" : "hrv",
-	"duration" : 30
+	"metricType" : "resting_heart_rate",
+	"duration" : 30,
+	"metricType" : "hrv"
 }]]]></http:query-params>
 			<http:response-validator >
 				<http:success-status-code-validator values="200,404" />

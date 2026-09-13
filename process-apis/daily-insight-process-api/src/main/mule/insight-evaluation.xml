@@ -107,5 +107,73 @@ var evalCarbohydrate = evaluateCarbohydrate(vars.nutritionAggregate.dailyTotals.
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<ee:transform doc:name="Evaluate Micros" doc:id="cda1b7e2-93a2-4970-8fe5-c7d88c0e0e8f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="microsDetail" ><![CDATA[%dw 2.0
+output application/java
+
+import * from dwl::thresholds::static_thresholds
+import evaluateMicronutrients from dwl::computes::evaluateMicronutrients
+
+// compute age 
+var dateOfBirth = vars.userProfile.profile.dateOfBirth
+var age = do{
+    var today = now() as Date
+    var dob = dateOfBirth as Date
+    var rawAge = today.year - dob.year
+    var passedBirthday = (today.month > dob.month) or (today.month == dob.month and today.day >= dob.day)
+    ---
+    if ( passedBirthday ) rawAge else rawAge - 1
+}
+var demographic = resolveDemographic(vars.userProfile.profile.biologicalSex, age)
+var conditions = vars.userProfile.conditions filter ($.isActive == true) map ($.conditionType)
+var constraints = vars.userProfile.constraints filter ($.isActive == true) map ($.constraintValue)
+var dailyTotals = vars.nutritionAggregate.dailyTotals 
+---
+evaluateMicronutrients(demographic,conditions,constraints,dailyTotals)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Evaluate Sleep Activity Recovery" doc:id="77f15a5b-f8ae-4412-b4e0-ab820c26cb10" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="biometricDetail" ><![CDATA[%dw 2.0
+output application/java
+import evaluateSleep from dwl::computes::evaluateSleep
+import * from dwl::computes::computeSleepAggregate
+import evaluateRecovery from dwl::computes::evaluateRecovery
+
+
+var targetSleepDurationHrs = vars.userProfile.preferences.targetSleepDurationHrs[0]
+var evalSleep =
+  if ( vars.wearableStatus.dailyDataAvailable ) do {
+	var sleepAggregate = computeSleepAggregate(vars.wearableStatus.dailyData.sleep_sessions)
+	---
+	evaluateSleep(sleepAggregate.durationHrs, sleepAggregate.deepPct, sleepAggregate.remPct, targetSleepDurationHrs)
+}
+  else
+    {
+	duration_hrs: null,
+	target_hrs: null,
+	floor_applied: false,
+	duration_status: null,
+	rem_pct: null,
+	rem_status: null,
+	deep_pct: null,
+	deep_status: null,
+	status: "no_data"
+}
+var evalRecovery = evaluateRecovery(vars.wearableStatus)
+---
+{
+	evaluateSleep: evalSleep,
+	evaluateRecovery: evalRecovery
+}
+
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 	</sub-flow>
 </mule>

@@ -53,8 +53,8 @@ output application/json
 output application/json
 ---
 {
-	detail: vars.nutritionDetail
-	
+	detail: vars.biometricDetail
+	//hrs: vars.userProfile.preferences.targetSleepDurationHrs[0],
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
