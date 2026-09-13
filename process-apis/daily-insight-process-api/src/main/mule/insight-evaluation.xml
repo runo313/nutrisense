@@ -5,6 +5,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<sub-flow name="evaluate-daily-insight-subflow" doc:id="df9d3250-d297-43b4-9dec-28a26fd6ee78" >
+		<logger level="INFO" doc:name="Evaluation started" doc:id="945a1e2c-ab41-4598-8cf4-368b55083871" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date,&#10;	mealsLogged: vars.mealStatus.mealsLogged,&#10;	nutritionResolved: vars.mealStatus.nutritionResolved,&#10;	dailyDataAvailable: vars.wearableStatus.dailyDataAvailable,&#10;	baselineAvailable: vars.wearableStatus.baselineAvailable,&#10;	caloricTarget: vars.userProfile.profile.dailyCaloricTarget&#10;}&#10;---&#10;buildLog("INFO","Evaluation started",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
 		<ee:transform doc:name="Aggregate Nutrition" doc:id="eb1f689f-f60c-47f1-a756-d7f2da87890f" >
 			<ee:message >
 			</ee:message>
@@ -66,6 +67,7 @@ fun sumNutrients() = (scaleAllItems() map ((item) -> item.nutrients))
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Nutrition aggregated" doc:id="f6e63239-7679-4de0-99ec-e666c82da4d4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	totalCalories: vars.nutritionAggregate.dailyTotals.energyKcal&#10;}&#10;---&#10;buildLog("INFO","Nutrition aggregated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
 		<ee:transform doc:name="Evaluate Calories and Macros" doc:id="a2533f75-dc63-4c83-bebf-a55370b6d9fd" >
 			<ee:message />
 			<ee:variables >
@@ -79,34 +81,45 @@ import evaluateFiber from dwl::computes::evaluateFiber
 import evaluateAmdrRange from dwl::computes::evaluateAmdrRange
 import evaluateCarbohydrate from dwl::computes::evaluateCarbohydrate
 import rowsForMetric from dwl::thresholds::static_thresholds
-
-var energykcal = (vars.nutritionAggregate.dailyTotals.energyKcal as Number) default 0 
+var energykcal = (vars.nutritionAggregate.dailyTotals.energyKcal as Number) default 0
 var calTarget = vars.userProfile.profile.dailyCaloricTarget as Number default null
 var resolvedProteins = resolveProteinTarget(vars.userProfile)
 var resolvedSaturatedFat= resolveSaturatedFatTarget(calTarget,vars.userProfile.conditions)
 var resolvedFiber = resolveFiberTarget(calTarget)
 var resolveAmdrFat = resolveAmdrTarget(amdrRanges[1], calTarget)
 var resolveAmdrCarb = resolveAmdrTarget(amdrRanges[0], calTarget)
-var row = rowsForMetric("carbohydrate_g") 
-
-
+var row = rowsForMetric("carbohydrate_g")
 var evalCal = evaluateCalories(energykcal,calTarget)
 var evalProtein = evaluateProtein(vars.nutritionAggregate.dailyTotals.proteinG, resolvedProteins)
 var evalSaturatedFat = evaluateSaturatedFat(vars.nutritionAggregate.dailyTotals.saturatedFatG,resolvedSaturatedFat)
 var evalFiber = evaluateFiber(vars.nutritionAggregate.dailyTotals.dietaryFiberG,resolvedFiber)
 var evalAmdrFat = evaluateAmdrRange(vars.nutritionAggregate.dailyTotals.totalFatG,resolveAmdrFat, "total_fat_g")
 var evalCarbohydrate = evaluateCarbohydrate(vars.nutritionAggregate.dailyTotals.carbohydratesG,resolveAmdrCarb,row)
+fun summarizeMacrosStatus() = do {
+	var allStatuses = [evalProtein.status,
+    evalSaturatedFat.status,
+    evalFiber.status,
+    evalAmdrFat.status,
+    evalCarbohydrate.status]
+	var worstRank = max(allStatuses map (statusSeverity[$]))
+	---
+	severityToStatus[worstRank as String]
+}
 ---
 {
-	cal: evalCal,
-	protein: evalProtein,
-	saturatedFat: evalSaturatedFat,
-	fiber: evalFiber,
-	fat: evalAmdrFat,
-	carbohydrate: evalCarbohydrate
+	calories: evalCal,
+	macros: {
+		protein: evalProtein,
+		saturatedFat: evalSaturatedFat,
+		fiber: evalFiber,
+		fat: evalAmdrFat,
+		carbohydrate: evalCarbohydrate,
+		status: summarizeMacrosStatus()
+	}
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Calories and macros evaluated" doc:id="4117b080-5551-4234-880b-b760cfb70621" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	caloriesStatus: vars.nutritionDetail.calories.status,&#10;	macrosStatus: vars.nutritionDetail.macros.status&#10;}&#10;---&#10;buildLog("INFO","Calories and macros evaluated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
 		<ee:transform doc:name="Evaluate Micros" doc:id="cda1b7e2-93a2-4970-8fe5-c7d88c0e0e8f" >
 			<ee:message >
 			</ee:message>
@@ -135,7 +148,8 @@ var dailyTotals = vars.nutritionAggregate.dailyTotals
 evaluateMicronutrients(demographic,conditions,constraints,dailyTotals)]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<ee:transform doc:name="Evaluate Sleep Activity Recovery" doc:id="77f15a5b-f8ae-4412-b4e0-ab820c26cb10" >
+		<logger level="INFO" doc:name="Micronutrients evaluated" doc:id="c8e9f1a9-5a8b-492c-973f-cd9331d8b5a4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	surfacedCount: sizeOf(vars.microsDetail)&#10;}&#10;---&#10;buildLog("INFO","Micronutrients evaluated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
+		<ee:transform doc:name="Evaluate Sleep Activity and Recovery" doc:id="77f15a5b-f8ae-4412-b4e0-ab820c26cb10" >
 			<ee:message >
 			</ee:message>
 			<ee:variables >
@@ -168,12 +182,13 @@ var evalSleep =
 var evalRecovery = evaluateRecovery(vars.wearableStatus)
 ---
 {
-	evaluateSleep: evalSleep,
-	evaluateRecovery: evalRecovery
+	sleep: evalSleep,
+	recovery: evalRecovery
 }
 
 ]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Sleep activity recovery evaluated" doc:id="cfa1164a-6eff-4d37-8580-093af6e2bd2c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	sleepStatus: vars.biometricDetail.sleep.status,&#10;	recoveryStatus: vars.biometricDetail.recovery.status&#10;}&#10;---&#10;buildLog("INFO","Sleep/activity/recovery evaluated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
 	</sub-flow>
 </mule>
