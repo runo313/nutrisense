@@ -80,7 +80,9 @@ import evaluateSaturatedFat from dwl::computes::evaluateSaturatedFat
 import evaluateFiber from dwl::computes::evaluateFiber
 import evaluateAmdrRange from dwl::computes::evaluateAmdrRange
 import evaluateCarbohydrate from dwl::computes::evaluateCarbohydrate
+import * from dwl::computes::evaluateSodium
 import rowsForMetric from dwl::thresholds::static_thresholds
+
 var energykcal = (vars.nutritionAggregate.dailyTotals.energyKcal as Number) default 0
 var calTarget = vars.userProfile.profile.dailyCaloricTarget as Number default null
 var resolvedProteins = resolveProteinTarget(vars.userProfile)
@@ -89,17 +91,21 @@ var resolvedFiber = resolveFiberTarget(calTarget)
 var resolveAmdrFat = resolveAmdrTarget(amdrRanges[1], calTarget)
 var resolveAmdrCarb = resolveAmdrTarget(amdrRanges[0], calTarget)
 var row = rowsForMetric("carbohydrate_g")
+var resolveSodium = resolveSodiumTarget(vars.userProfile.conditions)
+
 var evalCal = evaluateCalories(energykcal,calTarget)
 var evalProtein = evaluateProtein(vars.nutritionAggregate.dailyTotals.proteinG, resolvedProteins)
 var evalSaturatedFat = evaluateSaturatedFat(vars.nutritionAggregate.dailyTotals.saturatedFatG,resolvedSaturatedFat)
 var evalFiber = evaluateFiber(vars.nutritionAggregate.dailyTotals.dietaryFiberG,resolvedFiber)
 var evalAmdrFat = evaluateAmdrRange(vars.nutritionAggregate.dailyTotals.totalFatG,resolveAmdrFat, "total_fat_g")
 var evalCarbohydrate = evaluateCarbohydrate(vars.nutritionAggregate.dailyTotals.carbohydratesG,resolveAmdrCarb,row)
+var evalSodium = evaluateSodium(vars.nutritionAggregate.dailyTotals.sodiumMg, resolveSodium)
 fun summarizeMacrosStatus() = do {
 	var allStatuses = [evalProtein.status,
     evalSaturatedFat.status,
     evalFiber.status,
     evalAmdrFat.status,
+    evalSodium.status,
     evalCarbohydrate.status]
 	var worstRank = max(allStatuses map (statusSeverity[$]))
 	---
@@ -114,6 +120,7 @@ fun summarizeMacrosStatus() = do {
 		fiber: evalFiber,
 		fat: evalAmdrFat,
 		carbohydrate: evalCarbohydrate,
+		sodium: evalSodium,
 		status: summarizeMacrosStatus()
 	}
 }]]></ee:set-variable>
