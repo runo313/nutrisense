@@ -165,9 +165,13 @@ output application/java
 import evaluateSleep from dwl::computes::evaluateSleep
 import * from dwl::computes::computeSleepAggregate
 import evaluateRecovery from dwl::computes::evaluateRecovery
-
+import evaluateActiveEnergy from dwl::computes::evaluateActiveEnergy
 
 var targetSleepDurationHrs = vars.userProfile.preferences.targetSleepDurationHrs[0]
+var todaySteps = (vars.wearableStatus.dailyData.point_metrics filter ($.metric_type == "step_count")) map ($.value) reduce ((v, acc = 0) -> acc + v)
+var todayActiveEnergy = vars.wearableStatus.dailyData.point_metrics filter ((item) -> item.metric_type == 'active_energy_burned')
+reduce ((item, acc = 0) -> item.value + acc )
+
 var evalSleep =
   if ( vars.wearableStatus.dailyDataAvailable ) do {
 	var sleepAggregate = computeSleepAggregate(vars.wearableStatus.dailyData.sleep_sessions)
@@ -187,10 +191,18 @@ var evalSleep =
 	status: "no_data"
 }
 var evalRecovery = evaluateRecovery(vars.wearableStatus)
+var evalEnergy = evaluateActiveEnergy(todayActiveEnergy,vars.wearableStatus.baselineData)
 ---
 {
 	sleep: evalSleep,
-	recovery: evalRecovery
+	recovery: evalRecovery,
+	activity: {
+		steps: todaySteps,
+  		active_energy_kcal: todayActiveEnergy,
+  		deviation_status_low: evalEnergy.deviation_status_low,
+  		deviation_status_high: evalEnergy.deviation_status_high,
+  		baseline_kcal: evalEnergy.baseline_kcal default null
+	}
 }
 
 ]]></ee:set-variable>
@@ -201,17 +213,25 @@ var evalRecovery = evaluateRecovery(vars.wearableStatus)
 			<ee:message >
 			</ee:message>
 			<ee:variables >
-				<ee:set-variable variableName="rankedCandidates" ><![CDATA[%dw 2.0
+				<ee:set-variable variableName="insightConclusions" ><![CDATA[%dw 2.0
 output application/java
 
 import gatherCandidates,buildRecommendations from dwl::computes::gatherCandidates
+import detectCrossSignals from dwl::computes::detectCrossSignals
 
 var gatheredCandidates = gatherCandidates(vars.nutritionDetail,vars.biometricDetail)
 var recommendations = buildRecommendations(gatheredCandidates)
+var primaryGoal = vars.userProfile.goals filter (() -> $.isPrimary)
+var crossSignals = detectCrossSignals(vars.nutritionDetail,vars.biometricDetail,vars.userProfile.conditions,primaryGoal)
 ---
-recommendations
-//gatheredCandidates]]></ee:set-variable>
+{
+	recommendations: recommendations,
+	cross_signal: crossSignals
+}
+
+]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Insight conclusions complete" doc:id="cbe7b7c6-c832-4cf3-aefe-dd744333d255" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	recommendationCount: sizeOf(vars.insightConclusions.recommendations),&#10;	crossSignalCount: sizeOf(vars.insightConclusions.cross_signal)&#10;}&#10;---&#10;buildLog("INFO","Insight conclusions complete",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
 	</sub-flow>
 </mule>
