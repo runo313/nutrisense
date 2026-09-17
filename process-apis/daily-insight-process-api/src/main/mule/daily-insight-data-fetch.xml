@@ -215,7 +215,8 @@ flow.name]]></ee:set-variable>
 {
 	"metricType" : "resting_heart_rate",
 	"duration" : 30,
-	"metricType" : "hrv"
+	"metricType" : "hrv",
+	"metricType" : "active_energy_burned"
 }]]]></http:query-params>
 			<http:response-validator >
 				<http:success-status-code-validator values="200,404" />
