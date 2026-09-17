@@ -190,5 +190,21 @@ var evalRecovery = evaluateRecovery(vars.wearableStatus)
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="Sleep activity recovery evaluated" doc:id="cfa1164a-6eff-4d37-8580-093af6e2bd2c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	sleepStatus: vars.biometricDetail.sleep.status,&#10;	recoveryStatus: vars.biometricDetail.recovery.status&#10;}&#10;---&#10;buildLog("INFO","Sleep/activity/recovery evaluated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
+		<ee:transform doc:name="Rank Flagged Dimensions" doc:id="f8fff1c8-9f31-4a38-8b17-4cce31629a86" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="rankedCandidates" ><![CDATA[%dw 2.0
+output application/java
+
+import gatherCandidates,buildRecommendations from dwl::computes::gatherCandidates
+
+var gatheredCandidates = gatherCandidates(vars.nutritionDetail,vars.biometricDetail)
+var recommendations = buildRecommendations(gatheredCandidates)
+---
+recommendations
+//gatheredCandidates]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 	</sub-flow>
 </mule>
