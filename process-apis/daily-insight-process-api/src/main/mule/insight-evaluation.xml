@@ -233,5 +233,21 @@ var crossSignals = detectCrossSignals(vars.nutritionDetail,vars.biometricDetail,
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="Insight conclusions complete" doc:id="cbe7b7c6-c832-4cf3-aefe-dd744333d255" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	recommendationCount: sizeOf(vars.insightConclusions.recommendations),&#10;	crossSignalCount: sizeOf(vars.insightConclusions.cross_signal)&#10;}&#10;---&#10;buildLog("INFO","Insight conclusions complete",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
+		<ee:transform doc:name="Transform Message" doc:id="86b800d5-e80e-4a1e-a13c-9b38e752b8f2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+
+import * from dwl::computes::dailyInsightResponse
+---
+{
+	data_completeness: buildDataCompleteness(vars.mealStatus,vars.wearableStatus),
+	dimension_status: buildDimensionStatus(vars.nutritionDetail, vars.biometricDetail,vars.microsDetail),
+	nutrition_detail: buildNutritionDetail(vars.nutritionDetail,vars.microsDetail),
+	biometric_detail: buildBiometricDetail(vars.biometricDetail.sleep,vars.biometricDetail.activity,vars.biometricDetail.recovery),
+	recommendations: vars.insightConclusions.recommendations
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 	</sub-flow>
 </mule>
