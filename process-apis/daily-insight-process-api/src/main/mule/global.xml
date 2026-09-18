@@ -13,7 +13,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<http:listener-config
 		name="daily-insight-process-api-httpListenerConfig">
 		<http:listener-connection host="0.0.0.0"
-			port="8081" />
+			port="${https.port}" />
 	</http:listener-config>
 	<apikit:config name="daily-insight-process-api-config"
 		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:daily-insight-process-api:1.0.0:raml:zip:daily-insight-process-api.raml"

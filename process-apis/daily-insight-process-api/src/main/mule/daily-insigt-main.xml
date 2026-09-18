@@ -33,6 +33,7 @@ output application/java
 			</route>
 		</scatter-gather>
 		<flow-ref doc:name="evaluate-daily-insight-subflow" doc:id="cfcb8c06-a559-451d-b31b-af2074e446e8" name="evaluate-daily-insight-subflow"/>
+		<logger level="INFO" doc:name="Evaluation Complete" doc:id="733c5ef3-e6c4-4c95-ab01-9993cb6a7c6f" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date&#10;}&#10;---&#10;buildLog("INFO","Evaluation Complete",message,vars.correlationId, vars.flowName)]' />
 		<!-- [STUDIO:"Set Meal And Wearable Status"]<ee:transform doc:name="Set Meal And Wearable Status" doc:id="70e04a79-5c93-42b6-8ac9-aa25400e4fe2">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -53,8 +54,15 @@ output application/json
 output application/json
 ---
 {
-	detail: vars.biometricDetail
+	//bioMetricDetail: vars.biometricDetail,
+	//microsDetail: vars.microsDetail,
+	//nutritionAggregate: vars.nutritionAggregate,
+	//nutritionDetail: vars.nutritionDetail,
 	//hrs: vars.userProfile.preferences.targetSleepDurationHrs[0],
+	//gatheredCandidates: vars.rankedCandidates,
+	//conditions: vars.userProfile.conditions,
+	//wearables: vars.wearableStatus
+	response: payload	
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

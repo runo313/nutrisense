@@ -237,15 +237,20 @@ var crossSignals = detectCrossSignals(vars.nutritionDetail,vars.biometricDetail,
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
-
 import * from dwl::computes::dailyInsightResponse
 ---
 {
+	user_id: vars.userId,
+	date: vars.date,
+	generated_at: now(),
+	generation_mode: "template",
 	data_completeness: buildDataCompleteness(vars.mealStatus,vars.wearableStatus),
 	dimension_status: buildDimensionStatus(vars.nutritionDetail, vars.biometricDetail,vars.microsDetail),
 	nutrition_detail: buildNutritionDetail(vars.nutritionDetail,vars.microsDetail),
 	biometric_detail: buildBiometricDetail(vars.biometricDetail.sleep,vars.biometricDetail.activity,vars.biometricDetail.recovery),
-	recommendations: vars.insightConclusions.recommendations
+	recommendations: vars.insightConclusions.recommendations,
+	cross_signal: vars.insightConclusions.cross_signal,
+	metrics_shown : (vars.userProfile.preferences.preferredWearableMetrics default []) ++ (vars.userProfile.preferences.preferredNutritionMetrics default [])
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
