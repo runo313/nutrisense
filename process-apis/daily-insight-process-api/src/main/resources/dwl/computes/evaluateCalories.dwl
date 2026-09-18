@@ -58,7 +58,12 @@ var caloricDeviationBounds = {
 }
 
 
-fun evaluateCalories(loggedKcal, caloricTarget)= if (caloricTarget == null) { 
+fun evaluateCalories(loggedKcal, caloricTarget)= if (loggedKcal == null){
+	metric_key: "energy_kcal", 
+	status: "no_data", 
+	notes: "logged kcal was not be computed"
+}
+else if (caloricTarget == null) { 
 	metric_key: "energy_kcal", 
 	status: "no_data", 
 	notes: "Caloric target was not be computed"

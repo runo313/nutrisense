@@ -1,7 +1,12 @@
 %dw 2.0
 // a shared function parameterized by metric_key. Used for total fat and carbohydrates. 
 
-fun evaluateAmdrRange(loggedValueG, resolvedRange, metricKey) = do {
+fun evaluateAmdrRange(loggedValueG, resolvedRange, metricKey) = if ( loggedValueG == null ) {
+	metric_key: metricKey,
+	status: "no_data",
+	notes: "logged ValueG was not be computed"
+}else
+do {
   var status =
     if (loggedValueG >= resolvedRange.range_min_g and loggedValueG <= resolvedRange.range_max_g) "on_track"
     else if (loggedValueG >= resolvedRange.hard_below_g and loggedValueG <= resolvedRange.hard_above_g) "soft_warning"

@@ -37,7 +37,7 @@ fun evaluateRecovery(wearableStatus) = do {
   var hrSufficient = hasSufficientHistory("resting_hr_bpm", hrCount)
   var hrvSufficient = hasSufficientHistory("hrv_sdnn", hrvCount)
   ---
-  if (not wearableStatus.baselineAvailable or not hrSufficient or not hrvSufficient or todayHr == null or todayHrv == null)
+  if (todayHr == null or todayHrv == null or (not wearableStatus.baselineAvailable) or (not hrSufficient) or (not hrvSufficient))
     {
       status: "no_data",
       has_data: false,

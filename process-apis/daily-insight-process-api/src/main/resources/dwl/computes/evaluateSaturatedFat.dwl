@@ -1,6 +1,11 @@
 %dw 2.0
 
-fun evaluateSaturatedFat(loggedSatFatG, resolvedTarget) = do {
+fun evaluateSaturatedFat(loggedSatFatG, resolvedTarget) =if (loggedSatFatG == null ) {
+	metric_key: "saturated_fat_g",
+	status: "no_data",
+	notes: "loggedSatFatG was not be computed"
+}else
+ do {
   var pctOfCap = (loggedSatFatG / resolvedTarget.cap_g) * 100
   var status =
     if (loggedSatFatG <= resolvedTarget.cap_g) "on_track"

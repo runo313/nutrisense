@@ -270,12 +270,14 @@ fun resolveFiberTarget(caloricTarget) = do {
 var statusSeverity = {
   on_track: 0,
   soft_warning: 1,
-  hard_flag: 2
+  hard_flag: 2,
+  no_data:3
 }
 
 var severityToStatus = {
   "0": "on_track",
   "1": "soft_warning",
-  "2": "hard_flag"
+  "2": "hard_flag",
+  "3": "no_data"
 }
 

@@ -27,7 +27,12 @@ fun combineCarbStatus(amdrStatus, floorStatus) = do {
   severityToStatus[worseRank as String]
 }
 
-fun evaluateCarbohydrate(loggedCarbG, resolvedAmdrRange, floorRow) = do {
+fun evaluateCarbohydrate(loggedCarbG, resolvedAmdrRange, floorRow) = if ( loggedCarbG == null ) {
+	metric_key: "carbohydrate_g",
+	status: "no_data",
+	notes: "logged CarbG was not be computed"
+}else
+do {
   var amdrResult = evaluateAmdrRange(loggedCarbG, resolvedAmdrRange, "carbohydrate_g")
   var floorStatus = evaluateCarbFloor(loggedCarbG, floorRow)
   var finalStatus = combineCarbStatus(amdrResult.status, floorStatus)

@@ -20,7 +20,11 @@ fun resolveSodiumTarget(activeConditions) = do {
   }
 }
 
-fun evaluateSodium(loggedSodiumMg, resolvedTarget) = do {
+fun evaluateSodium(loggedSodiumMg, resolvedTarget) = if ( loggedSodiumMg == null ) {
+	metric_key: "sodium_mg",
+	status: "no_data",
+	notes: "logged SodiumMG was not be computed"
+}else do {
   var pctOfCap = (loggedSodiumMg / resolvedTarget.cap_mg) * 100
   var status =
     if (loggedSodiumMg <= resolvedTarget.cap_mg) "on_track"

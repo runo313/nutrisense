@@ -1,6 +1,10 @@
 %dw 2.0
 
-fun evaluateFiber(loggedFiberG, resolvedTarget) = do {
+fun evaluateFiber(loggedFiberG, resolvedTarget) = if ( loggedFiberG == null ) {
+	metric_key: "fiber_g",
+	status: "no_data",
+	notes: "logged fiberG was not be computed"
+}else do {
   var pctOfTarget = (loggedFiberG / resolvedTarget.target_g) * 100
   var status =
     if (loggedFiberG >= resolvedTarget.target_g) "on_track"

@@ -6,7 +6,7 @@ fun evaluateActiveEnergy(todayActiveEnergyKcal, baselineData) = do {
   var baselineCount = baselineRow.count default 0
   var sufficient = hasSufficientHistory("active_energy_kcal", baselineCount)
   ---
-  if (not sufficient or todayActiveEnergyKcal == null)
+  if ((not sufficient) or (todayActiveEnergyKcal == null))
     { deviation_status_low: "no_data", deviation_status_high: "no_data" }
   else do {
     var bounds = resolveBaselineBounds("active_energy_kcal", baselineRow.average)
