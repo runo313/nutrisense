@@ -29,45 +29,54 @@ fun findFood(foodId) = flatten(meal.foods) filter ((food) -> food.foodId == food
 fun scaleItem(item) = do {
     // The matching food record (null if not found)
     var food = findFood(item.foodId)[0]
-    var factor = if (food != null)
-        (item.quantityG as Number) / (food.servingSizeG as Number)
-    else 0
+    // return null on no match so the downstream filter actually removes it
     ---
-    {
-        foodId: item.foodId,
-        name: food.name default null,
-        quantityG: item.quantityG,
-        servingSizeG: food.servingSizeG default null,
-        // Multiply every numeric nutrient by the scale factor.
-        // null for missing nutrients pass through unchanged
-        nutrients: if (food != null)
-            food.nutrients mapObject ((value, key) ->
-                { (key): if (value is Number) value * factor else value }
+    if (food == null) null
+    else do {
+        var factor = (item.quantityG as Number) / (food.servingSizeG as Number)
+        ---
+        {
+            foodId: item.foodId,
+            name: food.name,
+            quantityG: item.quantityG,
+            servingSizeG: food.servingSizeG,
+            nutrients: food.nutrients mapObject ((value, key) ->
+                { (key): if (value is Number) value * factor else null }
             )
-        else {}
         }
     }
+}
 // scaleAllItems: apply scaleItem to every logged meal entry,
 // dropping any entries where no matching food was found.
 fun scaleAllItems() = (meal.meals map ((item) -> scaleItem(item)))
 filter ($ != null)
 
-// sumNutrients: add up each nutrient across every scaled meal to get daily totals. 
-fun sumNutrients() = (scaleAllItems() map ((item) -> item.nutrients))
-    reduce ((nutrients, acc = {}) ->
-            nutrients mapObject ((value, key) ->
-                { (key): (value default 0) + (acc[key] default 0) }
-            )
-        )
 
+fun sumNutrients(items) = do {
+    var nuts = items map ((item) -> item.nutrients)
+    var allKeys = flatten(nuts map ((n) -> keysOf(n)))
+                    map ((k) -> k as String)
+                    distinctBy ((k) -> k)
+    ---
+    allKeys reduce ((key, acc = {}) -> do {
+        var vals = (nuts map ((n) -> n[key])) filter ((v) -> v is Number)
+        ---
+        acc ++ { (key):
+            if (isEmpty(vals)) null                              // no data anywhere → null
+            else vals reduce ((v, total = 0) -> total + v)       // else sum the numbers
+        }
+    })
+}
+
+var items = scaleAllItems()
 ---
 {
     scaledItems: scaleAllItems(),
-    dailyTotals: sumNutrients()
+    dailyTotals: if (isEmpty(items)) null else sumNutrients(items)
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Nutrition aggregated" doc:id="f6e63239-7679-4de0-99ec-e666c82da4d4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	totalCalories: vars.nutritionAggregate.dailyTotals.energyKcal&#10;}&#10;---&#10;buildLog("INFO","Nutrition aggregated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
+		<logger level="INFO" doc:name="Nutrition aggregated" doc:id="f6e63239-7679-4de0-99ec-e666c82da4d4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	totalCalories: vars.nutritionAggregate.dailyTotals.energyKcal,&#10;	scaledItems: vars.nutritionAggregate.scaledItems&#10;}&#10;---&#10;buildLog("INFO","Nutrition aggregated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
 		<ee:transform doc:name="Evaluate Calories and Macros" doc:id="a2533f75-dc63-4c83-bebf-a55370b6d9fd" >
 			<ee:message />
 			<ee:variables >
@@ -83,7 +92,7 @@ import evaluateCarbohydrate from dwl::computes::evaluateCarbohydrate
 import * from dwl::computes::evaluateSodium
 import rowsForMetric from dwl::thresholds::static_thresholds
 
-var energykcal = (vars.nutritionAggregate.dailyTotals.energyKcal as Number) default 0
+var energykcal = (vars.nutritionAggregate.dailyTotals.energyKcal as Number) default null
 var calTarget = vars.userProfile.profile.dailyCaloricTarget as Number default null
 var resolvedProteins = resolveProteinTarget(vars.userProfile)
 var resolvedSaturatedFat= resolveSaturatedFatTarget(calTarget,vars.userProfile.conditions)
@@ -172,14 +181,7 @@ var todaySteps = (vars.wearableStatus.dailyData.point_metrics filter ($.metric_t
 var todayActiveEnergy = vars.wearableStatus.dailyData.point_metrics filter ((item) -> item.metric_type == 'active_energy_burned')
 reduce ((item, acc = 0) -> item.value + acc )
 
-var evalSleep =
-  if ( vars.wearableStatus.dailyDataAvailable ) do {
-	var sleepAggregate = computeSleepAggregate(vars.wearableStatus.dailyData.sleep_sessions)
-	---
-	evaluateSleep(sleepAggregate.durationHrs, sleepAggregate.deepPct, sleepAggregate.remPct, targetSleepDurationHrs)
-}
-  else
-    {
+var no_data = {
 	duration_hrs: null,
 	target_hrs: null,
 	floor_applied: false,
@@ -190,6 +192,13 @@ var evalSleep =
 	deep_status: null,
 	status: "no_data"
 }
+var evalSleep =
+  if ( vars.wearableStatus.dailyDataAvailable ) do {
+	var sleepAggregate = computeSleepAggregate(vars.wearableStatus.dailyData.sleep_sessions)
+	---
+	evaluateSleep(sleepAggregate.durationHrs, sleepAggregate.deepPct, sleepAggregate.remPct, targetSleepDurationHrs)
+} else no_data
+    
 var evalRecovery = evaluateRecovery(vars.wearableStatus)
 var evalEnergy = evaluateActiveEnergy(todayActiveEnergy,vars.wearableStatus.baselineData)
 ---
@@ -253,6 +262,12 @@ import * from dwl::computes::dailyInsightResponse
 	metrics_shown : (vars.userProfile.preferences.preferredWearableMetrics default []) ++ (vars.userProfile.preferences.preferredNutritionMetrics default [])
 }]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 	</sub-flow>
 </mule>
