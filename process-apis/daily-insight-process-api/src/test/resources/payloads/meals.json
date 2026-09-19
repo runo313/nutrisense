@@ -1,0 +1,27 @@
+{
+  "count": 2,
+  "meals": [
+    {
+      "mealId": "335c71bb-a167-4160-935e-1c8413f39764",
+      "userId": "runo313",
+      "mealType": "breakfast",
+      "consumedAt": "2026-09-14T08:00:00-04:00",
+      "loggedAt": "2026-09-14T08:15:00-04:00",
+      "items": [
+        { "itemId": "i1", "foodId": 747448, "portionId": null, "portionAmount": null, "quantityG": 234.0, "loggedAt": "2026-09-14T08:15:00-04:00" },
+        { "itemId": "i2", "foodId": 2684444, "portionId": null, "portionAmount": null, "quantityG": 150.0, "loggedAt": "2026-09-14T08:15:00-04:00" }
+      ]
+    },
+    {
+      "mealId": "b13558e9-06d9-4c9b-a0ce-5ee2ba15cbe9",
+      "userId": "runo313",
+      "mealType": "lunch",
+      "consumedAt": "2026-09-14T12:30:00-04:00",
+      "loggedAt": "2026-09-14T12:45:00-04:00",
+      "items": [
+        { "itemId": "i3", "foodId": 747448, "portionId": null, "portionAmount": null, "quantityG": 40.0, "loggedAt": "2026-09-14T12:45:00-04:00" },
+        { "itemId": "i4", "foodId": 331960, "portionId": null, "portionAmount": null, "quantityG": 174.0, "loggedAt": "2026-09-14T12:45:00-04:00" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "foodId": 331960,
+  "name": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised",
+  "category": "Poultry Products",
+  "servingSizeG": 174,
+  "source": "USDA Foundation Foods",
+  "nutrients": {
+    "energyKcal": 158,
+    "proteinG": 32.1,
+    "carbohydratesG": 0,
+    "dietaryFiberG": null,
+    "sugarsG": null,
+    "totalFatG": 3.24,
+    "saturatedFatG": 1.01,
+    "sodiumMg": 47,
+    "potassiumMg": 343,
+    "calciumMg": 6,
+    "ironMg": 0.49,
+    "vitaminCMg": null,
+    "vitaminDMcg": null,
+    "vitaminB12Mcg": 0.2,
+    "magnesiumMg": 32,
+    "zincMg": 0.96
+  }
+}

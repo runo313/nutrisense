@@ -1,0 +1,16 @@
+{"payload": {
+  "point_metrics": [
+    { "user_id": "runo313", "metric_type": "resting_heart_rate", "value": 68, "unit": "count/min", "source_device": "Apple Watch", "recorded_at": "2026-09-14T06:00:00-04:00", "duration_seconds": null },
+    { "user_id": "runo313", "metric_type": "hrv", "value": 41, "unit": "ms", "source_device": "Apple Watch", "recorded_at": "2026-09-14T06:05:00-04:00", "duration_seconds": 59 },
+    { "user_id": "runo313", "metric_type": "step_count", "value": 6500, "unit": "count", "source_device": "Apple Watch", "recorded_at": "2026-09-14T20:00:00-04:00", "duration_seconds": null },
+    { "user_id": "runo313", "metric_type": "active_energy_burned", "value": 420, "unit": "Cal", "source_device": "Apple Watch", "recorded_at": "2026-09-14T20:00:00-04:00", "duration_seconds": null }
+  ],
+  "sleep_sessions": [
+    { "user_id": "runo313", "stage": "Core", "start_time": "2026-09-13T23:00:00-04:00", "end_time": "2026-09-14T02:30:00-04:00", "source_device": "Apple Watch" },
+    { "user_id": "runo313", "stage": "Deep", "start_time": "2026-09-14T02:30:00-04:00", "end_time": "2026-09-14T03:12:00-04:00", "source_device": "Apple Watch" },
+    { "user_id": "runo313", "stage": "REM", "start_time": "2026-09-14T03:12:00-04:00", "end_time": "2026-09-14T03:42:00-04:00", "source_device": "Apple Watch" },
+    { "user_id": "runo313", "stage": "Core", "start_time": "2026-09-14T03:42:00-04:00", "end_time": "2026-09-14T04:48:00-04:00", "source_device": "Apple Watch" }
+  ],
+  "workouts": []
+}, "status": 200
+}
