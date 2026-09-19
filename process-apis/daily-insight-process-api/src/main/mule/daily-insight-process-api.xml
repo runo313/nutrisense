@@ -132,7 +132,7 @@ output application/json
             </ee:message>
         </ee:transform>
     </flow>
-    <flow name="get:\insights\daily\(userId)\preview:daily-insight-process-api-config">
+    <flow name="get:\insights\daily\(userId)\preview:daily-insight-process-api-config" doc:id="0d8d6df1-4732-491b-9508-ace68d09473a">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
                 <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
@@ -140,7 +140,7 @@ output application/json
         </ee:transform>
         <logger level="INFO" message="get:\insights\daily\(userId)\preview:daily-insight-process-api-config" />
     </flow>
-    <flow name="get:\insights\daily\(userId):daily-insight-process-api-config">
+    <flow name="get:\insights\daily\(userId):daily-insight-process-api-config" doc:id="a6f25788-a11b-4264-8e4a-bea937182dd3">
         <flow-ref doc:name="orchestrate-daily-insight-flow" doc:id="e276b734-2a44-425b-aae7-938465902801" name="orchestrate-daily-insight-flow"/>
 		<error-handler ref="error-handler" />
     </flow>
