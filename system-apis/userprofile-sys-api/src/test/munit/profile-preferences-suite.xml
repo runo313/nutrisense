@@ -52,9 +52,10 @@
 		<munit:validation >
 			<munit-tools:assert-that doc:name="Assert that http status 201" doc:id="7badbb03-d4ea-4220-b027-9261ac98fdfe" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
 			<munit-tools:assert-that doc:name="Assert that Constraint Value" doc:id="d18c253e-9508-47e1-ac9b-838e4d327271" expression="#[payload.insightFrequency]" is='#[MunitTools::equalTo("weekly")]' />
+			<munit-tools:assert-that doc:name="Assert Generation Mode" doc:id="2fd80ff0-4721-4a46-bb7c-5134f7678e0c" expression="#[payload.generationMode]" is='#[MunitTools::equalTo("llm")]' />
 		</munit:validation>
 	</munit:test>
-	<munit:test name="should_upsert_preferences_update_path_and_return_200" doc:id="e75073f2-05f8-4a70-8efa-a7ab5d8fa53a" >
+	<munit:test name="should_upsert_preferences_update_path_and_return_200" doc:id="e75073f2-05f8-4a70-8efa-a7ab5d8fa53a">
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="e528b698-266a-4d83-9a56-1a4df2175eee" processor="db:select" >
 				<munit-tools:with-attributes >
@@ -98,9 +99,10 @@
 		<munit:validation >
 			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="4ceefc13-378b-4df8-9b6d-0e871477dc9c" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
 			<munit-tools:assert-that doc:name="Assert that Constraint Value" doc:id="b2d3aebf-793c-4477-b01c-c72ad61ace78" expression="#[payload.insightFrequency]" is='#[MunitTools::equalTo("weekly")]' />
+			<munit-tools:assert-that doc:name="Assert Generation Mode" doc:id="3a01c779-108a-4de7-93cd-b3b54370a89e" expression="#[payload.generationMode]" is='#[MunitTools::equalTo("llm")]' />
 		</munit:validation>
 	</munit:test>
-	<munit:test name="should_get_preferences_return_200" doc:id="e88eabfe-ddeb-4afb-9c7d-a2fb976afd26" >
+	<munit:test name="should_get_preferences_return_200" doc:id="e88eabfe-ddeb-4afb-9c7d-a2fb976afd26">
 		<munit:behavior>
 			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="df731e21-7e5b-46b9-bc16-36a2994881d4" processor="db:select" >
 				<munit-tools:with-attributes >
@@ -132,7 +134,7 @@
 			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="8379d657-96cc-43f6-ba01-73485a8fc890" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
 		</munit:validation>
 	</munit:test>
-	<munit:test name="should_upsert_preferences_return_400" doc:id="0b98d29b-1d47-4f1b-8ec0-cb5ef7851181" >
+	<munit:test name="should_upsert_preferences_return_400" doc:id="0b98d29b-1d47-4f1b-8ec0-cb5ef7851181">
 		<munit:execution >
 			<munit:set-event doc:name="Set Event" doc:id="f1c0b678-3732-40fc-aeec-87a9714a53c1" >
 				<munit:payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  &#10;}]" />

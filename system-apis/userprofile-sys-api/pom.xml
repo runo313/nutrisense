@@ -135,7 +135,7 @@
 		<dependency>
 			<groupId>ebc8f976-c342-4bb4-9666-f6207f92deac</groupId>
 			<artifactId>user-profile-sys-api</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
