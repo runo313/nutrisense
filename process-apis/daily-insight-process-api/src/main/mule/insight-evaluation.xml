@@ -241,6 +241,27 @@ var crossSignals = detectCrossSignals(vars.nutritionDetail,vars.biometricDetail,
 ]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<ee:transform doc:name="Attach Text" doc:id="e7654883-a225-4140-a1c7-d12f6fc8dfee" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="insightConclusions" ><![CDATA[%dw 2.0
+output application/java
+import * from dwl::template::recommendationText
+import * from dwl::template::textTemplate
+
+fun attachRecommendationText(recommendations) = 
+  recommendations map ((rec) -> rec ++ { text: provideRecommendationText(rec) })
+
+fun attachCrossSignalText(crossSignals) = 
+  crossSignals map ((signal) -> signal ++ { text: buildCrossSignalText(signal.key) })
+---
+vars.insightConclusions ++ {
+  recommendations: attachRecommendationText(vars.insightConclusions.recommendations),
+  cross_signal: attachCrossSignalText(vars.insightConclusions.cross_signal)
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 		<logger level="INFO" doc:name="Insight conclusions complete" doc:id="cbe7b7c6-c832-4cf3-aefe-dd744333d255" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	recommendationCount: sizeOf(vars.insightConclusions.recommendations),&#10;	crossSignalCount: sizeOf(vars.insightConclusions.cross_signal)&#10;}&#10;---&#10;buildLog("INFO","Insight conclusions complete",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
 		<ee:transform doc:name="Transform Message" doc:id="86b800d5-e80e-4a1e-a13c-9b38e752b8f2" >
 			<ee:message >
@@ -260,7 +281,7 @@ import * from dwl::computes::dailyInsightResponse
 	recommendations: vars.insightConclusions.recommendations,
 	cross_signal: vars.insightConclusions.cross_signal,
 	metrics_shown : (vars.userProfile.preferences.preferredWearableMetrics default []) ++ (vars.userProfile.preferences.preferredNutritionMetrics default [])
-}]]></ee:set-payload>
+} ]]></ee:set-payload>
 			</ee:message>
 			<ee:variables >
 				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0

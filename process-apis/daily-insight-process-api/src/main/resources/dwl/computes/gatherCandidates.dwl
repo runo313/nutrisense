@@ -90,6 +90,8 @@ fun buildRecommendations(candidates) = do {
     dimension: c.dimension,
     severity: c.status,
     condition_context: c.condition_context,
+    driving_metric: c.driving_metric,
+    detail: c.detail,
     text: null
   })
 }
