@@ -33,4 +33,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<http:request-config name="MEAL_LOG_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="5f8c4b76-acc0-4ac0-bd86-8b80c5c11f89" >
 		<http:request-connection port="${meal.port}" host="${meal.baseUri}" protocol="HTTPS"/>
 	</http:request-config>
+	<http:request-config name="NUTRISENSE_LLM_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="3198722e-1f1e-4207-8f4e-1d5b94f194e8" >
+		<http:request-connection protocol="HTTPS" host="${nutrisense.llm.baseUri}" port="${nutrisense.llm.port}"/>
+	</http:request-config>
 </mule>
