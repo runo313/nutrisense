@@ -9,6 +9,7 @@
   "typical_dinner_time": null,
   "typical_sleep_time": null,
   "target_sleep_duration_hrs": null,
+  "insight_generation_mode": "llm",
   "units_system": "imperial",
   "created_at": "2026-08-18 00:00:00+00",
   "updated_at": "2026-08-18 00:00:00+00"
