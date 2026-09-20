@@ -89,7 +89,7 @@
 			<munit-tools:assert-that doc:name="Assert that Wearable Data is True" doc:id="f71a524b-1932-4eef-9f8f-f48eee7c072b" message="Wearable Data should be true" expression="#[payload.data_completeness.wearable_daily_data_present]" is="#[MunitTools::equalTo(true)]" />
 			<munit-tools:assert-that doc:name="Assert that Wearable Baseline is True" doc:id="f8c8aa40-b4b2-490f-85a5-5110eb35a412" message="Wearable Baseline should be true" expression="#[payload.data_completeness.wearable_baseline_available]" is="#[MunitTools::equalTo(true)]" />
 			<munit-tools:assert-that doc:name="Assert Calories Status" doc:id="b7b15e6a-4199-422a-9296-10d07ac81adb" message="Calories satus should be soft warning" expression="#[payload.dimension_status.calories.status]" is='#[MunitTools::equalTo("hard_flag")]' />
-			<munit-tools:assert-that doc:name="Assert Total Calories " doc:id="e66769e7-3982-4c66-b29e-850b5fc2ac7e" message="calories should be close to 352" expression="#[payload.nutrition_detail.total_calories]" is='#[MunitTools::closeTo(352.87825, 0.5)]' />
+			<munit-tools:assert-that doc:name="Assert Total Calories " doc:id="e66769e7-3982-4c66-b29e-850b5fc2ac7e" message="calories should be close to 352" expression="#[%dw 2.0&#10;output application/java&#10;---&#10;payload.nutrition_detail.total_calories]" is='#[MunitTools::closeTo(352.87825, 0.5)]' />
 			<munit-tools:assert-that doc:name="Assert Macros Status" doc:id="b6549ec8-23ca-4f5d-8a41-74fb8f7d9988" message="Macros satus should be hard_flag" expression="#[payload.dimension_status.macros.status]" is='#[MunitTools::equalTo("hard_flag")]' />
 			<munit-tools:assert-that doc:name="Assert that micro status is null " doc:id="92ed3400-7449-45a0-91cf-5b4cbaf283ce" message="Micro Status should be null " expression="#[payload.dimension_status.micros.status]" is="#[MunitTools::nullValue()]"/>
 			<munit-tools:assert-that doc:name="Assert that condition context " doc:id="5641b207-8081-4e3e-9704-99642f6129fe" message="Condition context should be anemia" expression="#[payload.nutrition_detail.micronutrients[0].condition_context]" is='#[MunitTools::equalTo("anemia")]' />
@@ -98,7 +98,7 @@
 			<munit-tools:assert-that doc:name="Assert Cross Signal Key" doc:id="3aa7d047-5942-406e-aba8-b068d31ebd97" is='#[MunitTools::equalTo("recovery_stress")]' message="Cross signal key should be recovery stress" expression="#[payload.cross_signal[0].key]"/>
 		</munit:validation>
 	</munit:test>
-	<munit:test name="should_produce_full_insight_with_flagged_dimensions_when_not_all_data_available" doc:id="6c7f0103-0d05-4f7e-bb36-298ad67c6456" >
+	<munit:test name="should_produce_full_insight_with_flagged_dimensions_when_not_all_data_available" doc:id="6c7f0103-0d05-4f7e-bb36-298ad67c6456">
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock GET Profiles" doc:id="9672e356-9e50-4ef1-8e0a-856d1f8f762b" processor="http:request" >
 				<munit-tools:with-attributes >
@@ -155,6 +155,28 @@
 			<munit-tools:assert-that doc:name="Assert that micro status is null " doc:id="4897982c-f98d-4349-8350-593b8726abd1" message="Micro Status should be null " expression="#[payload.dimension_status.micros.status]" is="#[MunitTools::nullValue()]" />
 			<munit-tools:assert-that doc:name="Assert Recovery Status" doc:id="5154eea8-827f-468b-a0fb-556609e5b7a9" message="Recovery status should be soft warning" is="#[MunitTools::equalTo('no_data')]" expression="#[payload.biometric_detail.recovery.status]" />
 			<munit-tools:assert-that doc:name="Assert Sleep Status" doc:id="047de93e-e663-4055-a9ee-093c9f0a21af" message="Sleep Status not null" is="#[MunitTools::notNullValue()]" expression="#[payload.dimension_status.sleep.status]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_produce_503_error" doc:id="c2daa6db-3b8e-4635-a2e6-db2f1925169a">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET Profiles" doc:id="5159a502-3605-41b5-9a40-42402f6a3438" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="10fbcfe7-ef5d-472a-9184-047cf2f00658" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="be0ec76f-ff83-478a-b69f-5f105986020e" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	uriParams: {&#10;		userId: "runo3133"&#10;	},&#10;	queryParams: {&#10;		date: "2026-09-14"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="ca8db440-3cae-48b4-8187-55d19eb653e2" name="get:\insights\daily\(userId):daily-insight-process-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 503" doc:id="e8d8585c-2e41-4535-a664-a72172069ae1" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(503)]" />
+			<munit-tools:assert-that doc:name="Assert Status Message" doc:id="a6d3a492-abb4-442a-b634-845910e6a149" message="Calories satus should be soft warning" expression="#[payload.code]" is='#[MunitTools::equalTo("DAILY-INSIGHT-503")]' />
 		</munit:validation>
 	</munit:test>
 

@@ -5,7 +5,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<error-handler name="error-handler" doc:id="582daa30-ef6d-4933-b240-7ef71fac99fd" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="6f0441a4-95bf-4bb9-b4cc-1aca81b1b545" type="MULE:COMPOSITE_ROUTING">
+		<!-- [STUDIO:"On Error Propagate"]<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="59eb4fcc-c8d2-4d96-86f6-72f0df27be6d" type="HTTP:NOT_FOUND">
+		</on-error-propagate> [STUDIO] -->
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="5a06b0fc-1504-4dd1-b249-b5c56f9ed3b7" type="HTTP:NOT_FOUND">
 			<logger level="ERROR" doc:name="Error" doc:id="f2feed4d-3139-4fb3-bd7d-04b50d1ec8b8" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Profile fetch failed.",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="User Profile error" doc:id="ddafac3c-621c-4f09-ba11-3e1b337aa809">
 				<ee:message>
@@ -25,6 +27,6 @@ output application/json
 					<ee:set-variable variableName="httpStatus"><![CDATA[503]]></ee:set-variable>
 				</ee:variables>
 			</ee:transform>
-		</on-error-propagate>
+		</on-error-continue>
 	</error-handler>
 </mule>
