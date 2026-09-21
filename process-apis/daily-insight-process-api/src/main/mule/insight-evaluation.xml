@@ -6,7 +6,7 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	<sub-flow name="evaluate-daily-insight-subflow" doc:id="df9d3250-d297-43b4-9dec-28a26fd6ee78" >
-		<logger level="INFO" doc:name="Evaluation started" doc:id="945a1e2c-ab41-4598-8cf4-368b55083871" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date,&#10;	mealsLogged: vars.mealStatus.mealsLogged,&#10;	nutritionResolved: vars.mealStatus.nutritionResolved,&#10;	dailyDataAvailable: vars.wearableStatus.dailyDataAvailable,&#10;	baselineAvailable: vars.wearableStatus.baselineAvailable,&#10;	caloricTarget: vars.userProfile.profile.dailyCaloricTarget,&#10;	mode: vars.userProfile.preferences.generationMode&#10;}&#10;---&#10;buildLog("INFO","Evaluation started",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
+		<logger level="INFO" doc:name="Evaluation started" doc:id="945a1e2c-ab41-4598-8cf4-368b55083871" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date,&#10;	mealsLogged: vars.mealStatus.mealsLogged,&#10;	nutritionResolved: vars.mealStatus.nutritionResolved,&#10;	dailyDataAvailable: vars.wearableStatus.dailyDataAvailable,&#10;	baselineAvailable: vars.wearableStatus.baselineAvailable,&#10;	caloricTarget: vars.userProfile.profile.dailyCaloricTarget,&#10;	mode: vars.textMode&#10;}&#10;---&#10;buildLog("INFO","Evaluation started",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
 		<ee:transform doc:name="Aggregate Nutrition" doc:id="eb1f689f-f60c-47f1-a756-d7f2da87890f" >
 			<ee:message >
 			</ee:message>
@@ -243,10 +243,10 @@ var crossSignals = detectCrossSignals(vars.nutritionDetail,vars.biometricDetail,
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="Choice" doc:id="a984605e-4ab6-417f-9b41-a21799cab2e0" >
-			<when expression="#[vars.userProfile.preferences.generationMode == 'template']">
+			<when expression="#[vars.textMode == 'template']">
 				<flow-ref doc:name="create-template-text" doc:id="401ed0f5-7f8a-44db-a5c5-9a8c321dced9" name="create-template-text"/>
 			</when>
-			<when expression="#[vars.userProfile.preferences.generationMode == 'llm']">
+			<when expression="#[vars.textMode == 'llm']">
 				<try doc:name="Try" doc:id="901de17b-4478-4b6d-bc44-fe11103c9e32" >
 					<flow-ref doc:name="create-llm-based-text" doc:id="0972953b-775f-4bac-aed9-33fe0c4fa127" name="create-llm-based-text" />
 					<error-handler >
@@ -269,7 +269,7 @@ var crossSignals = detectCrossSignals(vars.nutritionDetail,vars.biometricDetail,
 				</try>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="Insight conclusions complete" doc:id="cbe7b7c6-c832-4cf3-aefe-dd744333d255" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	recommendationCount: sizeOf(vars.insightConclusions.recommendations),&#10;	crossSignalCount: sizeOf(vars.insightConclusions.cross_signal)&#10;}&#10;---&#10;buildLog("INFO","Insight conclusions complete",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
+		<logger level="INFO" doc:name="Insight conclusions complete" doc:id="cbe7b7c6-c832-4cf3-aefe-dd744333d255" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	recommendationCount: sizeOf(vars.insightConclusions.recommendations),&#10;	crossSignalCount: sizeOf(vars.insightConclusions.cross_signal),&#10;	mode: vars.textMode&#10;}&#10;---&#10;buildLog("INFO","Insight conclusions complete",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
 		<ee:transform doc:name="Transform Message" doc:id="86b800d5-e80e-4a1e-a13c-9b38e752b8f2" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -280,7 +280,7 @@ import * from dwl::computes::dailyInsightResponse
 	user_id: vars.userId,
 	date: vars.date,
 	generated_at: now(),
-	generation_mode: vars.userProfile.preferences.generationMode,
+	generation_mode: vars.textMode,
 	data_completeness: buildDataCompleteness(vars.mealStatus,vars.wearableStatus),
 	dimension_status: buildDimensionStatus(vars.nutritionDetail, vars.biometricDetail,vars.microsDetail),
 	nutrition_detail: buildNutritionDetail(vars.nutritionDetail,vars.microsDetail),
@@ -317,10 +317,10 @@ vars.insightConclusions ++ {
   recommendations: attachRecommendationText(vars.insightConclusions.recommendations),
   cross_signal: attachCrossSignalText(vars.insightConclusions.cross_signal)
 }]]></ee:set-variable>
-				<ee:set-variable variableName="userProfile" ><![CDATA[%dw 2.0
+				<ee:set-variable variableName="textMode" ><![CDATA[%dw 2.0
 output application/java
 ---
-{preferences:{generationMode :"template"}}]]></ee:set-variable>
+"template"]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="Template Text Attached" doc:id="35725c20-aa4e-4667-ba64-7d264c9c11a1" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	&#10;}&#10;---&#10;buildLog("INFO","Template Text Attached",message,vars.correlationId, "create-llm-based-text")]' />
@@ -373,13 +373,10 @@ else if (not (parsed.value.recommendations is Array))
     { status: "error", reason: "Missing 'recommendations' array", raw: extracted.text }
 else
     { status: "ok", data: parsed.value }
-//{
-//	extracted:extracted
-//}]]></ee:set-payload>
+]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="LLM Request Complete" doc:id="8e3fc461-1203-4213-b142-030a7686d5ee" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	payload: payload&#10;}&#10;---&#10;buildLog("INFO","LLM Request Complete",message,vars.correlationId, "create-llm-based-text")]'/>
-		<set-payload value='#[{&#10;	status:"fail"&#10;}]' doc:name="Set Payload" doc:id="6534e827-a9a8-4e69-a82e-39b1b4cfd6a0" />
 		<choice doc:name="Choice" doc:id="f6bc86df-d41d-4478-bc90-e71b9d6545a1" >
 			<when expression="#[payload.status == 'ok']">
 				<ee:transform doc:name="Attach LLM Text" doc:id="15e22f91-0e1e-4678-a767-7de4d1c8f583" >
