@@ -47,7 +47,7 @@
     "typicalLunchTime": "12:30:00",
     "typicalDinnerTime": "19:00:00",
     "typicalSleepTime": "23:00:00",
-    "generationMode": "template",
+    "generationMode": "llm",
     "targetSleepDurationHrs": 6,
     "unitsSystem": "metric",
     "createdAt": "2026-01-01T00:00:00-05:00",
