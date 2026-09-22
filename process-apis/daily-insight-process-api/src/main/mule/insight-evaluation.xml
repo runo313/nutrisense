@@ -355,6 +355,7 @@ import buildInsightPrompt from dwl::template::buildInsightPrompt
 	"Content-Type" : "application/json"
 }]]]></http:headers>
 		</http:request>
+		<logger level="INFO" doc:name="LLM Request Complete" doc:id="8e3fc461-1203-4213-b142-030a7686d5ee" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	finishReason: payload.finishReason,&#10;	responseId: payload.responseId,&#10;	&#10;}&#10;---&#10;buildLog("INFO","LLM Request Complete",message,vars.correlationId, "create-llm-based-text")]' />
 		<ee:transform doc:name="Parse LLM Text" doc:id="63086dd4-e5e3-424b-a759-c293dfaa66d9">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -376,7 +377,6 @@ else
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="LLM Request Complete" doc:id="8e3fc461-1203-4213-b142-030a7686d5ee" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	payload: payload&#10;}&#10;---&#10;buildLog("INFO","LLM Request Complete",message,vars.correlationId, "create-llm-based-text")]'/>
 		<choice doc:name="Choice" doc:id="f6bc86df-d41d-4478-bc90-e71b9d6545a1" >
 			<when expression="#[payload.status == 'ok']">
 				<ee:transform doc:name="Attach LLM Text" doc:id="15e22f91-0e1e-4678-a767-7de4d1c8f583" >
