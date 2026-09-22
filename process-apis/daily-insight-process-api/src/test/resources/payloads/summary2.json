@@ -1,0 +1,8 @@
+{"payload":{
+  "point_metrics": [
+    { "metric_type": "resting_heart_rate", "average": 62, "min": 55, "max": 71, "count": 22 },
+    { "metric_type": "hrv", "average": 52, "min": 30, "max": 105, "count": 8 },
+    { "metric_type": "active_energy_burned", "average": 480, "min": 200, "max": 900, "count": 28 }
+  ]
+}, "status": 200
+}

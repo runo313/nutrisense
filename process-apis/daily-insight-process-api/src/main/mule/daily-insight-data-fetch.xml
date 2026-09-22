@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="fetch-user-profile-subflow" doc:id="a03e0a60-4980-48a5-89b3-42ab94f28bd4" >
+		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="622d28e2-211e-483d-8a4a-14e0e1b67d41" variableName="flowName" />
+		<logger level="INFO" doc:name="START" doc:id="bbaa64b0-860a-48b0-ada0-0a062cf5a92d" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Fetching user profile",message,vars.correlationId, "fetch-user-profile-subflow")]' />
+		<http:request doc:name="Get User Profile" doc:id="10fbcfe7-ef5d-472a-9184-047cf2f00658" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+		<set-variable value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;//  goals: payload[0].payload,&#10;//  conditions: payload[1].payload,&#10;//  constraints: payload[2].payload,&#10;//  preferences: payload[3].payload&#10;	goals: payload.goals,&#10;	conditions: payload.conditions,&#10;	constraints: payload.constraints,&#10;	preferences: payload.preferences[0],&#10;	profile:{&#10;	    "name": payload.name,&#10;	    "email": payload.email,&#10;	    "dateOfBirth": payload.dateOfBirth,&#10;	    "biologicalSex": payload.biologicalSex,&#10;	    "heightCm": payload.heightCm,&#10;	    "weightKg": payload.weightKg,&#10;	    "activityBaseline": payload.activityBaseline,&#10;	    "dailyCaloricTarget": payload.dailyCaloricTarget,&#10;	}&#10;	&#10;}]' doc:name="User Profile" doc:id="3ca5b0cb-b1cf-49d1-8ef6-9cb6a2dfd26b" variableName="userProfile"/>
+		<logger level="INFO" doc:name="Profile fetch Complete" doc:id="924c5988-c4f7-41ba-8686-0034acd5c952" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Profile fetch Complete",message,vars.correlationId, "fetch-user-profile-subflow")]' />
+	</sub-flow>
+	<sub-flow name="fetch-meals-and-nutrition-subflow" doc:id="595d582d-482c-4bdb-a673-6a49cc9b761b" >
+		<logger level="INFO" doc:name="Fetch Meals" doc:id="e58e83cf-d5cc-4e78-9f07-a7ce66bb5b11" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date&#10;}&#10;---&#10;buildLog("INFO","Fetching meals",message,vars.correlationId, "fetch-meals-and-nutrition-subflow")]' />
+		<http:request doc:name="Get Logged Meals" doc:id="feb9df4a-fa6c-47b3-9896-2b519a192a89" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals" responseTimeout="${nutrisense.sapi.timeout}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"date" : vars.date
+}]]]></http:query-params>
+			<http:response-validator >
+				<http:success-status-code-validator values="200,404" />
+			</http:response-validator>
+		</http:request>
+		<choice doc:name="Check Status code" doc:id="66c93b28-c9d2-434e-9340-fc7d31e6dd6a" >
+			<when expression="#[attributes.statusCode == 200]" >
+				<logger level="INFO" doc:name="Meals retrieved" doc:id="7dbc773e-84a9-4167-abab-4abc20341c5c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	count:sizeOf(payload.meals)&#10;}&#10;---&#10;buildLog("INFO","Meals retrieved",message,vars.correlationId, "fetch-meals-and-nutrition-subflow")]' />
+				<ee:transform doc:name="Unique Foood Ids" doc:id="11ee09e7-25a2-4eeb-a03e-38cade8195ab" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="uniqueFoodIds" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.meals flatMap ((meal) -> meal.items map ((item) -> item.foodId)) distinctBy ((id) -> id)]]></ee:set-variable>
+						<ee:set-variable variableName="loggedItems" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.meals flatMap ((meal) -> meal.items map ((item) -> {
+  foodId: item.foodId,
+  quantityG: item.quantityG
+}))]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<parallel-foreach doc:name="Parallel For Each" doc:id="38a6cff2-5110-45e1-9d63-a91315eadf2e" collection="#[vars.uniqueFoodIds]" >
+					<http:request doc:name="Fetch Nutrients" doc:id="08dfc6de-56d4-45c8-a88d-6fd1605d967c" config-ref="NUTRITION_SAPI_HTTP_CONFIG" path="/api/v1/nutrition-data-sapi/foods/{foodId}" responseTimeout="${nutrisense.sapi.timeout}" >
+						<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+						<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"foodId" : payload
+}]]]></http:uri-params>
+						<http:response-validator >
+							<http:success-status-code-validator values="200,404" />
+						</http:response-validator>
+					</http:request>
+				</parallel-foreach>
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;var successfulFoods = payload filter ((item) -&gt; item.attributes.statusCode == 200)&#10;&#10;---&#10;{&#10;	mealsLogged: true,&#10;	nutritionResolved: sizeOf(successfulFoods) &gt; 0,&#10;	foods: successfulFoods map ((item) -&gt; item.payload),&#10;	meals:vars.loggedItems&#10;}]" doc:name="Set Meal Status" doc:id="48d2d697-dbc3-4d03-82e5-be6b59658445" variableName="mealStatus" />
+				<logger level="INFO" doc:name="Meals and Nutrients retrieved" doc:id="c234d750-399c-4481-92d1-d2c91182f827" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealsLogged: vars.mealStatus.mealsLogged,&#10;	nutritionResolved: vars.mealStatus.nutritionResolved,&#10;	foodSize: sizeOf(vars.mealStatus.foods)&#10;}&#10;---&#10;buildLog("INFO","Fetch Meals and Nutrients Complete",message,vars.correlationId, "fetch-meals-and-nutrition-subflow")]' />
+			</when>
+			<when expression='#[(payload.code == "MEAL-404") and (payload.message default "" contains "Resource not found")]'>
+				<logger level="INFO" doc:name="APIKIT NOT FOUND" doc:id="71552c1b-b802-4c72-a874-23241d4ed19e" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealStatus: vars.dailyWearable.payload.message,&#10;}&#10;---&#10;buildLog("INFO","APIKIT NOT FOUND",message,vars.correlationId, "fetch-wearable-data-subflow")]' />
+				<raise-error doc:name="Raise error" doc:id="2ce80f3d-f408-41bc-9f80-5184a5ddb1b0" type="ANY" description="MEAL-APIKIT-404"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="No Meals retrieved" doc:id="0052ca90-8964-4d74-b0ee-093b6e5031d1" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	payload: payload&#10;}&#10;---&#10;buildLog("INFO","No Meals retrieved",message,vars.correlationId, "fetch-meals-and-nutrition-subflow")]' />
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	mealsLogged: false,&#10;	nutritionResolved: false,&#10;	meals: [],&#10;	foods: []&#10;}]" doc:name="Set Meal Status" doc:id="11337c60-29cb-48f5-ae43-23e611ffaec3" variableName="mealStatus" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="fetch-wearable-data-subflow" doc:id="09a810ab-b72b-4752-a2b3-458781a92d6e" >
+		<ee:transform doc:name="End Date" doc:id="aaefbec8-16fb-4a97-b78e-c27cde8d5919">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="endDate" ><![CDATA[%dw 2.0
+output application/java
+---
+(vars.date as String) + |P1D|]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Fetch Wearable Data" doc:id="64ba27bc-0cf0-4f95-9258-c6f1b0b20e16" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;&#10;var message ={&#10;	userId: vars.userId,&#10;	startDate: vars.date,&#10;	endDate: vars.endDate&#10;}&#10;---&#10;buildLog("INFO","Fetching wearable data",message,vars.correlationId, "fetch-wearable-data-subflow")]' />
+		<http:request doc:name="Get Wearable Data" doc:id="ac1135b7-ae94-4339-8671-14c27256bc18" config-ref="WEARABLE_SAPI_HTTP_CONFIG" path="api/v1/wearables-sapi/wearable-data/{userId}" responseTimeout="${nutrisense.sapi.timeout}" target="dailyWearable" targetValue="#[output application/java --- { payload: payload, status: attributes.statusCode}]" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"endDate" : vars.endDate,
+	"startDate" : vars.date,
+	"limit": 150,
+	"metricType":"resting_heart_rate",
+	"metricType":"hrv",
+	"metricType":"step_count",
+	"metricType":"active_energy_burned",
+}]]]></http:query-params>
+			<http:response-validator >
+				<http:success-status-code-validator values="200,404" />
+			</http:response-validator>
+		</http:request>
+		<http:request doc:name="Get Wearable Summary" doc:id="b0a34b89-72ef-4809-8398-30edfe6074bf" config-ref="WEARABLE_SAPI_HTTP_CONFIG" path="/api/v1/wearables-sapi/wearable-data/{userId}/summary" responseTimeout="${nutrisense.sapi.timeout}" target="summaryWearable" targetValue="#[output application/java --- { payload: payload, status: attributes.statusCode }]" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"metricType" : "resting_heart_rate",
+	"duration" : 30,
+	"metricType" : "hrv",
+	"metricType" : "active_energy_burned"
+}]]]></http:query-params>
+			<http:response-validator >
+				<http:success-status-code-validator values="200,404" />
+			</http:response-validator>
+		</http:request>
+		<set-variable value='#[((vars.dailyWearable.payload.code == "WEARABLE-404") and (vars.dailyWearable.payload.message default "" contains "Resource not found")) or ((vars.summaryWearable.payload.code == "WEARABLE-404") and (vars.summaryWearable.payload.message default "" contains "Resource not found"))]' doc:name="Is Apikit Error" doc:id="e8fe93e6-b74c-46c3-82b5-23dc21cddd1f" variableName="isApikitRoutingError"/>
+		<choice doc:name="Choice" doc:id="04872c94-3120-4804-931a-48b60f0bf085" >
+			<when expression='#[vars.isApikitRoutingError]'>
+				<logger level="INFO" doc:name="APIKIT NOT FOUND" doc:id="59404e47-1092-4331-86d1-72392053f8cc" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	dailyData: vars.dailyWearable.payload.message,&#10;	summaryData: vars.summaryWearable.payload.message&#10;	&#10;}&#10;---&#10;buildLog("INFO","APIKIT NOT FOUND",message,vars.correlationId, "fetch-wearable-data-subflow")]'/>
+				<raise-error doc:name="Raise error" doc:id="5c15972d-5f71-4af6-88eb-9cd725806a96" type="ANY" description="WEARABLE-APIKIT-404"/>
+			</when>
+			<otherwise >
+				<set-variable value="#[%dw 2.0&#10;output application/java&#10;&#10;var dailyData = if(vars.dailyWearable.status == 200) true else false&#10;var baseline = if(vars.summaryWearable.status == 200) true else false&#10;---&#10;{&#10;	dailyDataAvailable: dailyData,&#10;	baselineAvailable: baseline,&#10;	dailyData: if(dailyData) vars.dailyWearable.payload else null,&#10;	baselineData: if (baseline) vars.summaryWearable.payload else null&#10;}]" doc:name="Set Wearable Status" doc:id="93c0ba30-e779-478b-afdf-d164efec5847" variableName="wearableStatus" />
+				<logger level="INFO" doc:name="Wearable Data Received " doc:id="4b480ac7-ff4b-4c24-894e-b3a9c0b623f7" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	dailyDataAvailable: vars.wearableStatus.dailyDataAvailable,&#10;	baselineAvailable: vars.wearableStatus.baselineAvailable&#10;}&#10;---&#10;buildLog("INFO","Wearable data retrieved",message,vars.correlationId, "fetch-wearable-data-subflow")]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

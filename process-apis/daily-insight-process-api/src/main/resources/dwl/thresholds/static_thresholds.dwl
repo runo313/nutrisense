@@ -1,5 +1,5 @@
 %dw 2.0
-import some from dwl::core::Arrays
+import * from dw::core::Arrays
 /**
  * NutriSense Reference Thresholds (Opus 4.6)
  *  — Category 1: Static Lookup

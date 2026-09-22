@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="evaluate-daily-insight-subflow" doc:id="df9d3250-d297-43b4-9dec-28a26fd6ee78" >
+		<logger level="INFO" doc:name="Evaluation started" doc:id="945a1e2c-ab41-4598-8cf4-368b55083871" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date,&#10;	mealsLogged: vars.mealStatus.mealsLogged,&#10;	nutritionResolved: vars.mealStatus.nutritionResolved,&#10;	dailyDataAvailable: vars.wearableStatus.dailyDataAvailable,&#10;	baselineAvailable: vars.wearableStatus.baselineAvailable,&#10;	caloricTarget: vars.userProfile.profile.dailyCaloricTarget,&#10;	mode: vars.textMode&#10;}&#10;---&#10;buildLog("INFO","Evaluation started",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
+		<ee:transform doc:name="Aggregate Nutrition" doc:id="eb1f689f-f60c-47f1-a756-d7f2da87890f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="nutritionAggregate" ><![CDATA[%dw 2.0
+output application/java
+
+var meal = vars.mealStatus
+
+// findFood: given a foodId, look up its full nutrition record.
+// meal.foods is an array of arrays (each food is wrapped in its own
+// single-element array), so we flatten it first to get a flat list
+// of food objects before filtering.
+fun findFood(foodId) = flatten(meal.foods) filter ((food) -> food.foodId == foodId)
+
+// scaleItem: for one logged meal entry ({foodId, quantityG}),
+// look up its reference food data and scale every nutrient value
+// from the "per servingSizeG" amount to the "per quantityG actually
+// eaten" amount.
+
+fun scaleItem(item) = do {
+    // The matching food record (null if not found)
+    var food = findFood(item.foodId)[0]
+    // return null on no match so the downstream filter actually removes it
+    ---
+    if (food == null) null
+    else do {
+        var factor = (item.quantityG as Number) / (food.servingSizeG as Number)
+        ---
+        {
+            foodId: item.foodId,
+            name: food.name,
+            quantityG: item.quantityG,
+            servingSizeG: food.servingSizeG,
+            nutrients: food.nutrients mapObject ((value, key) ->
+                { (key): if (value is Number) value * factor else null }
+            )
+        }
+    }
+}
+// scaleAllItems: apply scaleItem to every logged meal entry,
+// dropping any entries where no matching food was found.
+fun scaleAllItems() = (meal.meals map ((item) -> scaleItem(item)))
+filter ($ != null)
+
+
+fun sumNutrients(items) = do {
+    var nuts = items map ((item) -> item.nutrients)
+    var allKeys = flatten(nuts map ((n) -> keysOf(n)))
+                    map ((k) -> k as String)
+                    distinctBy ((k) -> k)
+    ---
+    allKeys reduce ((key, acc = {}) -> do {
+        var vals = (nuts map ((n) -> n[key])) filter ((v) -> v is Number)
+        ---
+        acc ++ { (key):
+            if (isEmpty(vals)) null                              // no data anywhere → null
+            else vals reduce ((v, total = 0) -> total + v)       // else sum the numbers
+        }
+    })
+}
+
+var items = scaleAllItems()
+---
+{
+    scaledItems: scaleAllItems(),
+    dailyTotals: if (isEmpty(items)) null else sumNutrients(items)
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Nutrition aggregated" doc:id="f6e63239-7679-4de0-99ec-e666c82da4d4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	totalCalories: vars.nutritionAggregate.dailyTotals.energyKcal&#10;}&#10;---&#10;buildLog("INFO","Nutrition aggregated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
+		<ee:transform doc:name="Evaluate Calories and Macros" doc:id="a2533f75-dc63-4c83-bebf-a55370b6d9fd" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="nutritionDetail" ><![CDATA[%dw 2.0
+output application/java
+import evaluateCalories from dwl::computes::evaluateCalories
+import * from dwl::thresholds::derived_targets
+import evaluateProtein from dwl::computes::evaluateProtein
+import evaluateSaturatedFat from dwl::computes::evaluateSaturatedFat
+import evaluateFiber from dwl::computes::evaluateFiber
+import evaluateAmdrRange from dwl::computes::evaluateAmdrRange
+import evaluateCarbohydrate from dwl::computes::evaluateCarbohydrate
+import * from dwl::computes::evaluateSodium
+import rowsForMetric from dwl::thresholds::static_thresholds
+
+var energykcal = (vars.nutritionAggregate.dailyTotals.energyKcal as Number) default null
+var calTarget = vars.userProfile.profile.dailyCaloricTarget as Number default null
+var resolvedProteins = resolveProteinTarget(vars.userProfile)
+var resolvedSaturatedFat= resolveSaturatedFatTarget(calTarget,vars.userProfile.conditions)
+var resolvedFiber = resolveFiberTarget(calTarget)
+var resolveAmdrFat = resolveAmdrTarget(amdrRanges[1], calTarget)
+var resolveAmdrCarb = resolveAmdrTarget(amdrRanges[0], calTarget)
+var row = rowsForMetric("carbohydrate_g")
+var resolveSodium = resolveSodiumTarget(vars.userProfile.conditions)
+
+var evalCal = evaluateCalories(energykcal,calTarget)
+var evalProtein = evaluateProtein(vars.nutritionAggregate.dailyTotals.proteinG, resolvedProteins)
+var evalSaturatedFat = evaluateSaturatedFat(vars.nutritionAggregate.dailyTotals.saturatedFatG,resolvedSaturatedFat)
+var evalFiber = evaluateFiber(vars.nutritionAggregate.dailyTotals.dietaryFiberG,resolvedFiber)
+var evalAmdrFat = evaluateAmdrRange(vars.nutritionAggregate.dailyTotals.totalFatG,resolveAmdrFat, "total_fat_g")
+var evalCarbohydrate = evaluateCarbohydrate(vars.nutritionAggregate.dailyTotals.carbohydratesG,resolveAmdrCarb,row)
+var evalSodium = evaluateSodium(vars.nutritionAggregate.dailyTotals.sodiumMg, resolveSodium)
+fun summarizeMacrosStatus() = do {
+	var allStatuses = [evalProtein.status,
+    evalSaturatedFat.status,
+    evalFiber.status,
+    evalAmdrFat.status,
+    evalSodium.status,
+    evalCarbohydrate.status]
+	var worstRank = max(allStatuses map (statusSeverity[$]))
+	---
+	severityToStatus[worstRank as String]
+}
+---
+{
+	calories: evalCal,
+	macros: {
+		protein: evalProtein,
+		saturatedFat: evalSaturatedFat,
+		fiber: evalFiber,
+		fat: evalAmdrFat,
+		carbohydrate: evalCarbohydrate,
+		sodium: evalSodium,
+		status: summarizeMacrosStatus()
+	}
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Calories and macros evaluated" doc:id="4117b080-5551-4234-880b-b760cfb70621" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	caloriesStatus: vars.nutritionDetail.calories.status,&#10;	macrosStatus: vars.nutritionDetail.macros.status&#10;}&#10;---&#10;buildLog("INFO","Calories and macros evaluated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
+		<ee:transform doc:name="Evaluate Micros" doc:id="cda1b7e2-93a2-4970-8fe5-c7d88c0e0e8f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="microsDetail" ><![CDATA[%dw 2.0
+output application/java
+
+import * from dwl::thresholds::static_thresholds
+import evaluateMicronutrients from dwl::computes::evaluateMicronutrients
+
+// compute age 
+var dateOfBirth = vars.userProfile.profile.dateOfBirth
+var age = do{
+    var today = now() as Date
+    var dob = dateOfBirth as Date
+    var rawAge = today.year - dob.year
+    var passedBirthday = (today.month > dob.month) or (today.month == dob.month and today.day >= dob.day)
+    ---
+    if ( passedBirthday ) rawAge else rawAge - 1
+}
+var demographic = resolveDemographic(vars.userProfile.profile.biologicalSex, age)
+var conditions = vars.userProfile.conditions filter ($.isActive == true) map ($.conditionType)
+var constraints = vars.userProfile.constraints filter ($.isActive == true) map ($.constraintValue)
+var dailyTotals = vars.nutritionAggregate.dailyTotals 
+---
+evaluateMicronutrients(demographic,conditions,constraints,dailyTotals)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Micronutrients evaluated" doc:id="c8e9f1a9-5a8b-492c-973f-cd9331d8b5a4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	surfacedCount: sizeOf(vars.microsDetail)&#10;}&#10;---&#10;buildLog("INFO","Micronutrients evaluated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
+		<ee:transform doc:name="Evaluate Sleep Activity and Recovery" doc:id="77f15a5b-f8ae-4412-b4e0-ab820c26cb10" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="biometricDetail" ><![CDATA[%dw 2.0
+output application/java
+import evaluateSleep from dwl::computes::evaluateSleep
+import * from dwl::computes::computeSleepAggregate
+import evaluateRecovery from dwl::computes::evaluateRecovery
+import evaluateActiveEnergy from dwl::computes::evaluateActiveEnergy
+
+var targetSleepDurationHrs = vars.userProfile.preferences.targetSleepDurationHrs
+var todaySteps = (vars.wearableStatus.dailyData.point_metrics filter ($.metric_type == "step_count")) map ($.value) reduce ((v, acc = 0) -> acc + v)
+var todayActiveEnergy = vars.wearableStatus.dailyData.point_metrics filter ((item) -> item.metric_type == 'active_energy_burned')
+reduce ((item, acc = 0) -> item.value + acc )
+
+var no_data = {
+	duration_hrs: null,
+	target_hrs: null,
+	floor_applied: false,
+	duration_status: null,
+	rem_pct: null,
+	rem_status: null,
+	deep_pct: null,
+	deep_status: null,
+	status: "no_data"
+}
+var evalSleep =
+  if ( vars.wearableStatus.dailyDataAvailable ) do {
+	var sleepAggregate = computeSleepAggregate(vars.wearableStatus.dailyData.sleep_sessions)
+	---
+	evaluateSleep(sleepAggregate.durationHrs, sleepAggregate.deepPct, sleepAggregate.remPct, targetSleepDurationHrs)
+} else no_data
+    
+var evalRecovery = evaluateRecovery(vars.wearableStatus)
+var evalEnergy = evaluateActiveEnergy(todayActiveEnergy,vars.wearableStatus.baselineData)
+---
+{
+	sleep: evalSleep,
+	recovery: evalRecovery,
+	activity: {
+		steps: todaySteps,
+  		active_energy_kcal: todayActiveEnergy,
+  		deviation_status_low: evalEnergy.deviation_status_low,
+  		deviation_status_high: evalEnergy.deviation_status_high,
+  		baseline_kcal: evalEnergy.baseline_kcal default null
+	}
+}
+
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Sleep activity recovery evaluated" doc:id="cfa1164a-6eff-4d37-8580-093af6e2bd2c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	sleepStatus: vars.biometricDetail.sleep.status,&#10;	recoveryStatus: vars.biometricDetail.recovery.status&#10;}&#10;---&#10;buildLog("INFO","Sleep/activity/recovery evaluated",message,vars.correlationId, "evaluate-daily-insight-subflow")]'/>
+		<ee:transform doc:name="Rank Flagged Dimensions" doc:id="f8fff1c8-9f31-4a38-8b17-4cce31629a86" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="insightConclusions" ><![CDATA[%dw 2.0
+output application/java
+
+import gatherCandidates,buildRecommendations from dwl::computes::gatherCandidates
+import detectCrossSignals from dwl::computes::detectCrossSignals
+
+var gatheredCandidates = gatherCandidates(vars.nutritionDetail,vars.biometricDetail)
+var recommendations = buildRecommendations(gatheredCandidates)
+var primaryGoal = vars.userProfile.goals filter (() -> $.isPrimary)
+var crossSignals = detectCrossSignals(vars.nutritionDetail,vars.biometricDetail,vars.userProfile.conditions,primaryGoal)
+---
+{
+	recommendations: recommendations,
+	cross_signal: crossSignals
+}
+
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="a984605e-4ab6-417f-9b41-a21799cab2e0" >
+			<when expression="#[vars.textMode == 'template']">
+				<flow-ref doc:name="create-template-text" doc:id="401ed0f5-7f8a-44db-a5c5-9a8c321dced9" name="create-template-text"/>
+			</when>
+			<when expression="#[vars.textMode == 'llm']">
+				<try doc:name="Try" doc:id="901de17b-4478-4b6d-bc44-fe11103c9e32" >
+					<flow-ref doc:name="create-llm-based-text" doc:id="0972953b-775f-4bac-aed9-33fe0c4fa127" name="create-llm-based-text" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c0085bf9-14d2-4309-abd7-8f83828115b9" type="ANY" >
+							<logger level="INFO" doc:name="LLM Generation Failed" doc:id="0899254c-8b39-4974-9eb3-1726cb6c32d8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	error: error.errorType,&#10;	description: error.description&#10;}&#10;---&#10;buildLog("INFO","LLM generation failed, falling back to template",message,vars.correlationId, "create-llm-based-text")]' />
+							<flow-ref doc:name="create-template-text" doc:id="30cab29a-7c7b-4a87-8fa5-108b6ce2354e" name="create-template-text" />
+						</on-error-continue>
+					</error-handler>
+				</try>
+			</when>
+			<otherwise>
+				<try doc:name="Try" doc:id="bed830a6-01ec-4677-a5fd-9226b9782808" >
+					<flow-ref doc:name="create-custom-based-text" doc:id="d91eb583-2a83-40c3-bac6-f7c825e20c84" name="create-custom-based-text" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9de7f226-2975-4043-bac1-a7302d7b4757" type="ANY" >
+							<logger level="INFO" doc:name="Custom Model Generation Failed" doc:id="7eaa7943-e1bd-48a7-a33a-3b255d1efc07" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	error: error.errorType,&#10;	description: error.description&#10;}&#10;---&#10;buildLog("INFO","Custom Model Generation Failed, falling back to template",message,vars.correlationId, "create-llm-based-text")]' />
+							<flow-ref doc:name="create-template-text" doc:id="db83aebe-94a7-4170-b6f3-17a7de7adeb1" name="create-template-text" />
+						</on-error-continue>
+					</error-handler>
+				</try>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Insight conclusions complete" doc:id="cbe7b7c6-c832-4cf3-aefe-dd744333d255" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	recommendationCount: sizeOf(vars.insightConclusions.recommendations),&#10;	crossSignalCount: sizeOf(vars.insightConclusions.cross_signal),&#10;	mode: vars.textMode&#10;}&#10;---&#10;buildLog("INFO","Insight conclusions complete",message,vars.correlationId, "evaluate-daily-insight-subflow")]' />
+		<ee:transform doc:name="Transform Message" doc:id="86b800d5-e80e-4a1e-a13c-9b38e752b8f2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+import * from dwl::computes::dailyInsightResponse
+---
+{
+	user_id: vars.userId,
+	date: vars.date,
+	generated_at: now(),
+	generation_mode: vars.textMode,
+	data_completeness: buildDataCompleteness(vars.mealStatus,vars.wearableStatus),
+	dimension_status: buildDimensionStatus(vars.nutritionDetail, vars.biometricDetail,vars.microsDetail),
+	nutrition_detail: buildNutritionDetail(vars.nutritionDetail,vars.microsDetail),
+	biometric_detail: buildBiometricDetail(vars.biometricDetail.sleep,vars.biometricDetail.activity,vars.biometricDetail.recovery),
+	recommendations: vars.insightConclusions.recommendations,
+	cross_signal: vars.insightConclusions.cross_signal,
+	metrics_shown : (vars.userProfile.preferences.preferredWearableMetrics default []) ++ (vars.userProfile.preferences.preferredNutritionMetrics default [])
+} ]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="create-template-text" doc:id="44164192-fb2f-4591-9702-71ea9d2823d7" >
+		<ee:transform doc:name="Attach Template Text" doc:id="1ce10a60-b641-457c-a1ca-26c21d2439ae" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="insightConclusions" ><![CDATA[%dw 2.0
+output application/java
+import * from dwl::template::recommendationText
+import * from dwl::template::textTemplate
+
+fun attachRecommendationText(recommendations) = 
+  recommendations map ((rec) -> rec ++ { text: provideRecommendationText(rec) })
+
+fun attachCrossSignalText(crossSignals) = 
+  crossSignals map ((signal) -> signal ++ { text: buildCrossSignalText(signal.key) })
+---
+vars.insightConclusions ++ {
+  recommendations: attachRecommendationText(vars.insightConclusions.recommendations),
+  cross_signal: attachCrossSignalText(vars.insightConclusions.cross_signal)
+}]]></ee:set-variable>
+				<ee:set-variable variableName="textMode" ><![CDATA[%dw 2.0
+output application/java
+---
+"template"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Template Text Attached" doc:id="35725c20-aa4e-4667-ba64-7d264c9c11a1" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	&#10;}&#10;---&#10;buildLog("INFO","Template Text Attached",message,vars.correlationId, "create-llm-based-text")]' />
+	</sub-flow>
+	<sub-flow name="create-custom-based-text" doc:id="d492c20e-e93a-4c82-b39d-f2a2e35caf23" >
+		<raise-error doc:name="Raise error" doc:id="12190860-f883-47ff-9490-c3112bbc5c6c" type="ANY" description="Custom Model Unavailable " />
+	</sub-flow>
+	<sub-flow name="create-llm-based-text" doc:id="fb1c6195-ee19-496c-a1ae-7f3985159461" >
+		<ee:transform doc:name="Transform Message" doc:id="8bc93441-1c3a-4c64-8ada-d4ca07a4a806" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="llmPrompt" ><![CDATA[%dw 2.0
+output application/json
+import buildInsightPrompt from dwl::template::buildInsightPrompt
+---
+{
+	contents: [{
+		role: "user",
+		parts: [{
+			text: buildInsightPrompt(vars.insightConclusions.recommendations,vars.insightConclusions.cross_signal)
+		}]
+	}]
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request doc:name="Request to LLM" doc:id="7215784e-c97d-47c5-9240-d728815418ca" config-ref="NUTRISENSE_LLM_HTTP_CONFIG" path="#[Mule::p('nutrisense.llm.path')]" method="POST">
+			<http:body><![CDATA[#[vars.llmPrompt]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"x-goog-api-key" : Mule::p('secure::nutrisense.llm.apiKey'),
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="LLM Request Complete" doc:id="8e3fc461-1203-4213-b142-030a7686d5ee" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	finishReason: payload.finishReason,&#10;	responseId: payload.responseId,&#10;	&#10;}&#10;---&#10;buildLog("INFO","LLM Request Complete",message,vars.correlationId, "create-llm-based-text")]' />
+		<ee:transform doc:name="Parse LLM Text" doc:id="63086dd4-e5e3-424b-a759-c293dfaa66d9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+import * from dwl::template::parseLLMText
+
+var extracted = extractLlmText(payload)
+var cleaned = cleanLlmText(extracted.text)
+var parsed = if (isEmpty(cleaned)) { ok: false } else safeParse(cleaned)
+---
+if (extracted.finishReason != "STOP")
+    { status: "error", reason: "Model did not finish cleanly: " ++ extracted.finishReason, raw: extracted.text }
+else if (not parsed.ok)
+    { status: "error", reason: parsed.reason, raw: extracted.text }
+else if (not (parsed.value.recommendations is Array))
+    { status: "error", reason: "Missing 'recommendations' array", raw: extracted.text }
+else
+    { status: "ok", data: parsed.value }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="f6bc86df-d41d-4478-bc90-e71b9d6545a1" >
+			<when expression="#[payload.status == 'ok']">
+				<ee:transform doc:name="Attach LLM Text" doc:id="15e22f91-0e1e-4678-a767-7de4d1c8f583" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="insightConclusions" ><![CDATA[%dw 2.0
+output application/java
+
+import attachLlmText from dwl::template::parseLLMText
+---
+attachLlmText(vars.insightConclusions.recommendations,vars.insightConclusions.cross_signal,payload.data)]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="LLM Text Attached" doc:id="23995ded-d444-4bef-b3c4-b05ae56ae8eb" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	&#10;}&#10;---&#10;buildLog("INFO","LLM Text Attached",message,vars.correlationId, "create-llm-based-text")]' />
+			</when>
+			<otherwise>
+				<raise-error doc:name="Raise error" doc:id="142c65a7-5785-4239-9604-9a99d8f9c9c0" type="ANY" description="LLM Text Parsing Failed"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

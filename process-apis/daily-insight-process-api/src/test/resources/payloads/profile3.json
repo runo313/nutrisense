@@ -1,0 +1,56 @@
+{
+  "userId": "runo313",
+  "name": "Runo Test",
+  "email": "runo@example.com",
+  "dateOfBirth": "1998-03-10",
+  "biologicalSex": "female",
+  "heightCm": 165,
+  "weightKg": 68,
+  "activityBaseline": "moderately_active",
+  "dailyCaloricTarget": 2100,
+  "createdAt": "2026-01-01T00:00:00-05:00",
+  "updatedAt": "2026-01-01T00:00:00-05:00",
+  "goals": [
+    {
+      "goalId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "userId": "runo313",
+      "goalType": "weight_management",
+      "goalDirection": "lose",
+      "targetValue": 63,
+      "targetUnit": "kg",
+      "isPrimary": true,
+      "isActive": true,
+      "setAt": "2026-01-01T00:00:00-05:00",
+      "achievedAt": null
+    }
+  ],
+  "conditions": [
+    {
+      "conditionId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "userId": "runo313",
+      "conditionType": "anemia",
+      "managementStatus": "monitoring",
+      "diagnosedAt": "2023-05-01",
+      "notes": null,
+      "isActive": true,
+      "createdAt": "2026-01-01T00:00:00-05:00"
+    }
+  ],
+  "constraints": [],
+  "preferences": [{
+    "preferenceId": "d4e5f6a7-b8c9-0123-defa-234567890123",
+    "userId": "runo313",
+    "insightFrequency": "daily",
+    "preferredWearableMetrics": ["heart_rate", "sleep", "hrv"],
+    "preferredNutritionMetrics": ["protein", "iron"],
+    "typicalBreakfastTime": "08:00:00",
+    "typicalLunchTime": "12:30:00",
+    "typicalDinnerTime": "19:00:00",
+    "typicalSleepTime": "23:00:00",
+    "generationMode": "custom",
+    "targetSleepDurationHrs": 6,
+    "unitsSystem": "metric",
+    "createdAt": "2026-01-01T00:00:00-05:00",
+    "updatedAt": "2026-01-01T00:00:00-05:00"
+  }]
+}

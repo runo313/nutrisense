@@ -17,7 +17,7 @@ var scope = {
   population: "adults 19+, non-pregnant, non-lactating",
   excluded_populations: ["under_19", "pregnancy", "lactation"],
   regional_basis: "US",
-  note: "Excluded populations are not cosmetic. Iron in pregnancy is 27 mg against 18; calcium at 14-18 is 1,300 mg. Anyone outside scope receives no_data, never a wrong threshold."
+  note: "Anyone outside scope receives no_data, never a wrong threshold."
 }
 
 // ---------------------------------------------------------------------------
@@ -29,14 +29,14 @@ var scope = {
 // ---------------------------------------------------------------------------
 
 var defaultBounds = {
-  RDA:       { direction: "lower", soft: 0.80, hard: 0.60 },
-  AI:        { direction: "lower", soft: 0.80, hard: 0.60 },
-  UL:        { direction: "upper", soft: 0.90, hard: 1.00 },
-  CDRR:      { direction: "upper", soft: 1.00, hard: 1.30 },
-  DGA_limit: { direction: "upper", soft: 1.00, hard: 1.30 },
-  AMDR:      { direction: "range", soft: "outside_range", hard: 0.25 },
-  consensus: { direction: "lower", soft: 0.85, hard: 0.70 },
-  personal_baseline_deviation: { direction: "per_row", soft: "per_row", hard: "per_row" }
+  RDA:       { direction: "lower", soft: 0.80, hard: 0.60, meaning: "meets needs of 97–98% of healthy individuals"},
+  AI:        { direction: "lower", soft: 0.80, hard: 0.60, meaning: "used where evidence is insufficient for an RDA" },
+  UL:        { direction: "upper", soft: 0.90, hard: 1.00, meaning:"max daily intake unlikely to cause harm" },
+  CDRR:      { direction: "upper", soft: 1.00, hard: 1.30, meaning:"intake below which chronic disease risk is reduced" },
+  DGA_limit: { direction: "upper", soft: 1.00, hard: 1.30, meaning:"" },
+  AMDR:      { direction: "range", soft: "outside_range", hard: 0.25, meaning:" acceptable distribution range, both bounds meaningful" },
+  consensus: { direction: "lower", soft: 0.85, hard: 0.70, meaning:"" },
+  personal_baseline_deviation: { direction: "per_row", soft: "per_row", hard: "per_row", meaning:"no population value exists" }
 }
 
 var boundingRuleConfidence = "heuristic"

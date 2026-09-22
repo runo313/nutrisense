@@ -87,8 +87,17 @@ fun resolveProteinTarget(profile) = do {
   var goalType = profile.goals default [] filter ($.isPrimary == true) map ($.goalType)
   var primaryGoal = goalType[0] default null
   var primaryDirection = (profile.goals default [] filter ($.isPrimary == true) map ($.goalDirection))[0] default null
-  var activityBaseline = profile.activityBaseline default null
+  var activityBaseline = profile.profile.activityBaseline default null
+  
 
+/**
+  * 3 protein coefficient rows: athletic (1.4-2.0 g/kg), deficit+active (1.6-2.4 g/kg), and general (1.2-1.6 g/kg, catches everyone else).
+  * var matched: given this specific user's profile, which one of these three rows actually applies to them
+  * (row.match.goal_type == null or row.match.goal_type == primaryGoal): either this row doesn't care about goal type at all, OR it does care and the user's goal type matches.
+  * The next two conditions do the exact same thing for goal_direction and activity_baseline_in respectively."doesn't care, or the user's actual value satisfies what this row wants."
+  * filter can return more than one row. Precedence exists so that when more than one row matches, you know which one should actually win. 
+  * after sorting, you just take the first element. 
+  */
   var matched = proteinCoefficients filter ((row) ->
     (row.match.goal_type == null or row.match.goal_type == primaryGoal)
     and (row.match.goal_direction == null or row.match.goal_direction == primaryDirection)
@@ -103,10 +112,10 @@ fun resolveProteinTarget(profile) = do {
     direction: "lower",
     evaluation_scope: "daily",
     coefficient_id: selected.threshold_id,
-    target_g: (profile.weightKg * selected.range_min) as Number {format: "0.#"},
-    range_max_g: (profile.weightKg * selected.range_max) as Number {format: "0.#"},
-    soft_bound_g: (profile.weightKg * selected.soft_bound) as Number {format: "0.#"},
-    hard_bound_g: (profile.weightKg * selected.hard_bound) as Number {format: "0.#"},
+    target_g: (profile.profile.weightKg * selected.range_min) as Number {format: "0.#"},
+    range_max_g: (profile.profile.weightKg * selected.range_max) as Number {format: "0.#"},
+    soft_bound_g: (profile.profile.weightKg * selected.soft_bound) as Number {format: "0.#"},
+    hard_bound_g: (profile.profile.weightKg * selected.hard_bound) as Number {format: "0.#"},
     range_max_is_informational: true,
     source_body: selected.source_body,
     source_edition: selected.source_edition,
@@ -117,6 +126,7 @@ fun resolveProteinTarget(profile) = do {
 
 // ---------------------------------------------------------------------------
 // AMDR ranges — percentage of total calories, both bounds meaningful
+// Total fat is a true range — both too little and too much are flags
 // ---------------------------------------------------------------------------
 
 var amdrRanges = [
@@ -257,43 +267,17 @@ fun resolveFiberTarget(caloricTarget) = do {
     notes: fiberRow.notes
   }
 }
-
-// ---------------------------------------------------------------------------
-// Caloric target — Mifflin-St Jeor
-// ---------------------------------------------------------------------------
-
-var activityMultipliers = {
-  sedentary: 1.2,
-  lightly_active: 1.375,
-  moderately_active: 1.55,
-  very_active: 1.725,
-  athlete: 1.9
+var statusSeverity = {
+  on_track: 0,
+  soft_warning: 1,
+  hard_flag: 2,
+  no_data:3
 }
 
-/**
- * Returns null for biological_sex values the equation does not cover.
- * The formula cannot produce a meaningful result without sex; assuming one
- * would produce a confident wrong number rather than an honest absence.
- */
-fun computeCaloricTarget(weightKg, heightCm, age, biologicalSex, activityBaseline) = do {
-  var bmr =
-    if (biologicalSex == "male")   (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5
-    else if (biologicalSex == "female") (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161
-    else null
-  var multiplier = activityMultipliers[activityBaseline as String]
-  ---
-  if (bmr != null and multiplier != null) (bmr * multiplier) as Number {format: "0"} as Number
-  else null
+var severityToStatus = {
+  "0": "on_track",
+  "1": "soft_warning",
+  "2": "hard_flag",
+  "3": "no_data"
 }
 
-var caloricTargetMeta = {
-  metric_key: "energy_kcal",
-  unit: "kcal",
-  direction: "bidirectional",
-  evaluation_scope: "daily",
-  source_body: "Mifflin-St Jeor",
-  source_edition: "Mifflin et al. 1990",
-  source_url: "https://pubmed.ncbi.nlm.nih.gov/2305711/",
-  confidence: "guideline",
-  notes: "Direction of concern depends on goal_direction, but both directions are flagged. Being under a computed target is never framed as success — see under_target_framing guard."
-}

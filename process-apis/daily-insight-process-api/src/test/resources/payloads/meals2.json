@@ -1,0 +1,7 @@
+{
+	"code": "MEAL-404",
+	"message": "Resource not found: /user/runo313",
+	"correlationId": "18f934d0-b5d6-11f1-a4c2-762abed7795e",
+	"timestamp": "2026-09-21T16:04:20.223960868Z",
+	"originLayer": "system"
+}
