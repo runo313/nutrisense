@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
     
-    <flow name="trend-analysis-process-api-main">
-        <http:listener config-ref="trend-analysis-process-api-httpListenerConfig" path="/api/*">
+    <flow name="trend-analysis-process-api-main" doc:id="774c3798-8fc7-4a0f-8817-55594b57a69a">
+        <http:listener config-ref="trend-analysis-process-api-httpListenerConfig" path="api/v1/trend-analysis-papi/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="trend-analysis-process-api-config" />
@@ -134,12 +134,15 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\insights\trend\(userId):trend-analysis-process-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <logger level="INFO" message="get:\insights\trend\(userId):trend-analysis-process-api-config" />
+		<flow-ref doc:name="orchestrate-trend-analyis-subflow" doc:id="5e9fece9-c813-493c-b85c-9613954d5cfe" name="orchestrate-trend-analyis-subflow"/>
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="8c3a8d15-3d4b-4630-a921-0f983ae5e617">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+"Hello"&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform> [STUDIO] -->
     </flow>
     <flow name="post:\insights\trend\(userId)\regenerate:trend-analysis-process-api-config">
         <ee:transform doc:name="Transform Message">

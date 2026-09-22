@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="orchestrate-trend-analyis-subflow" doc:id="9fdb79d4-0ec8-4e25-ab99-63cce0217ba2" >
+		<ee:transform doc:name="set vars" doc:id="047a71cd-b59d-4a75-bfa6-8d3ced3481da" >
+			<ee:variables >
+				<ee:set-variable variableName="userId" ><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="window" ><![CDATA[%dw 2.0
+output application/java
+
+var window = (attributes.queryParams.window default 14) 
+var str = "P" ++ (window) ++"D"
+var today = now() as Date
+var start = (today - str) as Date
+---
+{
+	value: window,
+	start: start,
+	end: today
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="1947a8fd-c291-49ce-82d9-01f1b0bcc8a0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	window: vars.window&#10;}&#10;---&#10;buildLog("INFO","Trend Analysis Process Started",message,vars.correlationId, "orchestrate-trend-analysis-flow")]' />
+		<flow-ref doc:name="fetch-user-profile-subflow" doc:id="67a4f01f-727f-4d6c-af61-691f05b66eaf" name="fetch-user-profile-subflow" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f28518e2-8cc6-438e-a913-218b47272e2b" >
+			<route >
+				<flow-ref doc:name="fetch-meals-and-nutrition-subflow" doc:id="d8674245-9bf2-44d4-bfdc-2959bb1c45bb" name="fetch-meals-and-nutrition-subflow" />
+			</route>
+			<route >
+				<flow-ref doc:name="fetch-wearable-data-subflow" doc:id="da6fe359-04df-4b07-8ba9-3dd51202f343" name="fetch-wearable-data-subflow"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="c310d269-d8df-4d98-8366-ae255f02fe3e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	profile: vars.userProfile,
+	mealStatus: vars.mealStatus,
+	wearableStatus: vars.wearableStatus
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
