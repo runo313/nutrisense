@@ -166,7 +166,7 @@
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
 					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/meals2.json") read "application/json"]' />
-					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
+					<munit-tools:attributes value="#[{&#10;	statusCode: 404&#10;}]" />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="c5a2a5e1-5f65-4f29-ac0b-17fe460e7e5c" processor="http:request" >
