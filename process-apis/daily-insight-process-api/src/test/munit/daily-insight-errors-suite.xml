@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="daily-insight-errors-suite.xml" />
+	<munit:test name="should_produce_500_error_wearables" doc:id="da72dd89-8990-4179-b7cb-00660955408f">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET Profiles" doc:id="7d437bd4-2aea-45ef-bf63-8a0ac1597922" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="10fbcfe7-ef5d-472a-9184-047cf2f00658" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/profile.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Meals" doc:id="3a0e8ffb-8a1a-48dd-8c68-913d3a14bde8" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="feb9df4a-fa6c-47b3-9896-2b519a192a89" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/meals.json") read "application/json"]' />
+					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food7474" doc:id="199528c0-6467-435f-89ac-59553de19a05" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="747448" attributeName="foodId" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_747448.json") read "application/json"]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food26844" doc:id="131a5ef3-cbc0-45ad-a0bc-2c90c10ace2a" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2684444" attributeName="foodId" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_2684444.json") read "application/json"]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food3319" doc:id="f28539a9-543b-40c0-bcbc-6b2f9c608c6a" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="331960" attributeName="foodId" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_331960.json") read "application/json"]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="0654042e-7bd5-478b-b46a-cea8351229d6" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ac1135b7-ae94-4339-8671-14c27256bc18" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:UNAUTHORIZED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="eb34c3db-2b25-4ce4-937c-f3a1f8b4220d" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	uriParams: {&#10;		userId: "runo3133"&#10;	},&#10;	queryParams: {&#10;		date: "2026-09-14"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="91db84d2-bae9-48d7-825c-232bd87efe20" name="get:\insights\daily\(userId):daily-insight-process-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 500" doc:id="ced5a257-d79c-4ba5-b023-7a5fd8f0ae10" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(500)]" />
+			<munit-tools:assert-that doc:name="Assert Status Message" doc:id="5f9782b0-f9f2-45bf-aea7-e8831ddd2e16" message="Calories satus should be soft warning" expression="#[payload.code]" is='#[MunitTools::equalTo("DAILY-INSIGHT-500")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_produce_500_weareables-apikit-error" doc:id="6575a938-4838-4c8c-8d25-6463dff904d5">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET Profiles" doc:id="e9d482d1-8809-46ff-bf52-c5a1fe1f51a8" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="10fbcfe7-ef5d-472a-9184-047cf2f00658" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/profile.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Meals" doc:id="d36cfb34-48ff-4cab-86ea-e52580d9169b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="feb9df4a-fa6c-47b3-9896-2b519a192a89" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/meals.json") read "application/json"]' />
+					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food747" doc:id="354c3932-0dc6-4a4e-b2c6-cc60ea9d7336" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="747448" attributeName="foodId" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_747448.json") read "application/json"]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food2684" doc:id="3ba9cab2-ce0c-4c22-8d92-9b9b63878e21" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2684444" attributeName="foodId" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_2684444.json") read "application/json"]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food331" doc:id="3ae9ba6d-4af0-4018-8738-1f362f5bc559" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="331960" attributeName="foodId" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_331960.json") read "application/json"]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="e6b8b974-68cb-4746-9f9c-4591f0c3db38" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ac1135b7-ae94-4339-8671-14c27256bc18" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:attributes value='#[{"statusCode": 401}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable Summary" doc:id="1655648d-0ebf-45dc-aad4-cdd3ce95de63" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b0a34b89-72ef-4809-8398-30edfe6074bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="summaryWearable" value='#[MunitTools::getResourceAsString("payloads/summary3.json") read "application/json"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="dfc548b5-dcbb-4333-9f04-d125de8b6b50" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	uriParams: {&#10;		userId: "runo3133"&#10;	},&#10;	queryParams: {&#10;		date: "2026-09-14"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="68cc24ab-7ce0-4119-aa2e-262e87be11c4" name="get:\insights\daily\(userId):daily-insight-process-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 500" doc:id="9ca0f84d-783b-4df6-aba1-93625e4b5be7" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(500)]" />
+			<munit-tools:assert-that doc:name="Assert Status Message" doc:id="731dbca7-eb56-4fde-b5c1-1e49e25d5180" message="Calories satus should be soft warning" expression="#[payload.code]" is='#[MunitTools::equalTo("DAILY-INSIGHT-500")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_produce_500_meals-apikit-error" doc:id="f76407f4-00ba-4562-a17c-79ba90048de5">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET Profiles" doc:id="637597ce-af82-4658-9ece-1b668265da37" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="10fbcfe7-ef5d-472a-9184-047cf2f00658" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/profile.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Meals" doc:id="c772fc89-2fd1-4cd5-b09f-aba7731289f5" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="feb9df4a-fa6c-47b3-9896-2b519a192a89" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/meals2.json") read "application/json"]' />
+					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="c5a2a5e1-5f65-4f29-ac0b-17fe460e7e5c" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ac1135b7-ae94-4339-8671-14c27256bc18" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:attributes value='#[{"statusCode": 401}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable Summary" doc:id="5db07974-0b32-49d7-b964-429321f0bb0a" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b0a34b89-72ef-4809-8398-30edfe6074bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="summaryWearable" value='#[MunitTools::getResourceAsString("payloads/summary3.json") read "application/json"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="0ab7d261-86d6-468c-90d3-60ea01084de8" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	uriParams: {&#10;		userId: "runo3133"&#10;	},&#10;	queryParams: {&#10;		date: "2026-09-14"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="c31d881d-1294-4b02-a831-1fc5fc267e28" name="get:\insights\daily\(userId):daily-insight-process-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 500" doc:id="0999d181-6bfd-4b6f-b58b-1a81157c7507" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(500)]" />
+			<munit-tools:assert-that doc:name="Assert Status Message" doc:id="1c4aa259-9bbd-412f-8e18-186086fbe4b2" message="Calories satus should be soft warning" expression="#[payload.code]" is='#[MunitTools::equalTo("DAILY-INSIGHT-500")]' />
+		</munit:validation>
+	</munit:test>
+
+</mule>

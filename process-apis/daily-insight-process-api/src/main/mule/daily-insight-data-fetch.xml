@@ -26,7 +26,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</sub-flow>
 	<sub-flow name="fetch-meals-and-nutrition-subflow" doc:id="595d582d-482c-4bdb-a673-6a49cc9b761b" >
 		<logger level="INFO" doc:name="Fetch Meals" doc:id="e58e83cf-d5cc-4e78-9f07-a7ce66bb5b11" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.date&#10;}&#10;---&#10;buildLog("INFO","Fetching meals",message,vars.correlationId, "fetch-meals-and-nutrition-subflow")]' />
-		<http:request doc:name="Get Logged Meals" doc:id="feb9df4a-fa6c-47b3-9896-2b519a192a89" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/user/{userId}/meals" responseTimeout="${nutrisense.sapi.timeout}" >
+		<http:request doc:name="Get Logged Meals" doc:id="feb9df4a-fa6c-47b3-9896-2b519a192a89" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals" responseTimeout="${nutrisense.sapi.timeout}" >
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
@@ -109,7 +109,7 @@ output application/java
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="Fetch Wearable Data" doc:id="64ba27bc-0cf0-4f95-9258-c6f1b0b20e16" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;&#10;var message ={&#10;	userId: vars.userId,&#10;	startDate: vars.date,&#10;	endDate: vars.endDate&#10;}&#10;---&#10;buildLog("INFO","Fetching wearable data",message,vars.correlationId, "fetch-wearable-data-subflow")]' />
-		<http:request doc:name="Get Wearable Data" doc:id="ac1135b7-ae94-4339-8671-14c27256bc18" config-ref="WEARABLE_SAPI_HTTP_CONFIG" path="api/v1/wearables-sapi/wearable-data/{userId}" responseTimeout="${nutrisense.sapi.timeout}" target="dailyWearable" targetValue="#[output application/java --- { payload: payload, status: attributes.statusCode, attri:attributes }]" >
+		<http:request doc:name="Get Wearable Data" doc:id="ac1135b7-ae94-4339-8671-14c27256bc18" config-ref="WEARABLE_SAPI_HTTP_CONFIG" path="api/v1/wearables-sapi/wearable-data/{userId}" responseTimeout="${nutrisense.sapi.timeout}" target="dailyWearable" targetValue="#[output application/java --- { payload: payload, status: attributes.statusCode}]" >
 			<http:headers ><![CDATA[#[output application/java
 ---
 {

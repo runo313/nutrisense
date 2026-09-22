@@ -1,0 +1,38 @@
+{
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"recommendations\": [\n    {\n      \"rank\": 1,\n      \"text\": \"Your logged calorie intake today was 1028 kcal, which is 47% of your target of 2184 kcal.\"\n    }\n  ],\n  \"cross_signal\": [\n    {\n      \"key\": \"energy_deficit\",\n      \"text\": \"The combination of your calorie intake and activity levels today indicates an energy deficit.\"\n    }\n  ]\n}"
+              }
+            ]
+          },
+          "finishReason": "STOP",
+          "avgLogprobs": -0.92866158700204116
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 499,
+        "candidatesTokenCount": 111,
+        "totalTokenCount": 1182,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 499
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 111
+          }
+        ],
+        "thoughtsTokenCount": 572
+      },
+      "modelVersion": "gemini-2.5-flash",
+      "createTime": "2026-09-21T14:01:10.370306Z",
+      "responseId": "pjixaoLNFtbI8sYP67r1WQ"
+    }
