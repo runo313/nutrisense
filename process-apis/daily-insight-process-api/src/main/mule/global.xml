@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule
-xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
 		xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
 	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
 http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -38,4 +40,5 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<http:request-config name="NUTRISENSE_LLM_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="3198722e-1f1e-4207-8f4e-1d5b94f194e8" >
 		<http:request-connection protocol="HTTPS" host="${nutrisense.llm.baseUri}" port="${nutrisense.llm.port}"/>
 	</http:request-config>
+	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="07c7e49c-70ca-4a24-b646-f490d2550c6e" flowRef="daily-insight-process-api-main" />
 </mule>
