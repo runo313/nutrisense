@@ -212,6 +212,14 @@ jobs:
               - 'system-apis/userprofile-sys-api/**'
             meal-log:
               - 'system-apis/meal-log-sys-api/**'
+            daily-insight:
+              - 'process-apis/daily-insight-process-api/**'
+            trend-analysis:
+              - 'process-apis/trend-analysis-process-api/**'
+            personal-dashboard:
+              - 'experience-apis/personal-dashboard-exp-api/**'
+            coach-provider:
+              - 'experience-apis/coach-provider-exp-api/**'
             parent-pom:
               - 'pom.xml'
 
@@ -277,6 +285,78 @@ jobs:
 
           mvn mule:deploy -DmuleDeploy \
             -pl system-apis/meal-log-sys-api \
+            -DskipMunitTests=true \
+            -Denvironment=test \
+            -DdeployEnv=test \
+            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
+            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
+            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
+            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
+            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
+            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
+
+      - name: Deploy daily-insight-process-api
+        if: steps.changes.outputs.daily-insight == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: |
+          mvn clean deploy -DskipMunitTests=true \
+            -pl process-apis/daily-insight-process-api
+
+          mvn mule:deploy -DmuleDeploy \
+            -pl process-apis/daily-insight-process-api \
+            -DskipMunitTests=true \
+            -Denvironment=test \
+            -DdeployEnv=test \
+            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
+            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
+            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
+            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
+            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
+            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
+
+      - name: Deploy trend-analysis-process-api
+        if: steps.changes.outputs.trend-analysis == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: |
+          mvn clean deploy -DskipMunitTests=true \
+            -pl process-apis/trend-analysis-process-api
+
+          mvn mule:deploy -DmuleDeploy \
+            -pl process-apis/trend-analysis-process-api \
+            -DskipMunitTests=true \
+            -Denvironment=test \
+            -DdeployEnv=test \
+            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
+            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
+            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
+            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
+            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
+            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
+      
+      - name: Deploy personal-dashboard-exp-api
+        if: steps.changes.outputs.personal-dashboard == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: |
+          mvn clean deploy -DskipMunitTests=true \
+            -pl experience-apis/personal-dashboard-exp-api \
+
+          mvn mule:deploy -DmuleDeploy \
+            -pl experience-apis/personal-dashboard-exp-api \
+            -DskipMunitTests=true \
+            -Denvironment=test \
+            -DdeployEnv=test \
+            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
+            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
+            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
+            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
+            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
+            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
+      
+      - name: Deploy coach-provider-exp-api
+        if: steps.changes.outputs.coach-provider == 'true' || steps.changes.outputs.parent-pom == 'true'
+        run: |
+          mvn clean deploy -DskipMunitTests=true \
+            -pl experience-apis/coach-provider-exp-api \
+
+          mvn mule:deploy -DmuleDeploy \
+            -pl experience-apis/coach-provider-exp-api \
             -DskipMunitTests=true \
             -Denvironment=test \
             -DdeployEnv=test \
