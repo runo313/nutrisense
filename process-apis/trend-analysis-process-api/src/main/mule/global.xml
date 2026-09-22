@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config
+		name="trend-analysis-process-api-httpListenerConfig">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+	<apikit:config name="trend-analysis-process-api-config"
+		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:trend-analysis-process-api:1.0.0:raml:zip:trend-analysis-process-api.raml"
+		outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+	<configuration-properties doc:name="Configuration properties" doc:id="9baa2669-506b-41c1-87b4-025ff9a526d3" file="trend-analysis-${env}.properties" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="d2136bfd-5985-4512-8cd0-bf6846e13a7f" file="trend-analysis-${env}.properties" key="${MULE_MASTER_KEY}" />
+	<http:request-config name="USERPROFILE_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="3fb31609-1b8a-4162-acf9-82eb9719ef87">
+		<http:request-connection protocol="HTTPS" host="${userprofile.baseUri}" port="${userprofile.port}"/>
+	</http:request-config>
+	<http:request-config name="WEARABLE_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="11ae5ac7-f217-4c2b-9e48-66513f92d00c">
+		<http:request-connection protocol="HTTPS" host="${wearable.baseUri}" port="${wearable.port}"/>
+	</http:request-config>
+	<http:request-config name="NUTRITION_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="0c927a5d-4ccb-4f4f-b4c6-f6f5b5f28be8" >
+		<http:request-connection protocol="HTTPS" port="${nutrition.port}" host="${nutrition.baseUri}"/>
+	</http:request-config>
+	<http:request-config name="MEAL_LOG_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="3da93506-4c91-477e-9f84-e97f0753db0c" >
+		<http:request-connection port="${meal.port}" host="${meal.baseUri}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config name="NUTRISENSE_LLM_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="adfdef70-007d-4352-a67a-e04b83c3e2f8" >
+		<http:request-connection protocol="HTTPS" host="${nutrisense.llm.baseUri}" port="${nutrisense.llm.port}"/>
+	</http:request-config>
+</mule>
