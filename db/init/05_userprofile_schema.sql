@@ -14,6 +14,9 @@ CREATE TYPE goal_type_enum AS ENUM (
   'general_wellness', 'sleep_improvement', 'energy_optimization'
 );
 
+CREATE TYPE insight_generation_mode_enum AS ENUM (
+  'template', 'llm', 'custom'
+);
 CREATE TYPE goal_direction_enum AS ENUM (
   'lose', 'gain', 'maintain', 'improve'
 );
@@ -135,6 +138,7 @@ CREATE TABLE user_preferences (
   typical_dinner_time          TIME,
   typical_sleep_time           TIME,
   target_sleep_duration_hrs    DECIMAL,
+  insight_generation_mode      insight_generation_mode_enum NOT NULL DEFAULT 'template'
   units_system                 units_system_enum         NOT NULL DEFAULT 'metric',
   created_at                   TIMESTAMPTZ               NOT NULL DEFAULT now(),
   updated_at                   TIMESTAMPTZ               NOT NULL DEFAULT now()

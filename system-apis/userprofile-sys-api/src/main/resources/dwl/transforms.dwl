@@ -34,21 +34,23 @@ dietary_constraints map (row)->{
 	createdAt: row.created_at
 }
 fun transformPreferences (user_preference)=
- if ( sizeOf(user_preference) > 0 ) {
-	preferenceId: user_preference.preference_id,
-	userId: user_preference.user_id,
-	insightFrequency: user_preference.insight_frequency,
-	preferredWearableMetrics: user_preference.preferred_wearable_metrics,
-	preferredNutritionMetrics: user_preference.preferred_nutrition_metrics,
-	typicalBreakfastTime: user_preference.typical_breakfast_time,
-	typicalLunchTime: user_preference.typical_lunch_time,
-	typicalDinnerTime: user_preference.typical_dinner_time,
-	typicalSleepTime: user_preference.typical_sleep_time,
-	targetSleepDurationHrs: user_preference.target_sleep_duration_hrs,
-	unitsSystem: user_preference.units_system,
-	createdAt: user_preference.created_at,
-	updatedAt: user_preference.updated_at
-}else null
+ if ( sizeOf(user_preference) > 0 ) 
+	 user_preference map (preference) -> {
+		preferenceId: preference.preference_id,
+		userId: preference.user_id,
+		insightFrequency: preference.insight_frequency,
+		preferredWearableMetrics: preference.preferred_wearable_metrics,
+		preferredNutritionMetrics: preference.preferred_nutrition_metrics,
+		typicalBreakfastTime: preference.typical_breakfast_time,
+		typicalLunchTime: preference.typical_lunch_time,
+		typicalDinnerTime: preference.typical_dinner_time,
+		typicalSleepTime: preference.typical_sleep_time,
+		targetSleepDurationHrs: preference.target_sleep_duration_hrs,
+		unitsSystem: preference.units_system,
+		generationMode: preference.insight_generation_mode,
+		createdAt: preference.created_at,
+		updatedAt: preference.updated_at
+	}else null
 fun returnGoal (payload)=
 {
 	goalId: payload[0].goal_id,
@@ -82,14 +84,15 @@ fun returnPreference (payload)=
   insightFrequency: payload[0].insight_frequency,
   preferredWearableMetrics: payload[0].preferred_wearable_metrics,
   preferredNutritionMetrics: payload[0].preferred_nutrition_metrics,
-  typicalBreakfastTime: if(payload[0].typical_breakfast_time != null) payload[0].typical_breakfast_time != null as String {format: "HH:mm:ss"} else null,
-  typicalLunchTime: if(payload[0].typical_lunch_time != null) payload[0].typical_lunch_time != null as String {format: "HH:mm:ss"} else null,
+  typicalBreakfastTime: if(payload[0].typical_breakfast_time != null) payload[0].typical_breakfast_time as String {format: "HH:mm:ss"} else null,
+  typicalLunchTime: if(payload[0].typical_lunch_time != null) payload[0].typical_lunch_time as String {format: "HH:mm:ss"} else null,
   typicalDinnerTime: if(payload[0].typical_dinner_time != null)payload[0].typical_dinner_time as String {format: "HH:mm:ss"} else null,
   typicalSleepTime: if (payload[0].typical_sleep_time != null) payload[0].typical_sleep_time as String {format: "HH:mm:ss"} else null,
   targetSleepDurationHrs: payload[0].target_sleep_duration_hrs,
   unitsSystem: payload[0].units_system,
   createdAt: payload[0].created_at,
-  updatedAt: payload[0].updated_at
+  updatedAt: payload[0].updated_at,
+  generationMode: payload[0].insight_generation_mode
 } 
 
 fun returnConstraint(payload) = 

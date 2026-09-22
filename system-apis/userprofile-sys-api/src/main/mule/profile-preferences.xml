@@ -27,7 +27,7 @@ flow.name]]></ee:set-variable>
 			<db:sql ><![CDATA[SELECT preference_id, user_id, insight_frequency, preferred_wearable_metrics,
 preferred_nutrition_metrics, typical_breakfast_time, typical_lunch_time,
 typical_dinner_time, typical_sleep_time, target_sleep_duration_hrs,
-units_system, created_at, updated_at
+units_system, created_at, updated_at, insight_generation_mode
 FROM user_preferences
 WHERE user_id = :userId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -76,7 +76,8 @@ output application/java
 	typicalDinnerTime: (payload.typicalDinnerTime as LocalTime) default null,
 	typicalSleepTime: (payload.typicalSleepTime as LocalTime) default null,
 	targetSleepDurationHrs: payload.targetSleepDurationHrs as Number default null,
-	unitsSystem: payload.unitsSystem default null
+	unitsSystem: payload.unitsSystem default null,
+	generationMode: payload.generationMode default "template"
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
@@ -103,7 +104,7 @@ output application/java
 (user_id, insight_frequency, preferred_wearable_metrics,
  preferred_nutrition_metrics, typical_breakfast_time,
  typical_lunch_time, typical_dinner_time, typical_sleep_time,
- target_sleep_duration_hrs, units_system, created_at, updated_at)
+ target_sleep_duration_hrs, units_system, created_at, updated_at, insight_generation_mode)
 VALUES (:userId, 
 COALESCE(:insightFrequency::insight_frequency_enum, 'daily'),
 COALESCE(string_to_array(:preferredWearableMetrics, ',')::wearable_metric_enum[], '{}'),
@@ -112,7 +113,7 @@ COALESCE(string_to_array(:preferredNutritionMetrics, ',')::nutrition_metric_enum
 :typicalDinnerTime::time, :typicalSleepTime::time,
 :targetSleepDurationHrs, 
 COALESCE(:unitsSystem::units_system_enum, 'metric'), 
-now(), now())
+now(), now(), :mode)
 "
 ]]></ee:set-payload>
 			</ee:message>
@@ -132,7 +133,8 @@ output application/java
 	typicalDinnerTime: vars.preference.typicalDinnerTime default null,
 	typicalSleepTime: vars.preference.typicalSleepTime default null,
 	targetSleepDurationHrs: vars.preference.targetSleepDurationHrs default null,
-	unitsSystem: vars.preference.unitsSystem default null
+	unitsSystem: vars.preference.unitsSystem default null,
+	mode: vars.preference.generationMode
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
@@ -155,8 +157,9 @@ var setDinnerTime = if ( vars.preference.typicalDinnerTime != null ) "typical_di
 var setSleepTime = if ( vars.preference.typicalSleepTime != null ) "typical_sleep_time = :typicalSleepTime::time" else ""
 var setTargetSleep = if ( vars.preference.targetSleepDurationHrs != null ) "target_sleep_duration_hrs = :targetSleepDurationHrs" else ""
 var setUnitsSystem = if ( vars.preference.unitsSystem != null ) "units_system = :unitsSystem::units_system_enum" else ""
+var setMode = if ( vars.preference.generationMode != null) "insight_generation_mode = :mode::insight_generation_mode_enum" else ""
 var updateClauses = [setInsightFrequency, setWearableMetrics, setNutritionMetrics, 
-	setBreakfastTime, setLunchTime, setDinnerTime, setSleepTime,setTargetSleep, setUnitsSystem] filter ($ != "") joinBy ", "
+	setBreakfastTime, setLunchTime, setDinnerTime, setSleepTime,setTargetSleep, setUnitsSystem, setMode] filter ($ != "") joinBy ", "
 ---
 "UPDATE user_preferences SET " ++ updateClauses ++ ", updated_at = now() WHERE user_id = :userId"]]></ee:set-payload>
 					</ee:message>
@@ -176,7 +179,8 @@ output application/java
 	typicalDinnerTime: vars.preference.typicalDinnerTime default null,
 	typicalSleepTime: vars.preference.typicalSleepTime default null,
 	targetSleepDurationHrs: vars.preference.targetSleepDurationHrs default null,
-	unitsSystem: vars.preference.unitsSystem default null
+	unitsSystem: vars.preference.unitsSystem default null,
+	mode: vars.preference.generationMode
 }]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
@@ -190,7 +194,7 @@ output application/java
 			<db:sql ><![CDATA[SELECT preference_id, user_id, insight_frequency, preferred_wearable_metrics,
 preferred_nutrition_metrics, typical_breakfast_time, typical_lunch_time,
 typical_dinner_time, typical_sleep_time, target_sleep_duration_hrs,
-units_system, created_at, updated_at
+units_system, created_at, updated_at, insight_generation_mode
 FROM user_preferences
 WHERE user_id = :userId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{

@@ -49,7 +49,7 @@ WHERE user_id = :userId]]></db:sql>
 			<db:sql ><![CDATA[SELECT preference_id, user_id, insight_frequency, preferred_wearable_metrics,
 preferred_nutrition_metrics, typical_breakfast_time, typical_lunch_time,
 typical_dinner_time, typical_sleep_time, target_sleep_duration_hrs,
-units_system, created_at, updated_at
+units_system, created_at, updated_at, insight_generation_mode
 FROM user_preferences
 WHERE user_id = :userId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
