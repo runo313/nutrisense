@@ -1,0 +1,133 @@
+{
+  "proteinCoefficients": [
+    {
+      "threshold_id": "protein_athletic",
+      "match": {
+        "goal_type": "athletic_performance"
+      },
+      "range_min": 1.4,
+      "range_max": 2,
+      "soft_bound": 1.4,
+      "hard_bound": 0.8,
+      "precedence": 1,
+      "source_body": "ISSN",
+      "source_edition": "2017 position stand",
+      "source_url": "https://jissn.biomedcentral.com/articles/10.1186/s12970-017-0177-8",
+      "confidence": "guideline",
+      "notes": "Building and maintaining muscle mass."
+    },
+    {
+      "threshold_id": "protein_deficit_active",
+      "match": {
+        "goal_type": "weight_management",
+        "goal_direction": "lose",
+        "activity_baseline_in": [
+          "very_active",
+          "athlete"
+        ]
+      },
+      "range_min": 1.6,
+      "range_max": 2.4,
+      "soft_bound": 1.6,
+      "hard_bound": 0.8,
+      "precedence": 2,
+      "source_body": "ISSN",
+      "source_edition": "2017 position stand",
+      "source_url": "https://jissn.biomedcentral.com/articles/10.1186/s12970-017-0177-8",
+      "confidence": "guideline",
+      "notes": "Energy restriction with lean mass preservation. 'Active' is resolved from the self-reported activity_baseline profile field, not from daily wearable data — no daily activity guideline exists to define it, and the protein target should not oscillate day to day."
+    },
+    {
+      "threshold_id": "protein_general",
+      "match": {},
+      "range_min": 1.2,
+      "range_max": 1.6,
+      "soft_bound": 1.2,
+      "hard_bound": 0.8,
+      "precedence": 99,
+      "source_body": "DGA",
+      "source_edition": "2025-2030",
+      "source_url": "https://cdn.realfood.gov/DGA.pdf",
+      "confidence": "guideline",
+      "notes": "First DGA edition to give a specific g/kg target. Represents a 50-100% increase over the DRI RDA of 0.8 g/kg. The evidence base is a rapid systematic review of weight-management outcomes in adults with overweight or obesity; commentary in the Journal of Nutrition notes limitations in generalising the range to other groups. Sourced and current, but the evidence base is narrower than the population it is applied to."
+    }
+  ],
+  "amdrRanges": [
+    {
+      "threshold_id": "carbohydrate_amdr",
+      "metric_key": "carbohydrate_g",
+      "pct_min": 45,
+      "pct_max": 65,
+      "hard_pct_below": 33.75,
+      "hard_pct_above": 81.25,
+      "kcal_per_gram": 4,
+      "primary_evaluation": true,
+      "source_body": "IOM",
+      "source_edition": "DRI 2005",
+      "source_url": "https://nap.nationalacademies.org/catalog/10490/",
+      "confidence": "guideline",
+      "notes": "Primary evaluation for carbohydrate. The 130 g RDA floor in static-thresholds.dwl answers a different question and fires separately. No condition override exists for diabetes — see exclusions."
+    },
+    {
+      "threshold_id": "total_fat_amdr",
+      "metric_key": "total_fat_g",
+      "pct_min": 20,
+      "pct_max": 35,
+      "hard_pct_below": 15,
+      "hard_pct_above": 43.75,
+      "kcal_per_gram": 9,
+      "primary_evaluation": true,
+      "source_body": "IOM",
+      "source_edition": "DRI 2005",
+      "source_url": "https://nap.nationalacademies.org/catalog/10490/",
+      "confidence": "guideline",
+      "notes": null
+    }
+  ],
+  "fiber": {
+    "threshold_id": "fiber_rate",
+    "metric_key": "fiber_g",
+    "grams_per_1000_kcal": 14,
+    "soft_pct_of_base": 0.8,
+    "hard_pct_of_base": 0.6,
+    "source_body": "IOM",
+    "source_edition": "DRI 2005",
+    "source_url": "https://nap.nationalacademies.org/catalog/10490/",
+    "confidence": "guideline",
+    "notes": "Stored as one coefficient, not as per-demographic gram values. The age and sex variation in published fiber tables is this rate applied to each bucket's estimated energy requirement."
+  },
+  "saturatedFat": [
+    {
+      "threshold_id": "saturated_fat_general",
+      "pct_cap": 10,
+      "soft_pct": 10,
+      "hard_pct": 13,
+      "condition": null,
+      "source_body": "DGA",
+      "source_edition": "2025-2030",
+      "source_url": "https://cdn.realfood.gov/DGA.pdf",
+      "confidence": "guideline",
+      "notes": "The 2025-2030 edition retains the longstanding 10% of total daily calories upper limit."
+    },
+    {
+      "threshold_id": "saturated_fat_high_cholesterol",
+      "pct_cap": 7,
+      "soft_pct": 7,
+      "hard_pct": 9.1,
+      "condition": "high_cholesterol",
+      "condition_override_of": "saturated_fat_general",
+      "source_body": "AHA",
+      "source_edition": "current",
+      "source_url": "https://www.heart.org/en/healthy-living/healthy-eating/eat-smart/fats/saturated-fats",
+      "confidence": "guideline",
+      "notes": "Supersedes the general row when high_cholesterol is active."
+    }
+  ],
+  "activityMultipliers": {
+    "sedentary": 1.2,
+    "lightly_active": 1.375,
+    "moderately_active": 1.55,
+    "very_active": 1.725,
+    "athlete": 1.9
+  }
+}
