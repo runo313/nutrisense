@@ -37,6 +37,7 @@ var start = (today - str) as Date
 				<flow-ref doc:name="fetch-wearable-data-subflow" doc:id="da6fe359-04df-4b07-8ba9-3dd51202f343" name="fetch-wearable-data-subflow"/>
 			</route>
 		</scatter-gather>
+		<flow-ref doc:name="evaluate-trend-subflow" doc:id="39b9bf5e-26a0-4b01-bcf9-da2a6fbce60c" name="evaluate-trend-subflow"/>
 		<ee:transform doc:name="Transform Message" doc:id="c310d269-d8df-4d98-8366-ae255f02fe3e" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
