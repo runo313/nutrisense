@@ -9,7 +9,6 @@ import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -202,14 +201,7 @@ public class ThresholdRepository {
 
 		return cachedBaselineDeviations;
 	}
-
-	public List<BaseThresholdRow> getAllStaticRows() throws IOException {
-		if (cachedAllStaticRows == null) {
-			loadStaticThresholds();
-		}
-		return cachedAllStaticRows;
-	}
-
+	
 	/**
 	 * Returns the flattened list of every static threshold row across all
 	 * five sections, triggering a load if one hasn't happened yet. This is
@@ -220,14 +212,13 @@ public class ThresholdRepository {
 	 * @return every parsed row from static-thresholds.json, in load order
 	 * @throws IOException if static-thresholds.json cannot be read
 	 */
-	public static void main(String[] args) throws IOException {
-		ThresholdRepository st = new ThresholdRepository();
-		StaticThresholds thresholds = st.loadStaticThresholds();
-		System.out.print(thresholds.activity);
 
-		// st.allRows(thresholds).stream().filter(row ->
-		// "iron_mg".equals(row.metricKey));
-
+	public List<BaseThresholdRow> getAllStaticRows() throws IOException {
+		if (cachedAllStaticRows == null) {
+			loadStaticThresholds();
+		}
+		return cachedAllStaticRows;
 	}
+
 
 }
