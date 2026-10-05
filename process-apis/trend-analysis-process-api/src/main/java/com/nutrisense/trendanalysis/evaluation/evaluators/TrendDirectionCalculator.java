@@ -10,6 +10,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.nutrisense.trendanalysis.evaluation.model.TrendDirection;
+
 /**
  * Shared helper that decides whether a metric moved up, down, or held steady
  * across a trend window. Every dimension evaluator in Trend Analysis calls it
@@ -69,7 +71,7 @@ public class TrendDirectionCalculator {
 	 *         usable data, meaning no trend can be determined
 	 */
 
-	public static String calculate(Map<LocalDate, Double> dailyValues, LocalDate windowStart, int windowDays,
+	public static TrendDirection calculate(Map<LocalDate, Double> dailyValues, LocalDate windowStart, int windowDays,
 			boolean higherIsBetter) {
 
 		List<Double> firstHalfValues = new ArrayList<>();
@@ -99,18 +101,18 @@ public class TrendDirectionCalculator {
 			// Two zeros means nothing moved. Zero to nonzero is a real change.
 			if (secondAvg == 0.0) {
 				logger.debug("Trend stable: firstAvg={} secondAvg={}", firstAvg, secondAvg);
-				return "stable";
+				return TrendDirection.STABLE;
 			}
 		} else {
 			double delta = deltaPct(firstAvg, secondAvg);
 			if (Math.abs(delta) <= STABLE_DELTA) {
 				logger.debug("Trend stable: firstAvg={} secondAvg={}", firstAvg, secondAvg);
-				return "stable";
+				return TrendDirection.STABLE;
 			}
 		}
 
 		boolean wentUp = secondAvg > firstAvg;
-		String result = (wentUp == higherIsBetter) ? "improving" : "declining";
+		TrendDirection result = (wentUp == higherIsBetter) ? TrendDirection.IMPROVING : TrendDirection.DECLINING;
 		logger.debug("Trend {}: firstAvg={} secondAvg={} higherIsBetter={}",
 		    result, firstAvg, secondAvg, higherIsBetter);
 		return result;

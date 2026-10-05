@@ -1,5 +1,9 @@
 package com.nutrisense.trendanalysis.evaluation.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public enum TrendDirection {
-    IMPROVING, DECLINING, STABLE
+	@SerializedName("improving") IMPROVING,
+    @SerializedName("declining") DECLINING,
+    @SerializedName("stable") STABLE
 }

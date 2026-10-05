@@ -129,5 +129,12 @@
     "moderately_active": 1.55,
     "very_active": 1.725,
     "athlete": 1.9
+  },
+  
+  "caloricDeviationBounds": {
+	"on_track_min_pct": 0.80,
+	"on_track_max_pct": 1.20,
+	"soft_min_pct": 0.60,
+	"soft_max_pct": 1.40
   }
 }

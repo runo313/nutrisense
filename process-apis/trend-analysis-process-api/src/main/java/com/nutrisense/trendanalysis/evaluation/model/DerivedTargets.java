@@ -9,4 +9,5 @@ public class DerivedTargets {
     public Fiber fiber;
     public List<SaturatedFatRow> saturatedFat;
     public Map<String, Double> activityMultipliers;
+    public Map<String, Double> caloricDeviationBounds;
 }
