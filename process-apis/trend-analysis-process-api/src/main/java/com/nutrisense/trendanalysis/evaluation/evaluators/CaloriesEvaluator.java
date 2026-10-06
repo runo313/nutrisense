@@ -5,17 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.nutrisense.trendanalysis.evaluation.model.CaloriesTrend;
 import com.nutrisense.trendanalysis.evaluation.model.DimensionStatus;
 import com.nutrisense.trendanalysis.evaluation.model.EvaluationType;
-import com.nutrisense.trendanalysis.evaluation.evaluators.DailyNutrientAggregator;
 import com.nutrisense.trendanalysis.evaluation.model.DerivedTargets;
 import com.nutrisense.trendanalysis.evaluation.model.Food;
 import com.nutrisense.trendanalysis.evaluation.model.Meal;
-import com.nutrisense.trendanalysis.evaluation.model.TrendDirection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
