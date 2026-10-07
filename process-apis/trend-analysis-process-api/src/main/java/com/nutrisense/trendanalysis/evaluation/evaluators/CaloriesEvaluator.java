@@ -87,7 +87,7 @@ public class CaloriesEvaluator {
 		int daysCovered = aggregate.size();
 		int daysRequired = CoverageGate.requiredDays(windowDays);
 		
-		boolean sufficient = CoverageGate.isSufficient(daysCovered, daysRequired);
+		boolean sufficient = CoverageGate.isSufficient(daysCovered, windowDays);
 		
 
 		if (!sufficient) {
