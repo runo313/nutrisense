@@ -237,23 +237,22 @@ public class ThresholdResolver {
 		return null;
 
 	}
+
 	/**
 	 * Resolves the daily sodium cap and hard bound in mg. Sodium has two rows that
 	 * both apply to all adults: a general limit and a tighter hypertension
 	 * override. The override is used when the user has hypertension, otherwise the
 	 * general row. This does not go through resolve(), because resolve() takes the
-	 * first surviving row and then checks surfacing, so a user without
-	 * hypertension could be dropped before the general row is reached.
+	 * first surviving row and then checks surfacing, so a user without hypertension
+	 * could be dropped before the general row is reached.
 	 *
-	 * Process:
-	 * 1. Keep only ThresholdRow instances for sodium_mg.
-	 * 2. Pick the first override row (conditionOverrideOf set) that isSurfaced
-	 *    confirms for this user. Sodium has no dietary constraints, so an empty
-	 *    constraint list is passed.
-	 * 3. If none, pick the row with no override, the general row.
-	 * 4. Take the cap and hard bound as stored. They are already absolute mg, so
-	 *    there is no caloric target or unit conversion.
-	 * 5. For an override row, findTriggeringContext supplies the condition name.
+	 * Process: 1. Keep only ThresholdRow instances for sodium_mg. 2. Pick the first
+	 * override row (conditionOverrideOf set) that isSurfaced confirms for this
+	 * user. Sodium has no dietary constraints, so an empty constraint list is
+	 * passed. 3. If none, pick the row with no override, the general row. 4. Take
+	 * the cap and hard bound as stored. They are already absolute mg, so there is
+	 * no caloric target or unit conversion. 5. For an override row,
+	 * findTriggeringContext supplies the condition name.
 	 *
 	 * @param activeConditions the user's active conditions; null is treated as none
 	 * @return a SodiumTarget (thresholdId, capMg, hardBoundMg, condition), where
@@ -274,7 +273,6 @@ public class ThresholdResolver {
 			logger.debug("No Sodium row found");
 			return null;
 		}
-
 
 		ThresholdRow selected = rows.stream()
 				.filter(r -> r.conditionOverrideOf != null && isSurfaced(r, conditions, constraints)).findFirst()
@@ -297,6 +295,20 @@ public class ThresholdResolver {
 				result.capMg, result.hardBoundMg, result.condition);
 		return result;
 
+	}
+
+	/**
+	 * Returns the carbohydrate 130g RDA floor row from static-thresholds.json. The
+	 * floor is a fixed brain-glucose minimum with no demographic or surfacing
+	 * rules, so no user context is needed.
+	 *
+	 * @return the floor row, or null if it is not found
+	 * @throws IOException if static-thresholds.json cannot be read
+	 */
+	public ThresholdRow resolveCarbFloorRow() throws IOException {
+		return rowsForMetric("carbohydrate_g").stream()
+				.filter(r -> r instanceof ThresholdRow && "RDA".equals(r.valueType)).map(r -> (ThresholdRow) r)
+				.findFirst().orElse(null);
 	}
 
 }
