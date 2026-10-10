@@ -616,7 +616,32 @@
       "source_url": "https://www.sleepfoundation.org/stages-of-sleep",
       "confidence": "heuristic",
       "notes": "Not a clinical guideline. Consumer-facing reference range."
-    }
+    },
+    {
+  "threshold_id": "sleep_duration_cv",
+  "dimension": "sleep",
+  "metric_key": "sleep_duration_cv",
+  "value_type": "derived",
+  "evaluation_scope": "window",
+  "direction": "upper",
+  "base_value": null,
+  "soft_bound": 0.15,
+  "hard_bound": 0.25,
+  "bound_mode": "absolute",
+  "unit": "ratio",
+  "demographic_key": "all_19_plus",
+  "surfacing_rule": {
+    "conditions": [],
+    "constraints": []
+  },
+  "dietary_multiplier": null,
+  "primary_evaluation": false,
+  "source_body": null,
+  "source_edition": null,
+  "source_url": null,
+  "confidence": "heuristic",
+  "notes": "Coefficient of variation (sample standard deviation divided by mean) of nightly sleep duration across the window. CV is used instead of raw standard deviation because it normalizes for the person's own average. No population reference exists for sleep variability, so both cutoffs are invented and provisional pending real usage data. Used by Trend Analysis only."
+}
   ],
   "activity": [
     {
