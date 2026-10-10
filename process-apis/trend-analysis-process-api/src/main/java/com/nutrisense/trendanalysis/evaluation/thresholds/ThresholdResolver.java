@@ -1,6 +1,8 @@
 package com.nutrisense.trendanalysis.evaluation.thresholds;
 
 import com.nutrisense.trendanalysis.evaluation.model.BaseThresholdRow;
+import com.nutrisense.trendanalysis.evaluation.model.EvaluationType;
+import com.nutrisense.trendanalysis.evaluation.model.MicronutrientTarget;
 import com.nutrisense.trendanalysis.evaluation.model.SodiumTarget;
 import com.nutrisense.trendanalysis.evaluation.model.ThresholdRow;
 
@@ -309,6 +311,101 @@ public class ThresholdResolver {
 		return rowsForMetric("carbohydrate_g").stream()
 				.filter(r -> r instanceof ThresholdRow && "RDA".equals(r.valueType)).map(r -> (ThresholdRow) r)
 				.findFirst().orElse(null);
+	}
+	
+	/**
+	 * Resolves the effective threshold for one micronutrient for one user. This
+	 * does not go through resolve(), because resolve() returns a single value and
+	 * a micronutrient entry also needs the bounds, the surfacing condition, and
+	 * the direction flip.
+	 *
+	 * Process:
+	 * 1. Keep the non-UL ThresholdRows for the metric that match the bucket. None
+	 *    means no target.
+	 * 2. If isSurfaced is false for this user's conditions and constraints, return
+	 *    null so the metric is absent from the response.
+	 * 3. Set conditionContext with findTriggeringContext, which prefers a
+	 *    condition over a constraint (anemia over vegetarian).
+	 * 4. If the user has a condition in the row's flipsDirectionUnder (potassium
+	 *    under kidney disease), return a target with directionFlipped true,
+	 *    EXPOSURE, and no bounds, with that condition as the context. The ODS
+	 *    states the adequacy value does not apply, and no upper bound is defined
+	 *    here, so the evaluator reports INSUFFICIENT_DATA for it.
+	 * 5. Otherwise find the multiplier key, which is the first active constraint
+	 *    in the row's dietaryMultiplier map. This is separate from the display
+	 *    context, so a user with both anemia and vegetarian still gets the
+	 *    vegetarian multiplier while the context stays anemia.
+	 * 6. Apply the multiplier and UL clamp with applyMultiplierAndClamp, then
+	 *    scale the soft and hard bounds by the same ratio so the three stay
+	 *    proportional.
+	 *
+	 * Known limitation: users with an unspecified biological sex resolve to null
+	 * for iron, zinc, calcium and potassium, because no row matches their bucket.
+	 * The sex-unspecified guard in Daily Insight's metadata is not ported.
+	 *
+	 * @param metricKey e.g. "iron_mg"
+	 * @param resolvedBucket the user's bucket from DemographicResolver.resolveBucket
+	 * @param activeConditions the user's active conditions; null is treated as none
+	 * @param activeConstraints the user's active dietary constraints; null is treated as none
+	 * @return a MicronutrientTarget, or null if the metric has no row for this
+	 *         bucket or is not surfaced for this user
+	 * @throws IOException if static-thresholds.json cannot be read
+	 */
+	
+	public MicronutrientTarget resolveMicronutrientTarget(String metricKey, String resolvedBucket,List<String> activeConditions, List<String> activeConstraints) throws IOException {
+		
+		List<String> conditions = activeConditions != null ? activeConditions : Collections.emptyList();
+		List<String> constraints = activeConstraints != null ? activeConstraints : Collections.emptyList();
+		
+		List<ThresholdRow> rows = rowsForMetric(metricKey).stream().filter(row -> row instanceof ThresholdRow)
+				.filter(row -> !"UL".equals(row.valueType))
+				.filter(row -> matchesBucket(row.demographicKey, resolvedBucket))
+				.map(row -> (ThresholdRow) row)
+				.collect(Collectors.toList());
+		
+		if (rows.isEmpty()) {
+			logger.debug("No threshold row found for metric={} bucket={}", metricKey, resolvedBucket);
+			return null;
+		}
+		
+		ThresholdRow candidate = rows.get(0);
+		boolean surfaced = isSurfaced(candidate, conditions, constraints);
+		
+		if (!surfaced ) {
+			logger.debug("Metric={} not surfaced for bucket={}", metricKey, resolvedBucket);
+			return null;
+		}
+		
+		MicronutrientTarget result = new MicronutrientTarget();
+	    result.thresholdId = candidate.thresholdId;
+	    result.conditionContext = findTriggeringContext(candidate, conditions, constraints);
+			
+	    String flippingCondition = candidate.flipsDirectionUnder == null ? null
+	            : candidate.flipsDirectionUnder.stream().filter(conditions::contains).findFirst().orElse(null);
+
+	    if (flippingCondition != null) {
+	        result.directionFlipped = true;
+	        result.conditionContext = flippingCondition;
+	        result.evaluationType = EvaluationType.EXPOSURE;
+	        logger.info("Metric={} direction flipped under {}, no upper bound defined", metricKey, flippingCondition);
+	        return result;
+	    }
+
+	    String multiplierKey = candidate.dietaryMultiplier == null ? null
+	            : constraints.stream().filter(candidate.dietaryMultiplier::containsKey).findFirst().orElse(null);
+
+	    double base = applyMultiplierAndClamp(candidate, multiplierKey);
+	    double ratio = base / candidate.baseValue;
+
+	    result.baseValue = base;
+	    result.softBound = candidate.softBound * ratio;
+	    result.hardBound = candidate.hardBound * ratio;
+	    result.evaluationType = EvaluationType.ADEQUACY;
+
+	    logger.info("Resolved micronutrient target: metric={} row={} base={} hardBound={} context={}",
+	            metricKey, result.thresholdId, result.baseValue, result.hardBound, result.conditionContext);
+	    return result;
+		
 	}
 
 }
