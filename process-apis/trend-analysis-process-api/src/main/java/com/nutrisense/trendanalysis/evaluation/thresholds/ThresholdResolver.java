@@ -407,7 +407,21 @@ public class ThresholdResolver {
 		return result;
 
 	}
-
+	/**
+	 * Resolves the sleep duration target for one user. The effective target is the
+	 * larger of the user's own target and the consensus floor in the duration row
+	 * (7 hours), so a user cannot lower their target below the AASM figure to
+	 * avoid flags. A null user target uses the floor. The hard bound is the
+	 * effective target times the row's hard bound fraction (70%).
+	 *
+	 * The floor is read from the row, not hardcoded, so the JSON stays the single
+	 * source. floorApplied is true only when the user supplied a target and the
+	 * floor replaced it.
+	 *
+	 * @param userTargetHrs the user's target_sleep_duration_hrs; null if not set
+	 * @return a SleepDurationTarget, or null if the consensus row is missing or incomplete
+	 * @throws IOException if static-thresholds.json cannot be read
+	 */
 	public SleepDurationTarget resolveSleepDurationTarget(Double userTargetHrs) throws IOException {
 		List<ThresholdRow> sleepRows = rowsForMetric("sleep_duration_hrs").stream()
 				.filter(row -> row instanceof ThresholdRow).filter(row -> row.valueType.equals("consensus"))
@@ -438,7 +452,15 @@ public class ThresholdResolver {
 	            result.thresholdId, result.targetHrs, result.hardBoundHrs, result.floorApplied);
 	    return result;
 	}
-	
+	/**
+	 * Returns the sleep consistency row (sleep_duration_cv) from
+	 * static-thresholds.json. Its soft bound (0.15) and hard bound (0.25) are the
+	 * coefficient of variation cutoffs SleepEvaluator uses. It has no demographic
+	 * or surfacing rules, so no user context is needed.
+	 *
+	 * @return the consistency row, or null if it is not found
+	 * @throws IOException if static-thresholds.json cannot be read
+	 */
 	public ThresholdRow resolveSleepConsistencyRow() throws IOException {
 		return rowsForMetric("sleep_duration_cv").stream()
 				.filter(r -> r instanceof ThresholdRow).map(r -> (ThresholdRow) r)
