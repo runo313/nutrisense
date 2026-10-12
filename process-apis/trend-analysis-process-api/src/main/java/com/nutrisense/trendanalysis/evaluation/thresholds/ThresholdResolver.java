@@ -1,6 +1,8 @@
 package com.nutrisense.trendanalysis.evaluation.thresholds;
 
 import com.nutrisense.trendanalysis.evaluation.model.BaseThresholdRow;
+import com.nutrisense.trendanalysis.evaluation.model.BaselineDeviationRow;
+import com.nutrisense.trendanalysis.evaluation.model.BaselineDeviations;
 import com.nutrisense.trendanalysis.evaluation.model.EvaluationType;
 import com.nutrisense.trendanalysis.evaluation.model.MicronutrientTarget;
 import com.nutrisense.trendanalysis.evaluation.model.SleepDurationTarget;
@@ -465,6 +467,49 @@ public class ThresholdResolver {
 		return rowsForMetric("sleep_duration_cv").stream()
 				.filter(r -> r instanceof ThresholdRow).map(r -> (ThresholdRow) r)
 				.findFirst().orElse(null);
+	}
+	/**
+	 * Returns the personal-baseline deviation row for one metric from
+	 * baseline-deviations.json (resting_hr_bpm, hrv_sdnn, or active_energy_kcal).
+	 * These rows have no population value. They define how far a window's average
+	 * may drift from the user's own 30-day average, as a signed fraction of that
+	 * baseline: a resolved bound is baseline times (1 + bound), so HRV's negative
+	 * bounds (-0.15, -0.25) sit below the baseline and resting HR's positive
+	 * bounds (0.05, 0.10) sit above it.
+	 *
+	 * This does not go through rowsForMetric, which only searches the static
+	 * rows. The row is returned as stored and is not validated, so callers must
+	 * check the bounds and minDataDays they use.
+	 *
+	 * @param metricKey the baseline row key, e.g. "resting_hr_bpm" (not the
+	 *                  wearable name "resting_heart_rate")
+	 * @return the matching row, or null if the key is null or no row matches
+	 * @throws IOException if baseline-deviations.json cannot be read
+	 */
+	
+	public BaselineDeviationRow resolveBaselineRow(String metricKey) throws IOException {
+		if (metricKey == null) {
+	        return null;
+	    }
+
+	    BaselineDeviations deviations = repository.loadBaselineDeviations();
+	    if (deviations == null || deviations.baselineRows == null) {
+	        logger.warn("Baseline deviation rows missing in baseline-deviations.json");
+	        return null;
+	    }
+	    
+	    BaselineDeviationRow row = deviations.baselineRows.stream()
+	            .filter(r -> metricKey.equals(r.metricKey))
+	            .findFirst()
+	            .orElse(null);
+
+	    if (row == null) {
+	        logger.warn("No baseline deviation row found for metric={}", metricKey);
+	        return null;
+	    }
+
+	    logger.debug("Resolved baseline row: metric={} row={}", metricKey, row.thresholdId);
+	    return row;
 	}
 
 }
