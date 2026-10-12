@@ -32,67 +32,49 @@ public class TrendDirectionCalculator {
 	private static final double STABLE_DELTA = 0.05;
 
 	/**
-	 * Compares the newer half of a window against the older half and classifies the
-	 * change.
+	 * Compares the newer half of a window against the older half and classifies
+	 * the change.
 	 *
-	 * Process: 
-	 * 1. halfOf assign each dated value to the first half, second half, or
-	 * ignore it if it falls outside the window. For odd windows the older half gets
-	 * the extra day (4/3 at window=7), a deliberately conservative bias that makes
-	 * the recent half work harder to register as a change.
-	 *  
-	 * 2. average - average each half. An empty half has no average. 
-	 * 
-	 * 3. guard - if either half has no
-	 * usable average, no trend can be determined, so return null. 
-	 * 
-	 * 4. stability - if the change between halves is within 5%, 
-	 * return "stable". When the first-half average is 0 a percentage is undefined, 
-	 * so two zeros count as stable and zero
-	 * to nonzero skips the band and counts as a real change. 
-	 * 
-	 * 5. direction - otherwise classify by which way it moved and whether that way is good for
-	 * this metric.
+	 * Process:
+	 * 1. splitAverages - splits the window by calendar date and averages each
+	 *    half. Recovery at window 30 reads the same split to report the half
+	 *    averages, so the trend and the reported values always agree. For odd
+	 *    windows the older half gets the extra day (4/3 at window=7), a
+	 *    deliberately conservative bias that makes the recent half work harder to
+	 *    register as a change.
+	 * 2. guard - if either half has no usable average (null, NaN, or infinite),
+	 *    no trend can be determined, so return null.
+	 * 3. stability - if the change between halves is within 5%, return STABLE.
+	 *    When the first-half average is 0 a percentage is undefined, so two zeros
+	 *    count as STABLE and zero to nonzero skips the band and counts as a real
+	 *    change.
+	 * 4. direction - otherwise classify by which way the metric moved and whether
+	 *    that way is good for it. A rise is IMPROVING when higherIsBetter is true
+	 *    and DECLINING when it is false, and a fall is the reverse.
 	 *
-	 * @param dailyValues    one value per date that has data, e.g. daily average
-	 *                       resting HR; days with no data are simply absent
-	 *                       
-	 * @param windowStart    the first calendar day of the window, so the split is
-	 *                       anchored to real dates; values outside the window are
-	 *                       ignored
-	 *                       
-	 * @param windowDays     window length (7, 14, or 30)
-	 * 
+	 * @param dailyValues one value per date that has data, e.g. daily average
+	 *        resting HR; days with no data are simply absent
+	 * @param windowStart the first calendar day of the window, so the split is
+	 *        anchored to real dates; values outside the window are ignored
+	 * @param windowDays window length (7, 14, or 30)
 	 * @param higherIsBetter polarity of the metric. true if a rise is an
-	 *                       improvement (HRV), false if a rise is a decline
-	 *                       (resting HR, or distance from a target)
-	 *                       
-	 * @return "improving", "declining", or "stable"; null when either half has no
-	 *         usable data, meaning no trend can be determined
+	 *        improvement (HRV), false if a rise is a decline (resting HR, or a
+	 *        distance from a target)
+	 * @return IMPROVING, DECLINING, or STABLE; null when either half has no usable
+	 *         data, meaning no trend can be determined
 	 */
 
 	public static TrendDirection calculate(Map<LocalDate, Double> dailyValues, LocalDate windowStart, int windowDays,
 			boolean higherIsBetter) {
 
-		List<Double> firstHalfValues = new ArrayList<>();
-		List<Double> secondHalfValues = new ArrayList<>();
-
-		dailyValues.forEach((date, value) -> {
-			String whichHalf = halfOf(date, windowStart, windowDays);
-			if (whichHalf.equals("first")) {
-				firstHalfValues.add(value);
-			} else if (whichHalf.equals("second")) {
-				secondHalfValues.add(value);
-			}
-		});
-
-		Double firstAvg = average(firstHalfValues);
-		Double secondAvg = average(secondHalfValues);
+		Double[] halves = splitAverages(dailyValues, windowStart, windowDays);
+		Double firstAvg = halves[0];
+		Double secondAvg = halves[1];
+		
 		if (firstAvg == null || secondAvg == null || Double.isNaN(firstAvg) || Double.isNaN(secondAvg)
 				|| Double.isInfinite(firstAvg) || Double.isInfinite(secondAvg)) {
 			
-			logger.debug("No trend: firstHalfDays={} secondHalfDays={} (a half had no usable average)",
-				    firstHalfValues.size(), secondHalfValues.size());
+			logger.debug("No trend: firstAvg={} secondAvg={} (a half had no usable average)", firstAvg, secondAvg);
 			return null;
 		}
 
@@ -147,5 +129,50 @@ public class TrendDirectionCalculator {
 	private static double deltaPct(double firstAvg, double secondAvg) {
 		return (secondAvg - firstAvg) / firstAvg;
 	}
+	
+/**
+ * Splits a window into its older and newer halves by calendar date and
+ * averages each. calculate uses this to decide a trend direction, and recovery
+ * at window 30 reports the two averages directly, so both read the same split.
+ * The older half gets the extra day on odd windows (4/3 at window=7).
+ *
+ * @param dailyValues one value per date with data; days with no data are absent
+ * @param windowStart first calendar day of the window
+ * @param windowDays window length (7, 14, or 30)
+ * @return a two-element array with the first-half average at index 0 and the
+ *         second-half average at index 1. Either is null when that half has
+ *         no data, and both are null if the map or windowStart is null.
+ */
+	
+	public static Double[] splitAverages(Map<LocalDate, Double> dailyValues, LocalDate windowStart, int windowDays) {
+		Double[] result = new Double[2];
+		
+		if (dailyValues == null || windowStart == null) {
+			return result;
+		}
+		
+		List<Double>firstHalfList = new ArrayList<>();
+		List<Double>secondHalfList = new ArrayList<>();
+		
+		for (Map.Entry<LocalDate, Double> entry : dailyValues.entrySet()) {
+	        Double value = entry.getValue();
+	        if (value == null) {
+	            continue;
+	        }
+	        String whichHalf = halfOf(entry.getKey(), windowStart, windowDays);
+	        if (whichHalf.equals("first")) {
+	            firstHalfList.add(value);
+	        } else if (whichHalf.equals("second")) {
+	            secondHalfList.add(value);
+	        }
+	    }
+
+	    result[0] = average(firstHalfList);
+	    result[1] = average(secondHalfList);
+
+	    logger.debug("Split averages: firstHalfDays={} secondHalfDays={} firstAvg={} secondAvg={}",
+	            firstHalfList.size(), secondHalfList.size(), result[0], result[1]);
+	    return result;
+	} 
 
 }
