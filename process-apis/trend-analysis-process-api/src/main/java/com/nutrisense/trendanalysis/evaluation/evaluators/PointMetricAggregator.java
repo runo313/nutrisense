@@ -114,7 +114,7 @@ public class PointMetricAggregator {
 	 * @param windowDays window length (7, 14, or 30)
 	 * @return mean reading per date with data; empty if there is none
 	 */
-	public Map<LocalDate, Double> averageByDay(List<PointMetric> points, String metricType,
+	public static Map<LocalDate, Double> averageByDay(List<PointMetric> points, String metricType,
 			LocalDate windowStart, int windowDays){
 		
 		Map<LocalDate, Double> result = new HashMap<>();
