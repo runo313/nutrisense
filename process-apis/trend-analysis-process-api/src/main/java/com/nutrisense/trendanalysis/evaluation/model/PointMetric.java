@@ -14,7 +14,11 @@ public class PointMetric {
 
     public Double value;
 
+    public String unit;
+
     @SerializedName("recorded_at")
     public String recordedAt;
 
+    @SerializedName("source_device")
+    public String sourceDevice;
 }
