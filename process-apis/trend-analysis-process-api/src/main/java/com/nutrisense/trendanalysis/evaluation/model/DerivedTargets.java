@@ -10,4 +10,7 @@ public class DerivedTargets {
     public List<SaturatedFatRow> saturatedFat;
     public Map<String, Double> activityMultipliers;
     public Map<String, Double> caloricDeviationBounds;
+    public Map<String, Double> activityIntensityCutoffs;
+    public Map<String, String> activityTypeIntensity;
+    public List<String> activitySpeedTypes;
 }
