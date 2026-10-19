@@ -1,5 +1,6 @@
 package com.nutrisense.trendanalysis.evaluation.thresholds;
 
+import com.nutrisense.trendanalysis.evaluation.model.ActivityTarget;
 import com.nutrisense.trendanalysis.evaluation.model.BaseThresholdRow;
 import com.nutrisense.trendanalysis.evaluation.model.BaselineDeviationRow;
 import com.nutrisense.trendanalysis.evaluation.model.BaselineDeviations;
@@ -510,6 +511,60 @@ public class ThresholdResolver {
 
 	    logger.debug("Resolved baseline row: metric={} row={}", metricKey, row.thresholdId);
 	    return row;
+	}
+	
+	/**
+	 * Resolves the CDC/PAG weekly activity targets scaled to the window length.
+	 * The weekly rows hold absolute minutes, including the hard bound (unlike
+	 * sleep, where the hard bound is a fraction), so every value is multiplied by
+	 * windowDays / 7. At window 7 the targets are the published figures. At 14 and
+	 * 30 they are derived, not published. The soft bounds are not used.
+	 *
+	 * @param windowDays window length (7, 14, or 30)
+	 * @return an ActivityTarget (thresholdId, scaleFactor, moderateTarget,
+	 *         moderateHardBound, vigorousTarget), or null if windowDays is not
+	 *         positive or either row is missing or incomplete
+	 * @throws IOException if static-thresholds.json cannot be read
+	 */
+	public ActivityTarget resolveActivityTarget(int windowDays) throws IOException{
+		
+		if (windowDays <= 0) {
+	        logger.warn("Activity target not resolved: invalid windowDays={}", windowDays);
+	        return null;
+	    }
+		
+		List<ThresholdRow> moderateRows = rowsForMetric("moderate_activity_min").stream()
+				.filter(row -> row instanceof ThresholdRow)
+				.map(row -> (ThresholdRow) row).collect(Collectors.toList());
+		
+		List<ThresholdRow> vigorousRows = rowsForMetric("vigorous_activity_min").stream()
+				.filter(row -> row instanceof ThresholdRow)
+				.map(row -> (ThresholdRow) row).collect(Collectors.toList());
+		
+		if (moderateRows.isEmpty() || vigorousRows.isEmpty()) {
+	        logger.warn("Activity rows missing: moderateRows={} vigorousRows={}", moderateRows.size(), vigorousRows.size());
+	        return null;
+	    }
+		
+		ThresholdRow moderateRow = moderateRows.get(0);
+	    ThresholdRow vigorousRow = vigorousRows.get(0);
+		
+		if (moderateRow.baseValue == null || moderateRow.hardBound == null || vigorousRow.baseValue == null) {
+	        logger.warn("Activity rows incomplete: moderate={} vigorous={}", moderateRow.thresholdId, vigorousRow.thresholdId);
+	        return null;
+	    }
+		
+		ActivityTarget result = new ActivityTarget();
+	    result.thresholdId = moderateRow.thresholdId;
+	    result.scaleFactor = windowDays / 7.0;
+	    result.moderateTarget = moderateRow.baseValue * result.scaleFactor;
+	    result.moderateHardBound = moderateRow.hardBound * result.scaleFactor;
+	    result.vigorousTarget = vigorousRow.baseValue * result.scaleFactor;
+
+	    logger.info("Resolved activity target: row={} windowDays={} scale={} moderateTarget={} moderateHardBound={} vigorousTarget={}",
+	            result.thresholdId, windowDays, result.scaleFactor, result.moderateTarget,
+	            result.moderateHardBound, result.vigorousTarget);
+	    return result;	
 	}
 
 }
