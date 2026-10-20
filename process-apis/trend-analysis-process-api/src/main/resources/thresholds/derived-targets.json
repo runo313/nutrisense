@@ -136,5 +136,21 @@
 	"on_track_max_pct": 1.20,
 	"soft_min_pct": 0.60,
 	"soft_max_pct": 1.40
-  }
+  },
+  "activityIntensityCutoffs": {
+  "walking_moderate_min_mph": 2.5,
+  "walking_vigorous_min_mph": 5.0,
+  "moderate_min_mets": 3.0,
+  "vigorous_min_mets": 6.0,
+  "resting_mets": 1.0,
+  "kcal_per_kg_min_per_met": 0.0175,
+  "vigorous_to_moderate_ratio": 2.0
+},
+"activityTypeIntensity": {
+  "running": "vigorous",
+  "walking": "moderate",
+  "hiking": "moderate",
+  "cycling": "moderate"
+},
+"activitySpeedTypes": ["walking", "hiking"]
 }
