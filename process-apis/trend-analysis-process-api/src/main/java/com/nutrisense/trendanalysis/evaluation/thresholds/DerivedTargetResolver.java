@@ -20,7 +20,7 @@ import com.nutrisense.trendanalysis.evaluation.model.SaturatedFatRow;
 public class DerivedTargetResolver {
 
 	private ThresholdRepository repository;
-	private static final Logger logger = LoggerFactory.getLogger(ThresholdResolver.class);
+	private static final Logger logger = LoggerFactory.getLogger(DerivedTargetResolver.class);
 
 	public DerivedTargetResolver(ThresholdRepository repository) {
 		this.repository = repository;
