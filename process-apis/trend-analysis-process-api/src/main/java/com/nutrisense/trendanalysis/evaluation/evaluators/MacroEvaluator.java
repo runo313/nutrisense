@@ -103,6 +103,8 @@ public class MacroEvaluator {
 		MacroTrendEntry evaluateTotalFat = AmdrRangeEvaluator.evaluateAmdrRange(aggregateTotalFat, resolveAmdrFat, windowStart, windowDays);
 		MacroTrendEntry evaluateCarbs = CarbohydrateEvaluator.evaluateCarbohydrate(aggregateCarbs, resolveAmdrCarbs, carbFloorRow, windowStart, windowDays);
 		
+		evaluateSatFat.conditionContext = resolveSaturatedFatTarget != null ? resolveSaturatedFatTarget.condition : null;
+		evaluateSodium.conditionContext = resolvedSodium != null ? resolvedSodium.condition : null;
 		
 		result.evaluationType = EvaluationType.GUIDELINE;
 		result.carbohydrates = evaluateCarbs;

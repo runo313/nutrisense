@@ -7,7 +7,9 @@ import com.google.gson.annotations.SerializedName;
  * depends on the macro's shape: protein, fiber, saturated fat and sodium use
  * target (for saturated fat and sodium it is the cap), while carbohydrates and
  * fat use rangeMin and rangeMax instead. Fields that don't apply to a given
- * macro stay null.
+ * macro stay null. conditionContext is set only for saturated fat and
+ * sodium, and holds the condition that selected a tighter cap (high_cholesterol,
+ * hypertension)
  */
 public class MacroTrendEntry {
     @SerializedName("avg_value")
@@ -25,4 +27,7 @@ public class MacroTrendEntry {
 
     @SerializedName("trend_direction")
     public TrendDirection trendDirection;
+    
+    @SerializedName("condition_context")
+    public String conditionContext;
 }
