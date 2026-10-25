@@ -61,10 +61,11 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> item.foodId)) distinc
 						<ee:set-variable variableName="loggedItems" ><![CDATA[%dw 2.0
 output application/java
 ---
-payload.meals flatMap ((meal) -> meal.items map ((item) -> {
-  foodId: item.foodId,
-  quantityG: item.quantityG
-}))]]></ee:set-variable>
+payload.meals 
+//flatMap ((meal) -> meal.items map ((item) -> {
+//  foodId: item.foodId,
+//  quantityG: item.quantityG
+//}))]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<parallel-foreach doc:name="Parallel For Each" doc:id="38a6cff2-5110-45e1-9d63-a91315eadf2e" collection="#[vars.uniqueFoodIds]" >
@@ -118,12 +119,12 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> {
 ---
 {
 	"endDate" : vars.window.end,
-	"startDate" : vars.window.start,
-	"limit": 500,
+	"startDate" : vars.window.start - |P1D|,
+	"limit": 1500,
 	"metricType":"resting_heart_rate",
 	"metricType":"hrv",
 	"metricType":"step_count",
-	"metricType":"active_energy_burned",
+	//"metricType":"active_energy_burned",
 }]]]></http:query-params>
 			<http:response-validator>
 				<http:success-status-code-validator values="200,404" />
@@ -152,7 +153,7 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> {
 	"metricType":"resting_heart_rate",
 	"metricType":"hrv",
 	"metricType":"step_count",
-	"metricType":"active_energy_burned",
+	//"metricType":"active_energy_burned"
 }]]]></http:query-params>
 					<http:response-validator>
 						<http:success-status-code-validator values="200,404" />
@@ -176,7 +177,8 @@ payload.meals flatMap ((meal) -> meal.items map ((item) -> {
 	"metricType" : "resting_heart_rate",
 	"duration" : 30,
 	"metricType" : "hrv",
-	"metricType" : "active_energy_burned"
+	//"metricType" : "active_energy_burned",
+	//"metricType":"step_count"
 }]]]></http:query-params>
 					<http:response-validator >
 						<http:success-status-code-validator values="200,404" />
