@@ -17,7 +17,7 @@ public class TrendEvaluation {
 
     @SerializedName("dimension_trends")
     public DimensionTrends dimensionTrends;
-
+    public Coverage coverage;
     public static class DimensionTrends {
         public ActivityTrend activity;
         public SleepTrend sleep;
@@ -25,5 +25,11 @@ public class TrendEvaluation {
         public CaloriesTrend calories;
         public MacrosTrend macros;
         public List<MicronutrientTrend> micronutrients;
+    }
+    
+    public static class Coverage {
+        @SerializedName("meal_log")
+        public CoverageEntry mealLog;
+        public CoverageEntry wearable;
     }
 }
