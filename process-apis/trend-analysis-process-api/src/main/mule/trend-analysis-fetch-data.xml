@@ -120,7 +120,7 @@ payload.meals
 {
 	"endDate" : vars.window.end,
 	"startDate" : vars.window.start - |P1D|,
-	"limit": 1500,
+	"limit": 500,
 	"metricType":"resting_heart_rate",
 	"metricType":"hrv",
 	"metricType":"step_count",
