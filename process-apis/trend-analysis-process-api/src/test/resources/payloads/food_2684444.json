@@ -1,0 +1,25 @@
+{
+  "foodId": 2684444,
+  "name": "Yogurt, plain, low fat",
+  "category": "Dairy and Egg Products",
+  "servingSizeG": 100,
+  "source": "USDA Foundation Foods",
+  "nutrients": {
+    "energyKcal": 63,
+    "proteinG": 5.25,
+    "carbohydratesG": 7.04,
+    "dietaryFiberG": 0,
+    "sugarsG": 7.04,
+    "totalFatG": 1.55,
+    "saturatedFatG": 1.0,
+    "sodiumMg": 70,
+    "potassiumMg": 234,
+    "calciumMg": 183,
+    "ironMg": 0.07,
+    "vitaminCMg": 0.8,
+    "vitaminDMcg": 0,
+    "vitaminB12Mcg": 0.37,
+    "magnesiumMg": 17,
+    "zincMg": 0.9
+  }
+}
