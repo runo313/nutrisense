@@ -1,0 +1,78 @@
+{
+  "window": { "days": 7, "start": "2026-09-01" },
+  "profile": {
+    "weightKg": 68,
+    "dailyCaloricTarget": 2100,
+    "biologicalSex": "female",
+    "age": 28,
+    "activityBaseline": "moderately_active",
+    "targetSleepDurationHrs": 6,
+    "goalType": "weight_management",
+    "goalDirection": "lose",
+    "conditions": ["anemia","hypertension"],
+    "constraints": []
+  },
+  "meals": [
+    { "mealType": "lunch", "consumedAt": "2026-09-01T12:30:00-04:00", "items": [ { "foodId": 747448, "quantityG": 250 }, { "foodId": 331960, "quantityG": 348 }, { "foodId": 2684444, "quantityG": 400 } ] },
+    { "mealType": "lunch", "consumedAt": "2026-09-02T12:30:00-04:00", "items": [ { "foodId": 747448, "quantityG": 250 }, { "foodId": 331960, "quantityG": 348 }, { "foodId": 2684444, "quantityG": 400 } ] },
+    { "mealType": "lunch", "consumedAt": "2026-09-03T12:30:00-04:00", "items": [ { "foodId": 747448, "quantityG": 250 }, { "foodId": 331960, "quantityG": 348 }, { "foodId": 2684444, "quantityG": 400 } ] },
+    { "mealType": "lunch", "consumedAt": "2026-09-04T12:30:00-04:00", "items": [ { "foodId": 747448, "quantityG": 250 }, { "foodId": 331960, "quantityG": 348 }, { "foodId": 2684444, "quantityG": 400 } ] },
+    { "mealType": "lunch", "consumedAt": "2026-09-05T12:30:00-04:00", "items": [ { "foodId": 747448, "quantityG": 150 }, { "foodId": 331960, "quantityG": 348 }, { "foodId": 2684444, "quantityG": 400 } ] },
+    { "mealType": "lunch", "consumedAt": "2026-09-06T12:30:00-04:00", "items": [ { "foodId": 747448, "quantityG": 150 }, { "foodId": 331960, "quantityG": 348 }, { "foodId": 2684444, "quantityG": 400 } ] }
+  ],
+  "foods": [
+    { "foodId": 747448, "name": "Oatmeal, dry", "servingSizeG": 100,
+      "nutrients": { "energyKcal": 389, "proteinG": 16.9, "carbohydratesG": 66.3, "dietaryFiberG": 10.6, "totalFatG": 6.9, "saturatedFatG": 1.21, "sodiumMg": 2, "ironMg": 4.72 } },
+    { "foodId": 331960, "name": "Chicken breast, braised", "servingSizeG": 174,
+      "nutrients": { "energyKcal": 158, "proteinG": 32.1, "carbohydratesG": 0, "dietaryFiberG": null, "totalFatG": 3.24, "saturatedFatG": 1.01, "sodiumMg": 47, "ironMg": 0.49 } },
+    { "foodId": 2684444, "name": "Yogurt, plain, low fat", "servingSizeG": 100,
+      "nutrients": { "energyKcal": 63, "proteinG": 5.25, "carbohydratesG": 7.04, "dietaryFiberG": 0, "totalFatG": 1.55, "saturatedFatG": 1.0, "sodiumMg": 70, "ironMg": 0.07 } }
+  ],
+  "sleepSessions": [
+    { "stage": "Core",  "start_time": "2026-08-31T23:00:00", "end_time": "2026-09-01T05:30:00" },
+    { "stage": "Deep",  "start_time": "2026-09-01T05:30:00", "end_time": "2026-09-01T06:30:00" },
+    { "stage": "Awake", "start_time": "2026-09-01T06:30:00", "end_time": "2026-09-01T06:45:00" },
+    { "stage": "Core",  "start_time": "2026-09-01T23:00:00", "end_time": "2026-09-02T03:00:00" },
+    { "stage": "Deep",  "start_time": "2026-09-02T03:00:00", "end_time": "2026-09-02T04:00:00" },
+    { "stage": "Core",  "start_time": "2026-09-02T23:00:00", "end_time": "2026-09-03T05:00:00" },
+    { "stage": "Deep",  "start_time": "2026-09-03T05:00:00", "end_time": "2026-09-03T06:00:00" },
+    { "stage": "Core",  "start_time": "2026-09-03T23:00:00", "end_time": "2026-09-04T02:30:00" },
+    { "stage": "Deep",  "start_time": "2026-09-04T02:30:00", "end_time": "2026-09-04T03:30:00" },
+    { "stage": "Core",  "start_time": "2026-09-04T23:00:00", "end_time": "2026-09-05T05:30:00" },
+    { "stage": "Deep",  "start_time": "2026-09-05T05:30:00", "end_time": "2026-09-05T06:30:00" },
+    { "stage": "Core",  "start_time": "2026-09-05T23:00:00", "end_time": "2026-09-06T03:00:00" },
+    { "stage": "Deep",  "start_time": "2026-09-06T03:00:00", "end_time": "2026-09-06T04:00:00" }
+  ],
+  "pointMetrics": [
+    { "metric_type": "resting_heart_rate", "value": 64, "recorded_at": "2026-09-01T07:00:00" },
+    { "metric_type": "resting_heart_rate", "value": 64, "recorded_at": "2026-09-02T07:00:00" },
+    { "metric_type": "resting_heart_rate", "value": 65, "recorded_at": "2026-09-03T07:00:00" },
+    { "metric_type": "resting_heart_rate", "value": 65, "recorded_at": "2026-09-04T07:00:00" },
+    { "metric_type": "resting_heart_rate", "value": 68, "recorded_at": "2026-09-05T07:00:00" },
+    { "metric_type": "resting_heart_rate", "value": 70, "recorded_at": "2026-09-06T07:00:00" },
+    { "metric_type": "hrv", "value": 50, "recorded_at": "2026-09-01T07:05:00" },
+    { "metric_type": "hrv", "value": 50, "recorded_at": "2026-09-02T07:05:00" },
+    { "metric_type": "hrv", "value": 48, "recorded_at": "2026-09-03T07:05:00" },
+    { "metric_type": "hrv", "value": 48, "recorded_at": "2026-09-04T07:05:00" },
+    { "metric_type": "hrv", "value": 42, "recorded_at": "2026-09-05T07:05:00" },
+    { "metric_type": "hrv", "value": 40, "recorded_at": "2026-09-06T07:05:00" },
+    { "metric_type": "step_count", "value": 8000, "recorded_at": "2026-09-01T12:00:00" },
+    { "metric_type": "step_count", "value": 8000, "recorded_at": "2026-09-02T12:00:00" },
+    { "metric_type": "step_count", "value": 8000, "recorded_at": "2026-09-03T12:00:00" },
+    { "metric_type": "step_count", "value": 8000, "recorded_at": "2026-09-04T12:00:00" },
+    { "metric_type": "step_count", "value": 8000, "recorded_at": "2026-09-05T12:00:00" },
+    { "metric_type": "step_count", "value": 8000, "recorded_at": "2026-09-06T12:00:00" }
+  ],
+  "workouts": [
+    { "activity_type": "HKWorkoutActivityTypeWalking", "start_time": "2026-09-02T10:10:24", "duration": 30, "duration_unit": "min",
+      "statistics": [ { "metric_type": "active_energy_burned", "unit": "Cal", "sum_value": 90 } ] },
+    { "activity_type": "running", "start_time": "2026-09-04T06:30:00", "duration": 40, "duration_unit": "min",
+      "statistics": [ { "metric_type": "active_energy_burned", "unit": "Cal", "sum_value": 400 } ] },
+    { "activity_type": "walking", "start_time": "2026-09-06T18:00:00", "duration": 45, "duration_unit": "min",
+      "statistics": [ { "metric_type": "active_energy_burned", "unit": "Cal", "sum_value": 70 } ] }
+  ],
+  "baselineSummaries": [
+    { "metric_type": "resting_heart_rate", "average": 62, "count": 22 },
+    { "metric_type": "hrv", "average": 52, "count": 20 }
+  ]
+}

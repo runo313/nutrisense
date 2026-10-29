@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -17,12 +19,18 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.nutrisense.trendanalysis.evaluation.evaluators.ActivityEvaluator;
 import com.nutrisense.trendanalysis.evaluation.evaluators.CaloriesEvaluator;
+import com.nutrisense.trendanalysis.evaluation.evaluators.CoverageGate;
+import com.nutrisense.trendanalysis.evaluation.evaluators.DailyNutrientAggregator;
 import com.nutrisense.trendanalysis.evaluation.evaluators.MacroEvaluator;
 import com.nutrisense.trendanalysis.evaluation.evaluators.MicronutrientEvaluator;
+import com.nutrisense.trendanalysis.evaluation.evaluators.PointMetricAggregator;
 import com.nutrisense.trendanalysis.evaluation.evaluators.RecoveryEvaluator;
+import com.nutrisense.trendanalysis.evaluation.evaluators.SleepAggregator;
 import com.nutrisense.trendanalysis.evaluation.evaluators.SleepEvaluator;
+import com.nutrisense.trendanalysis.evaluation.evaluators.WorkoutMinutesAggregator;
 import com.nutrisense.trendanalysis.evaluation.model.ActivityTrend;
 import com.nutrisense.trendanalysis.evaluation.model.CaloriesTrend;
+import com.nutrisense.trendanalysis.evaluation.model.CoverageEntry;
 import com.nutrisense.trendanalysis.evaluation.model.DerivedTargets;
 import com.nutrisense.trendanalysis.evaluation.model.DimensionStatus;
 import com.nutrisense.trendanalysis.evaluation.model.EvaluationType;
@@ -188,6 +196,8 @@ public class TrendEvaluationService {
             }
 
             TrendEvaluation result = new TrendEvaluation();
+            result.coverage = buildCoverage(meals, foods, sleepSessions, pointMetrics, workouts,
+            		profile.weightKg, windowStart, windowDays);
             result.dimensionTrends = trends;
 
             logger.info("Trend evaluation complete: calories={} macros={} micronutrients={} sleep={} recovery={} activity={}",
@@ -273,6 +283,7 @@ public class TrendEvaluationService {
        trends.micronutrients = new ArrayList<>();
 
        TrendEvaluation result = new TrendEvaluation();
+       result.coverage = outOfScopeCoverage(windowDays);
        result.dimensionTrends = trends;
        return result;
    }
@@ -307,6 +318,56 @@ public class TrendEvaluationService {
 	            .map(s -> s.startTime)
 	            .min(String::compareTo)
 	            .orElse("none");
+	}
+	
+	/**
+	 * Builds the source-level coverage block by recounting days with the same aggregators the
+	 * evaluators use, so the counts always agree with them.
+	 * Meal log: days with a usable energy total. A day whose foods all failed to resolve does
+	 * not count.
+	 * Wearable: days with any wearable data, the union of nights with sleep sessions, days with
+	 * resting heart rate or HRV readings, and the days WorkoutMinutesAggregator marks covered
+	 * (days with step readings, plus days with a classified workout, light ones included).
+	 * Sleep is keyed by wake date, so a night counts toward the day you woke up.
+	 */
+	private static TrendEvaluation.Coverage buildCoverage(List<Meal> meals, List<Food> foods,
+	        List<SleepSession> sleepSessions, List<PointMetric> pointMetrics, List<Workout> workouts,
+	        Double weightKg, LocalDate windowStart, int windowDays){
+			
+		Set<LocalDate> mealDays = DailyNutrientAggregator.aggregateByDay(meals, foods, "energyKcal", windowStart, windowDays).keySet();
+		
+		Set<LocalDate> wearableDays = new HashSet<>();
+	    wearableDays.addAll(SleepAggregator.aggregateNightly(sleepSessions, windowStart, windowDays).keySet());
+	    wearableDays.addAll(PointMetricAggregator
+	            .averageByDay(pointMetrics, "resting_heart_rate", windowStart, windowDays).keySet());
+	    wearableDays.addAll(PointMetricAggregator
+	            .averageByDay(pointMetrics, "hrv", windowStart, windowDays).keySet());
+	    wearableDays.addAll(WorkoutMinutesAggregator
+	            .aggregateDaily(workouts, pointMetrics, weightKg, DERIVED_TARGETS, windowStart, windowDays).keySet());
+
+	    TrendEvaluation.Coverage coverage = new TrendEvaluation.Coverage();
+	    coverage.mealLog = coverageEntry(mealDays.size(), windowDays);
+	    coverage.wearable = coverageEntry(wearableDays.size(), windowDays);
+
+	    logger.info("Coverage: mealLogDays={} wearableDays={} required={}",
+	            coverage.mealLog.daysCovered, coverage.wearable.daysCovered, coverage.mealLog.daysRequired);
+	    return coverage;
+	}
+	
+	private static CoverageEntry coverageEntry(int daysCovered, int windowDays) {
+	    CoverageEntry entry = new CoverageEntry();
+	    entry.daysCovered = daysCovered;
+	    entry.daysRequired = CoverageGate.requiredDays(windowDays);
+	    entry.sufficient = CoverageGate.isSufficient(daysCovered, windowDays);
+	    return entry;
+	}
+	
+	// Out-of-scope users get 0 days covered on both sources, with the requirement still filled in. 
+	private static TrendEvaluation.Coverage outOfScopeCoverage(int windowDays) {
+	    TrendEvaluation.Coverage coverage = new TrendEvaluation.Coverage();
+	    coverage.mealLog = coverageEntry(0, windowDays);
+	    coverage.wearable = coverageEntry(0, windowDays);
+	    return coverage;
 	}
    
 }
