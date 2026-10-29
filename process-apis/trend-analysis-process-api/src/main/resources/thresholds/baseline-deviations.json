@@ -1,0 +1,93 @@
+{
+  "baselineRows": [
+    {
+      "threshold_id": "hrv_sdnn_baseline_deviation",
+      "dimension": "recovery",
+      "metric_key": "hrv_sdnn",
+      "value_type": "personal_baseline_deviation",
+      "evaluation_scope": "daily",
+      "direction": "lower",
+      "base_value": null,
+      "bound_mode": "pct_of_base",
+      "soft_bound": -0.15,
+      "hard_bound": -0.25,
+      "unit": "ms",
+      "baseline_window_days": 30,
+      "baseline_statistic": "average",
+      "min_data_days": 14,
+      "missing_day_handling": "exclude",
+      "measurement_context": "mixed",
+      "demographic_key": "all_19_plus",
+      "surfacing_rule": {
+        "conditions": [],
+        "constraints": []
+      },
+      "primary_evaluation": true,
+      "source_body": null,
+      "source_edition": null,
+      "source_url": null,
+      "confidence": "heuristic",
+      "notes": "HealthKit provides SDNN specifically; RMSSD from another source is not comparable and must not be substituted. Bands are wider than resting HR because HRV is a noisier signal — day-to-day swings of 10-15% are unremarkable. That asymmetry is deliberate and does not imply HRV matters less. High HRV is not flagged. Apple samples opportunistically rather than under standardised conditions, so measurement_context is recorded as mixed and held constant rather than corrected for."
+    },
+    {
+      "threshold_id": "resting_hr_baseline_deviation",
+      "dimension": "recovery",
+      "metric_key": "resting_hr_bpm",
+      "value_type": "personal_baseline_deviation",
+      "evaluation_scope": "daily",
+      "direction": "upper",
+      "base_value": null,
+      "bound_mode": "pct_of_base",
+      "soft_bound": 0.05,
+      "hard_bound": 0.1,
+      "unit": "bpm",
+      "baseline_window_days": 30,
+      "baseline_statistic": "average",
+      "min_data_days": 14,
+      "missing_day_handling": "exclude",
+      "measurement_context": "mixed",
+      "demographic_key": "all_19_plus",
+      "surfacing_rule": {
+        "conditions": [],
+        "constraints": []
+      },
+      "primary_evaluation": true,
+      "source_body": null,
+      "source_edition": null,
+      "source_url": null,
+      "confidence": "heuristic",
+      "notes": "At a 60 bpm baseline, 5% is roughly 3 bpm (within ordinary daily fluctuation) and 10% is roughly 6 bpm (a genuine signal). Low resting HR is not flagged — it is common in trained individuals. The AHA 60-100 bpm population range is not used as a bound here; a person whose baseline is 52 sitting at 68 is meaningfully elevated for them while remaining inside the population band entirely."
+    },
+    {
+      "threshold_id": "active_energy_baseline_deviation",
+      "dimension": "activity",
+      "metric_key": "active_energy_kcal",
+      "value_type": "personal_baseline_deviation",
+      "evaluation_scope": "daily",
+      "direction": "bidirectional",
+      "base_value": null,
+      "bound_mode": "pct_of_base",
+      "soft_bound_low": -0.4,
+      "hard_bound_low": -0.6,
+      "soft_bound_high": 0.5,
+      "hard_bound_high": 0.75,
+      "unit": "kcal",
+      "baseline_window_days": 30,
+      "baseline_statistic": "average",
+      "min_data_days": 14,
+      "missing_day_handling": "exclude",
+      "measurement_context": "mixed",
+      "demographic_key": "all_19_plus",
+      "surfacing_rule": {
+        "conditions": [],
+        "constraints": []
+      },
+      "primary_evaluation": false,
+      "source_body": null,
+      "source_edition": null,
+      "source_url": null,
+      "confidence": "heuristic",
+      "notes": "Bounds are deliberately asymmetric and wider than HR/HRV, since a single hard training day or single rest day is normal variance against a 30-day average that already includes both. Lower side (-40%/-60%) flags sustained sedentary drift, not one rest day. Upper side (+50%/+75%) flags high exertion, intentionally looser since the co-occurring nutrition shortfall in the cross-signal pairing (rules 2 and 3) does most of the actual filtering — this bound alone was never meant to stand on its own."
+    }
+  ]
+}

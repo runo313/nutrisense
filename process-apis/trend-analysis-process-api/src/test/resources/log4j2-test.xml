@@ -22,6 +22,11 @@
 
         <!-- Mule logger -->
         <AsyncLogger name="org.mule.runtime.core.internal.processor.LoggerMessageProcessor" level="INFO"/>
+        <!-- <AsyncLogger name="com.nutrisense.trendanalysis.evaluation.evaluators" level="DEBUG"/>
+        <AsyncLogger name="com.nutrisense.trendanalysis.evaluation.insights" level="DEBUG"/>
+        <AsyncLogger name="com.nutrisense.trendanalysis.evaluation.model" level="DEBUG"/>
+        <AsyncLogger name="com.nutrisense.trendanalysis.evaluation.thresholds" level="DEBUG"/> -->
+        
 
         <AsyncRoot level="INFO">
             <AppenderRef ref="Console"/>

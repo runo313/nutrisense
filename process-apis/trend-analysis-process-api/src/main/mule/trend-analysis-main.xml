@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="orchestrate-trend-analyis-subflow" doc:id="9fdb79d4-0ec8-4e25-ab99-63cce0217ba2" >
+		<ee:transform doc:name="set vars" doc:id="047a71cd-b59d-4a75-bfa6-8d3ced3481da" >
+			<ee:variables >
+				<ee:set-variable variableName="userId" ><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="window" ><![CDATA[%dw 2.0
+output application/java
+
+var window = (attributes.queryParams.window default 14) 
+var str = "P" ++ (window) ++"D"
+var today = now() as Date
+var start = (today - str) as Date
+---
+{
+	value: window,
+	start: start,
+	end: today
+}]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="START" doc:id="1947a8fd-c291-49ce-82d9-01f1b0bcc8a0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	window: vars.window&#10;}&#10;---&#10;buildLog("INFO","Trend Analysis Process Started",message,vars.correlationId, "orchestrate-trend-analysis-flow")]' />
+		<flow-ref doc:name="fetch-user-profile-subflow" doc:id="67a4f01f-727f-4d6c-af61-691f05b66eaf" name="fetch-user-profile-subflow" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f28518e2-8cc6-438e-a913-218b47272e2b" >
+			<route >
+				<flow-ref doc:name="fetch-meals-and-nutrition-subflow" doc:id="d8674245-9bf2-44d4-bfdc-2959bb1c45bb" name="fetch-meals-and-nutrition-subflow" />
+			</route>
+			<route >
+				<flow-ref doc:name="fetch-wearable-data-subflow" doc:id="da6fe359-04df-4b07-8ba9-3dd51202f343" name="fetch-wearable-data-subflow"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Create Request  Payload" doc:id="242d96e0-73e5-4f5d-9f02-b5823dd64b18" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="textMode" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.userProfile.preferences.generationMode]]></ee:set-variable>
+				<ee:set-variable variableName="evalRequest" ><![CDATA[%dw 2.0
+output application/json
+
+var dateOfBirth = vars.userProfile.profile.dateOfBirth
+var age = do{
+    var today = now() as Date
+    var dob = dateOfBirth as Date
+    var rawAge = today.year - dob.year
+    var passedBirthday = (today.month > dob.month) or (today.month == dob.month and today.day >= dob.day)
+    ---
+    if ( passedBirthday ) rawAge else rawAge - 1
+}
+var primaryGoal = vars.userProfile.goals filter (item) -> item.isPrimary
+var condition = (vars.userProfile.conditions filter () -> $.isActive).conditionType
+var constraint = (vars.userProfile.constraints filter () -> $.isActive).constraintValue
+---
+{
+	"window": { "days": vars.window.value,"start": vars.window.start },
+	"profile": {
+		"weightKg": vars.userProfile.profile.weightKg,
+		"dailyCaloricTarget": vars.userProfile.profile.dailyCaloricTarget,
+		"biologicalSex": vars.userProfile.profile.biologicalSex,
+		"activityBaseline": vars.userProfile.profile.activityBaseline,
+		"targetSleepDurationHrs": vars.userProfile.preferences.targetSleepDurationHrs,
+		"age": age,
+		"goalType": primaryGoal[0].goalType,
+		"goalDirection": primaryGoal[0].goalDirection,
+		"conditions": condition default [],
+		"constraints": constraint default [],
+	},
+	"meals": vars.mealStatus.meals,
+	"foods": flatten(vars.mealStatus.foods),
+	"sleepSessions": vars.wearableStatus.dailyData.sleep_sessions,
+	"pointMetrics": vars.wearableStatus.dailyData.point_metrics,
+	"workouts": vars.wearableStatus.dailyData.workouts,
+	"baselineSummaries": vars.wearableStatus.baselineData.point_metrics
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Evaluation started" doc:id="bf5de039-3155-4285-ab30-7cf5caa827cc" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealsLogged: vars.mealStatus.mealsLogged,&#10;	nutritionResolved: vars.mealStatus.nutritionResolved,&#10;	dailyDataAvailable: vars.wearableStatus.dailyDataAvailable,&#10;	baselineAvailable: vars.wearableStatus.baselineAvailable,&#10;	caloricTarget: vars.userProfile.profile.dailyCaloricTarget&#10;}&#10;---&#10;buildLog("INFO","Evaluation started",message,vars.correlationId, "orchestrate-trend-analyis-subflow")]' />
+		<java:invoke-static doc:name="Trend Evaluation Service" doc:id="59828a83-dfe5-4fa3-b3eb-97f8e03030e6" class="com.nutrisense.trendanalysis.evaluation.insights.TrendEvaluationService" method="evaluateJson(java.lang.String)" target="evalResponse" targetValue='#[output application/java --- read(payload,"application/json")]'>
+			<java:args ><![CDATA[#[{
+	 arg0: vars.evalRequest
+}]]]></java:args>
+		</java:invoke-static>
+		<logger level="INFO" doc:name="Evaluation Complete" doc:id="e3f42e4e-a65b-4e0f-9314-b41e8df4dc8c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	windowDays: vars.window.value,&#10;	mealLogDays: vars.evalResponse.coverage.meal_log.days_covered,&#10;	wearableDays: vars.evalResponse.coverage.wearable.days_covered,&#10;  	daysRequired: vars.evalResponse.coverage.meal_log.days_required&#10;}&#10;---&#10;buildLog("INFO","Evaluation complete",message,vars.correlationId, "orchestrate-trend-analyis-subflow")]' />
+		<ee:transform doc:name="Rank Flagged Dimensions" doc:id="3e64e6b4-60f3-484e-a047-931a12f727c1" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="trendConclusions" ><![CDATA[%dw 2.0
+import take from dw::core::Arrays
+output application/java
+
+var severityRank = { on_track: 0, insufficient_data: 1, soft_warning: 2, hard_flag: 3 }
+var severityScore = { soft_warning: 10, hard_flag: 20 }
+var tiePriority = { micronutrients: 0, macros: 1, calories: 2, sleep: 3, recovery: 4, activity: 5 }
+
+fun isFlagged(status) = status == "soft_warning" or status == "hard_flag"
+
+fun candidate(dimension, nutrient, block) = {
+    dimension: dimension,
+    nutrient: nutrient,
+    severity: block.status,
+    condition_context: block.condition_context
+}
+
+// Worst item by severity, then condition context, then list order (earlier wins).
+// Subtracting the index makes every key unique, so there are no ties to break.
+fun worstOf(items) =
+    if (isEmpty(items)) null
+    else (items orderBy ((item, index) ->
+        (severityRank[item.entry.status] default 0) * 100
+        + (if (item.entry.condition_context != null) 10 else 0)
+        - index))[-1]
+
+fun gatherCandidates(response) = do {
+    var trends = response.dimension_trends
+    var macroItems = [
+        { name: "protein", entry: trends.macros.protein },
+        { name: "carbohydrates", entry: trends.macros.carbohydrates },
+        { name: "fat", entry: trends.macros.fat },
+        { name: "saturated_fat", entry: trends.macros.saturated_fat },
+        { name: "fiber", entry: trends.macros.fiber },
+        { name: "sodium", entry: trends.macros.sodium }
+    ]
+    var microItems = (trends.micronutrients default []) map ((n) -> { name: n.nutrient, entry: n })
+    var worstMacro = worstOf(macroItems)
+    var worstMicro = worstOf(microItems)
+    ---
+    [
+        if (isFlagged(worstMicro.entry.status)) candidate("micronutrients", worstMicro.name, worstMicro.entry) else null,
+        if (isFlagged(worstMacro.entry.status)) candidate("macros", worstMacro.name, worstMacro.entry) else null,
+        if (isFlagged(trends.calories.status)) candidate("calories", null, trends.calories) else null,
+        if (isFlagged(trends.sleep.status)) candidate("sleep", null, trends.sleep) else null,
+        if (isFlagged(trends.recovery.status)) candidate("recovery", null, trends.recovery) else null,
+        if (isFlagged(trends.activity.status)) candidate("activity", null, trends.activity) else null
+    ] filter ((c) -> c != null)
+}
+
+fun score(c) =
+    (severityScore[c.severity] default 0) + (if (c.condition_context != null) 1 else 0)
+
+// Highest score first. Within a score, the lower tiePriority number comes first.
+// The tie priority is at most 5 and the score is multiplied by 10, so it can
+// never override severity or condition context.
+fun rankCandidates(candidates) =
+    candidates orderBy ((c) -> -(score(c) * 10 - (tiePriority[c.dimension] default 9)))
+
+fun buildRecommendations(candidates) =
+    take(rankCandidates(candidates), 3) map ((c, index) ->
+        { rank: index + 1 } ++ c ++ { text: null })
+---
+buildRecommendations(gatherCandidates(vars.evalResponse))]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="evaluate-trend-subflow" doc:id="39b9bf5e-26a0-4b01-bcf9-da2a6fbce60c" name="text-generation-flow"/>
+		<ee:transform doc:name="Transform Message" doc:id="12acba31-cd38-4dde-903f-d0db3a9cb145" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+fun cleanMacros(block) = block mapObject ((value, key) ->
+    if (value is Object) { (key): value - "condition_context" }
+    else { (key): value })
+
+fun cleanTrends(trends) = trends mapObject ((value, key) ->
+    if ((key as String) == "macros") { (key): cleanMacros(value) }
+    else { (key): value })
+var days = vars.window.value as Number
+var start = vars.window.start as Date  
+var end = start + ("P$(days - 1)D" as Period)
+---
+{
+	user_id: vars.userId,
+    window_days: days,
+    window_start: start,
+    window_end: end,
+	generated_at: now(),
+	generation_mode: vars.textMode,
+	threshold_version: Mule::p('trend.thresholdVersion'),
+	coverage: vars.evalResponse.coverage,
+	dimension_trends: cleanTrends(vars.evalResponse.dimension_trends),
+	recommendations: vars.addText default [],
+	pattern_signals: vars.patternSignals default [],
+	metrics_shown : (vars.userProfile.preferences.preferredWearableMetrics default []) ++ (vars.userProfile.preferences.preferredNutritionMetrics default [])
+} ]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Trend Evaluation Complete" doc:id="21b45dcc-0e39-4df0-b9c2-184006cb7464" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	windowDays: vars.window.value,&#10;    recommendations: sizeOf(payload.recommendations default []),&#10;    patternSignals: sizeOf(payload.pattern_signals default [])&#10;}&#10;---&#10;buildLog("INFO","Trend response assembled",message,vars.correlationId, "orchestrate-trend-analyis-subflow")]' />
+	</sub-flow>
+</mule>

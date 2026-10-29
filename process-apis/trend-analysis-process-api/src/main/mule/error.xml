@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="error-handler" doc:id="0a3ab70a-784e-4b2e-af87-a95e0de7e132" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f1437e70-a8be-44e1-89d4-477d1ce1d2a6" type="HTTP:NOT_FOUND" >
+			<logger level="ERROR" doc:name="Error" doc:id="d1ef3131-aefa-45ad-93ee-01aa0e750b2b" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Profile fetch failed.",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="User Profile error" doc:id="617ab0e7-c6d2-482b-8ffe-25191a81520f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-503",
+  message: "Unable to retrieve complete user profile data.",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "process"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[503]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="94332ab0-5d04-4fa3-aaa1-020542dabd4b" type="APIKIT:BAD_REQUEST" >
+			<logger level="ERROR" doc:name="Error" doc:id="635828a5-013d-4c58-82cd-92bd2c0ab506" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	error: error.description,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Trend Analysis Error.",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Error" doc:id="d2219b34-c619-4eb6-abff-79c95087f0df" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "process"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="59f08ea4-ca89-49e4-a1e6-327815a8f908" type="ANY">
+			<logger level="ERROR" doc:name="Error" doc:id="e782d3e7-cc36-4516-9dd6-e07d70c95a9c" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	error: error.description,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Trend Analysis Error.",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="Error1" doc:id="e684db50-f2c9-4e8f-8207-75dd6309b960" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-500",
+  message: "Server Unavailable",
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "process"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-continue>
+	</error-handler>
+	<error-handler name="apikit-error-handler" doc:id="c00ad8e4-f566-4f97-887a-bc33dd9dc5ff" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="43d367a7-82c6-4398-8317-434d5ab5384c" type="APIKIT:BAD_REQUEST" >
+			<ee:transform doc:name="Transform Message" doc:id="9c4d8228-3ec1-47b1-9d15-2824ff06b0e5" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-APIKIT-400",
+  message: "Bad Request: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="0f5f151d-3b65-4dcd-861a-dd5f6f282afd" type="APIKIT:NOT_FOUND" >
+			<ee:transform doc:name="Transform Message" doc:id="ac51fe15-14fc-4e81-ac55-1606ad588708" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-APIKIT-404",
+  message: "Resource not found: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate2" doc:id="80b96056-c44d-4b4e-b4f6-6ce35885a046" type="APIKIT:METHOD_NOT_ALLOWED" >
+			<ee:transform doc:name="Transform Message" doc:id="1c2b9156-986d-437a-bb4a-52d9430b338f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-APIKIT-405",
+  message: "Method Not allowed: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[405]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate3" doc:id="b1d195db-8576-457f-989c-b6322481f940" type="APIKIT:NOT_ACCEPTABLE" >
+			<ee:transform doc:name="Transform Message" doc:id="567175ca-bbd0-44ff-b7b3-ac0f25dc2189" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-APIKIT-406",
+  message: "Not Acceptable: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[406]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate4" doc:id="38cfbacb-a6f7-4c12-bd01-4a9603f0305b" type="APIKIT:UNSUPPORTED_MEDIA_TYPE" >
+			<ee:transform doc:name="Transform Message" doc:id="999039f9-0894-4447-818f-19947c5d0700" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-APIKIT-415",
+  message: "Unsupported media type: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[415]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate5" doc:id="677b8bea-cc19-446f-bb32-06427af91b63" type="APIKIT:NOT_IMPLEMENTED" >
+			<ee:transform doc:name="Transform Message" doc:id="81a1d164-1b80-4ffd-9e01-2c48eae0b1b2" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "TREND-ANALYSIS-APIKIT-501",
+  message: "Not implemented: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>

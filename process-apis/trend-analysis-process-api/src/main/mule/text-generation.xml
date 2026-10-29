@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="text-generation-flow" doc:id="1593493d-d110-4707-bc0a-d398e325f471" >
+		<choice doc:name="Choice" doc:id="90ad47e5-8700-4f25-abb5-275370abc7c0" >
+			<when expression="#[vars.textMode == 'template']" >
+				<flow-ref doc:name="create-template-text" doc:id="15a068d3-2e92-40c2-80b8-437b8e811972" name="create-template-text" />
+			</when>
+			<when expression="#[vars.textMode == 'llm']" >
+				<try doc:name="Try" doc:id="bc4dcc51-9019-4de7-aded-a08a2da317c0" >
+					<flow-ref doc:name="create-llm-based-text" doc:id="ec366ddb-b450-4d3d-a4e4-2a7bd7e24c20" name="create-llm-based-text" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0b21dfd3-1250-4149-b1bd-7ab8e8c51373" type="ANY" >
+							<logger level="INFO" doc:name="LLM Generation Failed" doc:id="dd853488-8ac4-49e5-a3e5-98477af84c37" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	error: error.errorType,&#10;	description: error.description&#10;}&#10;---&#10;buildLog("INFO","LLM generation failed, falling back to template",message,vars.correlationId, "create-llm-based-text")]' />
+							<flow-ref doc:name="create-template-text" doc:id="52d33cbf-4607-4348-b50e-90c0c1f5767f" name="create-template-text" />
+						</on-error-continue>
+					</error-handler>
+				</try>
+			</when>
+			<otherwise >
+				<try doc:name="Try" doc:id="c438ca78-5957-46ad-8645-c4ae75e03f69" >
+					<flow-ref doc:name="create-custom-based-text" doc:id="9e5e4667-51b4-4ec9-9fc0-292861428342" name="create-custom-based-text" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9344cd03-caf0-4a59-9e5e-b3845d6ffef2" type="ANY" >
+							<logger level="INFO" doc:name="Custom Model Generation Failed" doc:id="e066f8eb-9e02-4820-9fdb-42f2896bc31c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	error: error.errorType,&#10;	description: error.description&#10;}&#10;---&#10;buildLog("INFO","Custom Model Generation Failed, falling back to template",message,vars.correlationId, "create-custom-based-text")]' />
+							<flow-ref doc:name="create-template-text" doc:id="ce4c0594-fe19-44f1-bad1-e0d565360c27" name="create-template-text" />
+						</on-error-continue>
+					</error-handler>
+				</try>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="create-template-text" doc:id="52ac7bea-5506-4fbb-96f7-e3023a1ab587" >
+		<ee:transform doc:name="Attach Template Text" doc:id="a7ffec57-125a-4c03-b1b5-6688717211a4" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="textMode" ><![CDATA[%dw 2.0
+output application/java
+---
+"template"]]></ee:set-variable>
+				<ee:set-variable variableName="addText" ><![CDATA[%dw 2.0
+output application/java
+import addText from dwl::trend_text
+---
+addText(vars.trendConclusions,vars.evalResponse.dimension_trends, vars.window.value)]]></ee:set-variable>
+				<ee:set-variable variableName="patternSignals" ><![CDATA[%dw 2.0
+import buildSignals from dwl::trend_signals
+output application/java
+---
+buildSignals(vars.evalResponse.dimension_trends, vars.window.value)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="create-custom-based-text" doc:id="88e5a2e7-4d47-46b5-87fb-0395063fcf09" >
+		<raise-error doc:name="Raise error" doc:id="f83d8b48-b5d0-4f93-a1c0-c79bb6f03bb0" type="ANY" description="Custom Model Unavailable " />
+	</sub-flow>
+	<sub-flow name="create-llm-based-text" doc:id="f0eb4796-3f01-480f-a518-f05ccc4d082b" >
+		<raise-error doc:name="Raise error" doc:id="1faf9648-0425-468e-a306-b8a4b4d3142e" type="ANY" description="Custom Model Unavailable " />
+	</sub-flow>
+</mule>
