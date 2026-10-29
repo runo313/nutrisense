@@ -24,7 +24,8 @@ WHERE m.user_id = :userId
 AND m.consumed_at >= (:startDate::date + TIME '00:00:00') AT TIME ZONE :timezone
 AND m.consumed_at < (:endDate::date + TIME '00:00:00' + INTERVAL '1 day') AT TIME ZONE :timezone
 AND m.deleted_at IS NULL
-AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
+AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)
+ORDER BY m.consumed_at, m.meal_id, mi.logged_at]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
   userId: vars.userId,
   startDate: vars.queryParams.date default vars.queryParams.from,
@@ -41,13 +42,13 @@ output application/json
 ---
 {
 	counts: sizeOf(payload),
-	meals: payload groupBy ((item) -> item.meal_type ) pluck ((value, key ) ->{
+	meals: payload groupBy ((item) -> item.meal_id as String) pluck ((value, key ) ->{
 		"mealId": value[0].meal_id,
 		"userId": value[0].user_id,
 		"mealType": value[0].meal_type,
 		"consumedAt": value[0].consumed_at,
 		"loggedAt": value[0].meal_logged_at,
-		"items": value map ((item) -> {
+		"items": value filter ((row) -> row.item_id != null) map ((item) -> {
 			"itemId": item.item_id,
 			"foodId": item.food_id,
 			"portionId": item.portion_id,
