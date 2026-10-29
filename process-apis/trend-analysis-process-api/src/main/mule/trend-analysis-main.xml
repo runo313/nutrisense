@@ -162,7 +162,7 @@ fun buildRecommendations(candidates) =
 buildRecommendations(gatherCandidates(vars.evalResponse))]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="evaluate-trend-subflow" doc:id="39b9bf5e-26a0-4b01-bcf9-da2a6fbce60c" name="create-template-text"/>
+		<flow-ref doc:name="evaluate-trend-subflow" doc:id="39b9bf5e-26a0-4b01-bcf9-da2a6fbce60c" name="text-generation-flow"/>
 		<ee:transform doc:name="Transform Message" doc:id="12acba31-cd38-4dde-903f-d0db3a9cb145" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0

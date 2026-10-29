@@ -57,7 +57,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 						<ee:set-variable variableName="uniqueFoodIds" ><![CDATA[%dw 2.0
 output application/java
 ---
-payload.meals flatMap ((meal) -> meal.items map ((item) -> item.foodId)) distinctBy ((id) -> id)]]></ee:set-variable>
+(payload.meals flatMap ((meal) -> meal.items map ((item) -> item.foodId)) distinctBy ((id) -> id)) default []]]></ee:set-variable>
 						<ee:set-variable variableName="loggedItems" ><![CDATA[%dw 2.0
 output application/java
 ---
@@ -68,6 +68,7 @@ payload.meals
 //}))]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="e122d9c1-471b-4961-a141-225cc9fa5fdc" message="checking meals ------- #[vars.uniqueFoodIds]"/>
 				<parallel-foreach doc:name="Parallel For Each" doc:id="38a6cff2-5110-45e1-9d63-a91315eadf2e" collection="#[vars.uniqueFoodIds]" >
 					<http:request doc:name="Fetch Nutrients" doc:id="08dfc6de-56d4-45c8-a88d-6fd1605d967c" config-ref="NUTRITION_SAPI_HTTP_CONFIG" path="/api/v1/nutrition-data-sapi/foods/{foodId}" responseTimeout="${nutrisense.sapi.timeout}" >
 						<http:headers ><![CDATA[#[output application/java
