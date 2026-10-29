@@ -38,7 +38,7 @@ output application/json
   message: error.description,
   correlationId: correlationId,
   timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
-  originLayer: "system"
+  originLayer: "process"
 }
 ]]></ee:set-payload>
 				</ee:message>
@@ -59,7 +59,7 @@ output application/json
   message: "Server Unavailable",
   correlationId: correlationId,
   timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
-  originLayer: "system"
+  originLayer: "process"
 }
 ]]></ee:set-payload>
 				</ee:message>
@@ -81,7 +81,7 @@ output application/json
   message: "Bad Request: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
-  originLayer: "system"
+  originLayer: "process"
 }]]></ee:set-payload>
 				</ee:message>
 				<ee:variables >
@@ -100,7 +100,7 @@ output application/json
   message: "Resource not found: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
-  originLayer: "system"
+  originLayer: "process"
 }]]></ee:set-payload>
 				</ee:message>
 				<ee:variables >
@@ -119,7 +119,7 @@ output application/json
   message: "Method Not allowed: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
-  originLayer: "system"
+  originLayer: "process"
 }]]></ee:set-payload>
 				</ee:message>
 				<ee:variables >
@@ -138,7 +138,7 @@ output application/json
   message: "Not Acceptable: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
-  originLayer: "system"
+  originLayer: "process"
 }]]></ee:set-payload>
 				</ee:message>
 				<ee:variables >
@@ -157,7 +157,7 @@ output application/json
   message: "Unsupported media type: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
-  originLayer: "system"
+  originLayer: "process"
 }]]></ee:set-payload>
 				</ee:message>
 				<ee:variables >
@@ -176,7 +176,7 @@ output application/json
   message: "Not implemented: " ++ error.description as String ,
   correlationId: correlationId,
   timestamp: now(),
-  originLayer: "system"
+  originLayer: "process"
 }]]></ee:set-payload>
 				</ee:message>
 				<ee:variables >

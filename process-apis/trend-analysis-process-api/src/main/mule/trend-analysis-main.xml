@@ -27,9 +27,12 @@ var start = (today - str) as Date
 	start: start,
 	end: today
 }]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<validation:is-true doc:name="Validate Window" doc:id="a182a7f5-2977-4380-8821-d8916a521f39" expression="#[(vars.window.value == 7) or (vars.window.value == 14) or (vars.window.value == 30)]" message="Invalid window value. window must be one of 7, 14 or 30"/>
 		<logger level="INFO" doc:name="START" doc:id="1947a8fd-c291-49ce-82d9-01f1b0bcc8a0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	window: vars.window&#10;}&#10;---&#10;buildLog("INFO","Trend Analysis Process Started",message,vars.correlationId, "orchestrate-trend-analysis-flow")]' />
 		<flow-ref doc:name="fetch-user-profile-subflow" doc:id="67a4f01f-727f-4d6c-af61-691f05b66eaf" name="fetch-user-profile-subflow" />
 		<scatter-gather doc:name="Scatter-Gather" doc:id="f28518e2-8cc6-438e-a913-218b47272e2b" >
