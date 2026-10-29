@@ -138,7 +138,7 @@ CREATE TABLE user_preferences (
   typical_dinner_time          TIME,
   typical_sleep_time           TIME,
   target_sleep_duration_hrs    DECIMAL,
-  insight_generation_mode      insight_generation_mode_enum NOT NULL DEFAULT 'template'
+  insight_generation_mode      insight_generation_mode_enum NOT NULL DEFAULT 'template',
   units_system                 units_system_enum         NOT NULL DEFAULT 'metric',
   created_at                   TIMESTAMPTZ               NOT NULL DEFAULT now(),
   updated_at                   TIMESTAMPTZ               NOT NULL DEFAULT now()

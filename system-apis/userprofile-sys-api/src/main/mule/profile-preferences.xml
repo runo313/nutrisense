@@ -113,7 +113,7 @@ COALESCE(string_to_array(:preferredNutritionMetrics, ',')::nutrition_metric_enum
 :typicalDinnerTime::time, :typicalSleepTime::time,
 :targetSleepDurationHrs, 
 COALESCE(:unitsSystem::units_system_enum, 'metric'), 
-now(), now(), :mode)
+now(), now(), COALESCE(:mode::insight_generation_mode_enum, 'template'))
 "
 ]]></ee:set-payload>
 			</ee:message>
