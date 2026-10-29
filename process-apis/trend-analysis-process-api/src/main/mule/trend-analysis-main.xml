@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:java="http://www.mulesoft.org/schema/mule/java" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
-http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<sub-flow name="orchestrate-trend-analyis-subflow" doc:id="9fdb79d4-0ec8-4e25-ab99-63cce0217ba2" >
 		<ee:transform doc:name="set vars" doc:id="047a71cd-b59d-4a75-bfa6-8d3ced3481da" >
 			<ee:variables >
@@ -28,6 +29,7 @@ var start = (today - str) as Date
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<validation:is-true doc:name="Validate Window" doc:id="a182a7f5-2977-4380-8821-d8916a521f39" expression="#[(vars.window.value == 7) or (vars.window.value == 14) or (vars.window.value == 30)]" message="Invalid window value. window must be one of 7, 14 or 30"/>
 		<logger level="INFO" doc:name="START" doc:id="1947a8fd-c291-49ce-82d9-01f1b0bcc8a0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	window: vars.window&#10;}&#10;---&#10;buildLog("INFO","Trend Analysis Process Started",message,vars.correlationId, "orchestrate-trend-analysis-flow")]' />
 		<flow-ref doc:name="fetch-user-profile-subflow" doc:id="67a4f01f-727f-4d6c-af61-691f05b66eaf" name="fetch-user-profile-subflow" />
 		<scatter-gather doc:name="Scatter-Gather" doc:id="f28518e2-8cc6-438e-a913-218b47272e2b" >
@@ -186,7 +188,7 @@ var end = start + ("P$(days - 1)D" as Period)
     window_end: end,
 	generated_at: now(),
 	generation_mode: vars.textMode,
-	threshold_version: "",
+	threshold_version: Mule::p('trend.thresholdVersion'),
 	coverage: vars.evalResponse.coverage,
 	dimension_trends: cleanTrends(vars.evalResponse.dimension_trends),
 	recommendations: vars.addText default [],
