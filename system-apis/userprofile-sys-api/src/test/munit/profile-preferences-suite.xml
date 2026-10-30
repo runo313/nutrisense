@@ -53,6 +53,7 @@
 			<munit-tools:assert-that doc:name="Assert that http status 201" doc:id="7badbb03-d4ea-4220-b027-9261ac98fdfe" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
 			<munit-tools:assert-that doc:name="Assert that Constraint Value" doc:id="d18c253e-9508-47e1-ac9b-838e4d327271" expression="#[payload.insightFrequency]" is='#[MunitTools::equalTo("weekly")]' />
 			<munit-tools:assert-that doc:name="Assert Generation Mode" doc:id="2fd80ff0-4721-4a46-bb7c-5134f7678e0c" expression="#[payload.generationMode]" is='#[MunitTools::equalTo("llm")]' />
+			<munit-tools:assert-that doc:name="Assert TimeZone" doc:id="4f484746-0b58-4c5a-b277-ff65f533589e" expression="#[payload.timezone]" is='#[MunitTools::equalTo("UTC")]' />
 		</munit:validation>
 	</munit:test>
 	<munit:test name="should_upsert_preferences_update_path_and_return_200" doc:id="e75073f2-05f8-4a70-8efa-a7ab5d8fa53a">
@@ -100,6 +101,7 @@
 			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="4ceefc13-378b-4df8-9b6d-0e871477dc9c" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(201)]" />
 			<munit-tools:assert-that doc:name="Assert that Constraint Value" doc:id="b2d3aebf-793c-4477-b01c-c72ad61ace78" expression="#[payload.insightFrequency]" is='#[MunitTools::equalTo("weekly")]' />
 			<munit-tools:assert-that doc:name="Assert Generation Mode" doc:id="3a01c779-108a-4de7-93cd-b3b54370a89e" expression="#[payload.generationMode]" is='#[MunitTools::equalTo("llm")]' />
+			<munit-tools:assert-that doc:name="Assert TimeZone" doc:id="6513208f-4590-46ed-8045-b9bbe685fb51" expression="#[payload.timezone]" is='#[MunitTools::equalTo("UTC")]' />
 		</munit:validation>
 	</munit:test>
 	<munit:test name="should_get_preferences_return_200" doc:id="e88eabfe-ddeb-4afb-9c7d-a2fb976afd26">
