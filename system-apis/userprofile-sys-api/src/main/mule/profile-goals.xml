@@ -47,7 +47,7 @@ output application/java
 200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="2bacfc89-57b9-4871-9d27-e06af0d42b43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request complete",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="END" doc:id="2bacfc89-57b9-4871-9d27-e06af0d42b43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET profile request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
 		
 	</flow>
@@ -234,7 +234,7 @@ WHERE goal_id = :goalId]]></db:sql>
 				</db:update>
 			</when>
 			<otherwise >
-				<logger level="INFO" doc:name="Update Primary Goal Not Needed" doc:id="f2c537ef-ee7e-4815-a719-118dc82acc2d" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","No Updates to Primary Goal",message,vars.correlationId, vars.flowName)]' />
+				<logger level="INFO" doc:name="Update Primary Goal Not Needed" doc:id="f2c537ef-ee7e-4815-a719-118dc82acc2d" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","No Updates to Primary Goal",message,vars.correlationId, vars.flowName)]' />
 			</otherwise>
 		</choice>
 		<ee:transform doc:name="SQL" doc:id="0a516f18-98d2-48c6-8a4c-102fe7c99952" >
