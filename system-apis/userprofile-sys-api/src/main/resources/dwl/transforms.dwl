@@ -48,6 +48,7 @@ fun transformPreferences (user_preference)=
 		targetSleepDurationHrs: preference.target_sleep_duration_hrs,
 		unitsSystem: preference.units_system,
 		generationMode: preference.insight_generation_mode,
+		timezone: preference.timezone,
 		createdAt: preference.created_at,
 		updatedAt: preference.updated_at
 	}else null
@@ -92,7 +93,8 @@ fun returnPreference (payload)=
   unitsSystem: payload[0].units_system,
   createdAt: payload[0].created_at,
   updatedAt: payload[0].updated_at,
-  generationMode: payload[0].insight_generation_mode
+  generationMode: payload[0].insight_generation_mode,
+  timezone: payload[0].timezone
 } 
 
 fun returnConstraint(payload) = 

@@ -140,6 +140,7 @@ CREATE TABLE user_preferences (
   target_sleep_duration_hrs    DECIMAL,
   insight_generation_mode      insight_generation_mode_enum NOT NULL DEFAULT 'template',
   units_system                 units_system_enum         NOT NULL DEFAULT 'metric',
+  timezone                     VARCHAR                   NOT NULL DEFAULT 'UTC',
   created_at                   TIMESTAMPTZ               NOT NULL DEFAULT now(),
   updated_at                   TIMESTAMPTZ               NOT NULL DEFAULT now()
 );
