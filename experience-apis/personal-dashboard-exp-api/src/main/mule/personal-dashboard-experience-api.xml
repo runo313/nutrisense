@@ -161,21 +161,83 @@ flow.name]]></ee:set-variable>
 		<error-handler ref="error-handler" />
     </flow>
     <flow name="delete:\me\meals\(mealId)\items\(itemId):personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-                <ee:set-variable variableName="itemId">attributes.uriParams.'itemId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <logger level="INFO" message="delete:\me\meals\(mealId)\items\(itemId):personal-dashboard-experience-api-config" />
+        <ee:transform doc:name="set vars" doc:id="bd9237ba-c299-4a0f-89b7-5d214ec71186">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="mealId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'mealId']]></ee:set-variable>
+				<ee:set-variable variableName="itemId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'itemId']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="148227e1-f08f-4eb2-84b4-5091bed8885f" name="extract-user-id-subflow" />
+        <logger level="INFO" doc:name="Deleting Meal Item" doc:id="d51c12e8-c30a-4e28-9bd3-eb6fc6fc3ae0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId,&#10;	item: vars.itemId&#10;}&#10;---&#10;buildLog("INFO","Deleting Meal item",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Delete Meal Item" doc:id="1521f6cc-1025-46a9-b93d-3af56285f36c" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals/{mealId}/items/{itemId}" responseTimeout="${nutrisense.sapi.timeout}" method="DELETE">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"mealId" : vars.mealId,
+	"userId" : vars.userId,
+	"itemId" : vars.itemId
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="45bad289-6b87-4176-8ad5-f2a24bdc0f07" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId,&#10;	itemId: vars.itemId&#10;}&#10;---&#10;buildLog("INFO","Meal Item deleted",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="delete:\me\meals\(mealId):personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <logger level="INFO" message="delete:\me\meals\(mealId):personal-dashboard-experience-api-config" />
+        <ee:transform doc:name="set vars" doc:id="d309c10c-7862-44ad-a643-a4cc0de62297">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="mealId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'mealId']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="6ca0f04b-cbee-4b3e-8921-05e64556eb91" name="extract-user-id-subflow" />
+		<logger level="INFO" doc:name="Deleting Meal" doc:id="bfebd49c-7ea6-4758-b461-eb4e997a8f2f" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Deleting Meal",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Delete Meal" doc:id="2ad5bf96-1a3f-49df-ad2d-4c93414e2f0e" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals/{mealId}" responseTimeout="${nutrisense.sapi.timeout}" method="DELETE">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"mealId" : vars.mealId,
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="770109d7-9349-4eb1-8d06-bf86f9a3b8de" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Meal deleted",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="patch:\me\conditions:application\json:personal-dashboard-experience-api-config">
         <ee:transform doc:name="Transform Message">
@@ -330,83 +392,87 @@ output application/json
 		</error-handler>
     </flow>
     <flow name="patch:\me\meals\(mealId)\items\(itemId):application\json:personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-                <ee:set-variable variableName="itemId">attributes.uriParams.'itemId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+        <ee:transform doc:name="set vars" doc:id="05b2727c-d7e4-4c73-ac8c-5cbf537da0de">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="mealId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'mealId']]></ee:set-variable>
+				<ee:set-variable variableName="itemId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'itemId']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="d49c095a-da0f-42fc-8329-433918b7ef7b" name="extract-user-id-subflow" />
+		<logger level="INFO" doc:name="Updating Meal Item" doc:id="b68875ef-d7c4-4b21-9f7b-6a053f29c26f" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Updating Meal item",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Update Meal Item" doc:id="a844df20-4e93-41d8-a7c7-7b1ab550c6f0" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" method="PATCH" path="api/v1/meal-log-sapi/users/{userId}/meals/{mealId}/items/{itemId}" responseTimeout="${nutrisense.sapi.timeout}" >
+			<http:headers ><![CDATA[#[output application/java
 ---
 {
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"mealId" : vars.mealId,
+	"userId" : vars.userId,
+	"itemId" : vars.itemId
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="430c0712-581e-4d19-b68b-1b7e5d6549e7" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId,&#10;	itemId: vars.itemId&#10;}&#10;---&#10;buildLog("INFO","Meal Item updated",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="patch:\me\meals\(mealId):application\json:personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+		<ee:transform doc:name="set vars" doc:id="cfc1f27c-6bec-498e-a115-ab220d552797" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="mealId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'mealId']]></ee:set-variable>
+				<ee:set-variable variableName="itemId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'itemId']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="b3340b0a-5236-4056-94e3-8269be5326b5" name="extract-user-id-subflow" />
+		<logger level="INFO" doc:name="Updating Meal Item" doc:id="7d4ce86e-2ab6-4fec-aafa-2629da263eb4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Updating Meal item",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Update Meal" doc:id="757e6083-c6d9-44cc-93ee-7e465a8c930a" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" method="PATCH" path="api/v1/meal-log-sapi/users/{userId}/meals/{mealId}" responseTimeout="${nutrisense.sapi.timeout}" >
+			<http:headers ><![CDATA[#[output application/java
 ---
 {
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"mealId" : vars.mealId,
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="e9fc4d2d-4b84-4adf-b073-6ffcfaaeaf30" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Meal updated",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="get:\me\conditions:personal-dashboard-experience-api-config">
         <logger level="INFO" message="get:\me\conditions:personal-dashboard-experience-api-config" />
@@ -418,7 +484,45 @@ output application/json
         <logger level="INFO" message="get:\me\insights\daily:personal-dashboard-experience-api-config" />
     </flow>
     <flow name="get:\me\foods\search:personal-dashboard-experience-api-config">
-        <logger level="INFO" message="get:\me\foods\search:personal-dashboard-experience-api-config" />
+		<ee:transform doc:name="set vars" doc:id="0fe80592-e107-4383-a8ac-667597723af9">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="params" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	name: attributes.queryParams.name,
+	limit: attributes.queryParams.limit default 10
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="e8c85bea-802a-45d2-ab6e-462018ca3b67" name="extract-user-id-subflow" />
+		<logger level="INFO" doc:name="Fetching Foods" doc:id="970a1afc-f043-491b-80b8-2c35b290e398" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	name: vars.params.name,&#10;	limit: vars.params.limit&#10;}&#10;---&#10;buildLog("INFO","Fetching Foods",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Fetch Foods" doc:id="0befde01-cefa-47d0-8e03-e54cb3c77caa" config-ref="NUTRITION_SAPI_HTTP_CONFIG" path="/api/v1/nutrition-data-sapi/foods/search" responseTimeout="${nutrisense.sapi.timeout}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"limit" : vars.params.limit,
+	"name" : vars.params.name
+}]]]></http:query-params>
+			<http:response-validator >
+				<http:success-status-code-validator values="200,404" />
+			</http:response-validator>
+		</http:request>
     </flow>
     <flow name="get:\me\goals:personal-dashboard-experience-api-config">
         <logger level="INFO" message="get:\me\goals:personal-dashboard-experience-api-config" />
@@ -437,50 +541,97 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\me\meals:personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+        <ee:transform doc:name="set vars" doc:id="672d381e-d3f8-4360-a2ac-ef1f56a571b0">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="params" ><![CDATA[%dw 2.0
+output application/java
 ---
 {
-  count: 2,
-  meals: [
-    {
-      mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      userId: "runo313",
-      mealType: "breakfast",
-      consumedAt: "2026-07-13T08:00:00-04:00",
-      loggedAt: "2026-07-13T08:30:00-04:00",
-      items: [
-        {
-          itemId: "a1b2c-e5f6-7890-abcd",
-          foodId: 747448,
-          portionId: 118808,
-          portionAmount: 1.5,
-          quantityG: 234,
-          loggedAt: "2026-07-13T08:30:00-04:00"
-        }
-      ]
-    }, 
-    {
-      mealId: "c3d4-a7b8-9012-cdef-",
-      userId: "runo313",
-      mealType: "lunch",
-      consumedAt: "2026-07-13T12:30:00-04:00",
-      loggedAt: "2026-07-13T12:45:00-04:00",
-      items: [
-        {
-          itemId: "d4e5f-b8c9-0123-defa",
-          foodId: 2684444,
-          quantityG: 150,
-          loggedAt: "2026-07-13T12:45:00-04:00"
-        }
-      ]
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	from: attributes.queryParams.from ,
+	to: attributes.queryParams.to ,
+	date: attributes.queryParams.date
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="a1c72d1f-84cd-4a68-9f4d-fe119a4b5b3d" name="extract-user-id-subflow" />
+		<try doc:name="Try" doc:id="ee91567d-6089-4ad7-b827-c62ff87407c3" >
+			<http:request doc:name="Get User Timezone" doc:id="7d12944c-bf80-484f-a680-bc454a2c8214" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}/preferences" responseTimeout="${nutrisense.sapi.timeout}" target="timezone" targetValue="#[payload.timezone]">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="2c3caae7-977f-4645-a803-d48fcdb4ba4a" type="ANY">
+					<logger level="ERROR" doc:name="Preferences Retrieval Error" doc:id="736270a5-c19b-44b1-8769-6ca1c56cdbb3" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","USER Preference Error ",logMessage,vars.correlationId , vars.flowName)]' />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="Fetching Meals" doc:id="61d73292-e136-4258-bb5e-b17381ebece8" message="#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var timezone = if (vars.timezone == null)&quot;timezone not set defaulting to UTC&quot; else vars.timezone&#10;var message ={&#10;	userId: vars.userId,&#10;	date: vars.params.date default '',&#10;	from : vars.params.from default '',&#10;	to: vars.params.to default '',&#10;	timezone: timezone&#10;}&#10;---&#10;buildLog(&quot;INFO&quot;,&quot;Fetching Meals&quot;,message,vars.correlationId, vars.flowName)]" />
+		<set-variable value="#[vars.timezone default 'UTC']" doc:name="Set Timezone" doc:id="8cb61766-4934-4146-822a-4a81207ac82b" variableName="timezone"/>
+		<choice doc:name="Choice" doc:id="84b08c9a-ed0b-4134-8cb3-b9e4d308abcb" >
+			<when expression="#[vars.params.date != null]">
+				<http:request doc:name="Retrieve Meals" doc:id="bb4eee93-69ec-474e-8243-890411cf374f" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"date": vars.params.date,
+	"timezone" : vars.timezone
+}]]]></http:query-params>
+		</http:request>
+			</when>
+			<otherwise >
+				<http:request doc:name="Retrieve Meals" doc:id="cdd76dd8-bcb8-4c76-9dec-132d3b102988" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals" responseTimeout="${nutrisense.sapi.timeout}" >
+					<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+					<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"from" : vars.params.from,
+	"to": vars.params.to,
+	"timezone" : vars.timezone
+}]]]></http:query-params>
+				</http:request>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END" doc:id="33a07d56-107b-4c25-a9e3-eb94a314097c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Meals retrieved",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="get:\me\preferences:personal-dashboard-experience-api-config">
         <ee:transform doc:name="Transform Message">
@@ -534,7 +685,7 @@ flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<flow-ref doc:name="extract-user-id-subflow" doc:id="dba477b9-6159-4aa6-8fb1-afe9c75923e0" name="extract-user-id-subflow"/>
-		<logger level="INFO" doc:name="Fetching Proflle" doc:id="efbea530-9657-4b26-875d-3a3cdb82a9ab" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Fetching Profile",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="Fetching Profile" doc:id="efbea530-9657-4b26-875d-3a3cdb82a9ab" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Fetching Profile",message,vars.correlationId, vars.flowName)]' />
 		<http:request doc:name="Get User Profile" doc:id="684d6746-947d-4d1b-804d-a73335dd44b8" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}" responseTimeout="${nutrisense.sapi.timeout}">
 			<http:headers><![CDATA[#[output application/java
 ---
@@ -555,43 +706,41 @@ flow.name]]></ee:set-variable>
         <logger level="INFO" message="get:\me\insights\trend:personal-dashboard-experience-api-config" />
     </flow>
     <flow name="get:\me\meals\(mealId):personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+        <ee:transform doc:name="set vars" doc:id="6e26f428-1983-4749-8a28-7d8ac4d2f2f1">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="mealId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'mealId']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="87f1f07f-8b07-4db2-93b7-63891589c386" name="extract-user-id-subflow" />
+		<logger level="INFO" doc:name="Fetching Meal" doc:id="a5d023cd-c28d-45ce-ad10-378941c1e0c8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Fetching Meal",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Retrieve Meal" doc:id="74aac8ce-a7b0-4b56-846e-af7a3adc593b" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals/{mealId}" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
 ---
 {
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"mealId" : vars.mealId,
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="61298cbc-811e-4db3-ad45-e08d3cdd0162" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Meal retrieved",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="post:\me\conditions:application\json:personal-dashboard-experience-api-config">
         <ee:transform doc:name="Transform Message">
@@ -636,77 +785,73 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="post:\me\meals\(mealId)\items:application\json:personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+        <ee:transform doc:name="set vars" doc:id="49ac9013-b48e-4945-9bfe-1f16366338d7">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="mealId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'mealId']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="0e0f9c08-01e0-401d-9a28-080630a7c08f" name="extract-user-id-subflow" />
+		<logger level="INFO" doc:name="Creating Meal Item" doc:id="ce0c439f-b462-4e4d-b8b1-cbe0b634eceb" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;---&#10;buildLog("INFO","Creating meal item",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Create Meal" doc:id="b4546b3f-f038-4521-b980-70232291ed45" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" method="POST" path="api/v1/meal-log-sapi/users/{userId}/meals/{mealId}/items" responseTimeout="${nutrisense.sapi.timeout}">
+			<http:headers><![CDATA[#[output application/java
 ---
 {
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"mealId" : vars.mealId,
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="6a066c3a-8175-43d1-8b8d-92aead2fdd26" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mealId: vars.mealId,&#10;	&#10;}&#10;---&#10;buildLog("INFO","Meal Item Created",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="post:\me\meals:application\json:personal-dashboard-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+        <ee:transform doc:name="set vars" doc:id="54104521-3282-475f-a229-a09e51ace5f0">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="ad12a1c5-5a77-410b-898d-2ce7685bba56" name="extract-user-id-subflow" />
+		<logger level="INFO" doc:name="Creating Meal" doc:id="6dd05322-c492-4dfd-b02e-ac4cb629e886" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Creating meal",message,vars.correlationId, vars.flowName)]' />
+		<http:request doc:name="Create Meal" doc:id="b9412592-c4ad-465e-871f-d5a21fdbcda5" config-ref="MEAL_LOG_SAPI_HTTP_CONFIG" path="api/v1/meal-log-sapi/users/{userId}/meals" responseTimeout="${nutrisense.sapi.timeout}" method="POST">
+			<http:headers><![CDATA[#[output application/java
 ---
 {
-  mealId: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  userId: "runo313",
-  mealType: "breakfast",
-  consumedAt: "2026-07-13T08:00:00-04:00",
-  loggedAt: "2026-07-13T08:30:00-04:00",
-  items: [
-    {
-      itemId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      foodId: 747448,
-      portionId: 118808,
-      portionAmount: 1.5,
-      quantityG: 234,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }, 
-    {
-      itemId: "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      foodId: 2684444,
-      portionId: null,
-      portionAmount: null,
-      quantityG: 150,
-      loggedAt: "2026-07-13T08:30:00-04:00"
-    }
-  ]
-} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="2441059f-130e-405a-80b0-e03d147d8ddc" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Meal Created",message,vars.correlationId, vars.flowName)]' />
+		<error-handler ref="meals-error-handler" />
     </flow>
     <flow name="post:\me\insights\regenerate:personal-dashboard-experience-api-config">
         <logger level="INFO" message="post:\me\insights\regenerate:personal-dashboard-experience-api-config" />
