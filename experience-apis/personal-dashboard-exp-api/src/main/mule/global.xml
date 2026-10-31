@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+		xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config
+		name="personal-dashboard-experience-api-httpListenerConfig">
+		<http:listener-connection host="0.0.0.0"
+			port="${https.port}" />
+	</http:listener-config>
+	<apikit:config
+		name="personal-dashboard-experience-api-config"
+		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:personal-dashboard-experience-api:1.0.0:raml:zip:personal-dashboard-experience-api.raml"
+		outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+	<configuration-properties doc:name="Configuration properties" doc:id="a139b0ac-2528-4abb-a8ed-fbb1d7bef068" file="personal-dashboard-${env}.properties" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="cab32493-6616-43a6-a75c-56884360b4b2" file="personal-dashboard-${env}.properties" key="${MULE_MASTER_KEY}" />
+	<http:request-config name="USERPROFILE_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="99172cfd-a944-4575-b86a-52b014efe108">
+		<http:request-connection protocol="HTTPS" host="${userprofile.baseUri}" port="${userprofile.port}"/>
+	</http:request-config>
+	<http:request-config name="DAILY_INSIGHT_PAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="eb2ec9e3-cadf-4e84-a4f1-138b2b737176">
+		<http:request-connection protocol="HTTPS" host="${insights.baseUri}" port="${insights.port}"/>
+	</http:request-config>
+	<http:request-config name="NUTRITION_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="b2b1c132-5b3c-4fe4-8f5d-b399226bd255" >
+		<http:request-connection protocol="HTTPS" port="${nutrition.port}" host="${nutrition.baseUri}"/>
+	</http:request-config>
+	<http:request-config name="MEAL_LOG_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="1d27fdd5-ba08-4826-891b-69ec1170cbb7" >
+		<http:request-connection port="${meal.port}" host="${meal.baseUri}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config name="TREND_ANALYSIS_PAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="3e6aafd1-b2dc-4cfc-9a88-10fad157bd4f" >
+		<http:request-connection host="${trend.baseUri}" port="${trend.port}" />
+	</http:request-config>
+	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="0aa72adb-5a96-4ed4-bf57-5743ed230ecb" flowRef="personal-dashboard-experience-api-main" />
+</mule>
