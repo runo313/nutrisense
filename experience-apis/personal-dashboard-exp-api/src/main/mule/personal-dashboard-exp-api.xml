@@ -2,4 +2,9 @@
 
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="extract-user-id-subflow" doc:id="7c196a75-4a87-4830-88a5-d93b09798a55" >
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;authentication.properties.claims.sub]" doc:name="User Id" doc:id="5db0f9b0-9016-4f6f-9700-d42503eb8c97" variableName="userId"/>
+		<logger level="INFO" doc:name="User Id Extracted" doc:id="c5af4d50-fde9-4ab5-b1e5-2807e97b752a" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;}&#10;---&#10;buildLog("INFO","User ID extracted",message,vars.correlationId, "extract-user-id-subflow")]' />
+	</sub-flow>
+</mule>
