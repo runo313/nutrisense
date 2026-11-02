@@ -549,7 +549,35 @@ flow.name]]></ee:set-variable>
 		<error-handler ref="error-handler" />
     </flow>
     <flow name="get:\me\insights\daily:personal-dashboard-experience-api-config">
-        <logger level="INFO" message="get:\me\insights\daily:personal-dashboard-experience-api-config" />
+		<ee:transform doc:name="set vars" doc:id="1154831c-f2fd-4dcb-8664-bd5a0a4acfab" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="date" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.date]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="e77c6a1c-7f4e-4978-a2ea-66a1bbaa7454" name="extract-user-id-subflow" />
+		<flow-ref doc:name="Flow Reference" doc:id="b425cdfe-4f6e-4318-9e9a-14c1fd72b321" name="personal-dashboard-exp-apiSub_Flow" />
+		<ee:transform doc:name="Transform Message" doc:id="a0c10c62-7d16-4ee0-825d-80ac463bcf22" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status:'ready'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<error-handler ref="error-handler" />
     </flow>
     <flow name="get:\me\foods\search:personal-dashboard-experience-api-config">
@@ -804,6 +832,18 @@ flow.name]]></ee:set-variable>
     </flow>
     <flow name="get:\me\insights\trend:personal-dashboard-experience-api-config">
         <logger level="INFO" message="get:\me\insights\trend:personal-dashboard-experience-api-config" />
+		<flow-ref doc:name="extract-user-id-subflow" doc:id="69070b7c-4cbd-4b56-b5a0-3cbf35aedb0d" name="extract-user-id-subflow" />
+		<flow-ref doc:name="Flow Reference" doc:id="380f7447-846b-45a0-b097-b789da119928" name="personal-dashboard-exp-apiSub_Flow"/>
+		<ee:transform doc:name="Transform Message" doc:id="292f6aae-ec35-436f-88e3-bc66248334f4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status:'ready'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<error-handler ref="error-handler" />
     </flow>
     <flow name="get:\me\meals\(mealId):personal-dashboard-experience-api-config">
