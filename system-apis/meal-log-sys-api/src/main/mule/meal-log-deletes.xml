@@ -35,6 +35,7 @@ null]]></ee:set-payload>
 				<ee:set-variable variableName="httpStatus" ><![CDATA[204]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Meal Deleted" doc:id="bb4bb275-d6dd-43f2-8604-8bc6316fe295" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Meal Deleted",logMessage,vars.correlationId , vars.flowName)]' />
 	</flow>
 	<flow name="delete-meal-item-flow" doc:id="c96ba7fe-dc62-473f-8e7b-a6ac51948037" >
 		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="d4831b51-4831-4dae-9588-f4108b71bd8c" variableName="flowName" />
@@ -44,9 +45,10 @@ null]]></ee:set-payload>
 		<flow-ref doc:name="check-items-exist" doc:id="aa6f3df0-e6e8-4f4d-91e0-46c26935f8e3" name="check-items-exist"/>
 		<db:update doc:name="Update meal items" doc:id="5a241418-ed91-4251-a993-9a62a9342a34" config-ref="NUTRISENSE_DB_CONFIG" >
 			<db:sql ><![CDATA[UPDATE meal_items SET deleted_at = now() 
-WHERE meal_id = :mealId AND deleted_at IS NULL;]]></db:sql>
+WHERE meal_id = :mealId AND item_id = :itemId AND deleted_at IS NULL;]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
-	mealId: vars.mealId
+	mealId: vars.mealId,
+	itemId: vars.itemId
 }]]]></db:input-parameters>
 		</db:update>
 		<ee:transform doc:name="Transform Message" doc:id="9fa4a4b8-efcd-4c5d-b40f-deeda618d4bb" >
@@ -60,5 +62,6 @@ null]]></ee:set-payload>
 				<ee:set-variable variableName="httpStatus" ><![CDATA[204]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="INFO" doc:name="Meal Item Deleted" doc:id="7f9dbdf6-948b-4410-ba16-693e03b2013a" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	mealId: vars.mealId,&#10;	itemId: vars.itemId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Meal Item Deleted",logMessage,vars.correlationId , vars.flowName)]' />
 	</flow>
 </mule>
