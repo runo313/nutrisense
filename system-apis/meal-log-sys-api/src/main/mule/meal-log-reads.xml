@@ -107,7 +107,7 @@ AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
 }]]]></db:input-parameters>
 		</db:select>
 		<choice doc:name="Choice" doc:id="ef8ba20c-a73b-42d6-a1cf-af43b7a10f04" >
-			<when expression="#[sizeOf(payload) &gt; 0]" >
+			<when expression="#[!isEmpty(payload)]" >
 				<ee:transform doc:name="Transform Message" doc:id="3e14550d-a79c-41bf-9490-f3ac725c048c" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0

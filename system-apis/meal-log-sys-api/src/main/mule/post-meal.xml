@@ -39,8 +39,14 @@ vars.request.items map (item)->{
   quantityG: item.quantityG default null
 }]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Creating meal items" doc:id="72882f4a-d7d1-425e-8320-93b5fab04ff5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item creation started'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealType: vars.request.mealType,&#10;payload:payload&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="Creating meal items" doc:id="72882f4a-d7d1-425e-8320-93b5fab04ff5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item creation started'&#10;var userId = {&#10;userId: vars.userId as String,&#10;payload:payload&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
 		<foreach doc:name="For Each " doc:id="dcc2a3c7-bc79-4a6e-9feb-4d21d010b78b" collection="#[payload]">
 			<set-variable value="#[payload]" doc:name="Current Payload" doc:id="3a3f8a35-38ac-48ac-90ab-b37483fd5f8b" variableName="currentItem" />
 			<choice doc:name="Choice" doc:id="91bed965-b894-4edc-b522-ccbc0dae58a4">
