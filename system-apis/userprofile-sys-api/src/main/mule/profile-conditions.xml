@@ -95,7 +95,7 @@ output application/json
 ---
 {
   code: "USER-PROFILE-409",
-  message: "A condition with this type already exists",
+  message: "A condition of type $(vars.condition.conditionType) already exists for this user. Update or reactivate the existing condition instead.",
   correlationId: correlationId,
   timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
   originLayer: "system"
