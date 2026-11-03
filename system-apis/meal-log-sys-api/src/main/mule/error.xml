@@ -39,7 +39,7 @@ output application/json
 		<on-error-continue enableNotifications="true"
 			logException="true" doc:name="On Error Continue"
 			doc:id="95cc06e4-405d-458d-9af6-438bf1647001"
-			type="VALIDATION:MULTIPLE">
+			type="VALIDATION:MULTIPLE,APP:INVALID_FIELDS">
 			<logger level="ERROR" doc:name="Invalid  Payload Body"
 				doc:id="f80970d6-1703-4466-9c9e-5e556eb42dd6"
 				message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Payload received is invalid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Validation Not Successful",logMessage,vars.correlationId , vars.flowName)]' />
