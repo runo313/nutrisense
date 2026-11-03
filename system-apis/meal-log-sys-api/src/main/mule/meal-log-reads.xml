@@ -34,7 +34,7 @@ ORDER BY m.consumed_at, m.meal_id, mi.logged_at]]></db:sql>
 }]]]></db:input-parameters>
 		</db:select>
 		<choice doc:name="Choice" doc:id="1fd81e50-3124-454d-83ec-e4a6301003f5" >
-			<when expression="#[sizeOf(payload) &gt; 0]">
+			<when expression="#[!isEmpty(payload)]">
 				<ee:transform doc:name="Transform Message" doc:id="f87abf19-bcf3-44d5-8862-4e9297331d18">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -63,6 +63,7 @@ output application/json
 				<ee:set-variable variableName="httpStatus"><![CDATA[200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+				<logger level="INFO" doc:name="Meals Retrieved" doc:id="46db26c6-6e13-4f14-926d-3152b44957b2" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	counts: payload.counts&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Meals Retreived",logMessage,vars.correlationId , vars.flowName)]' />
 			</when>
 			<otherwise >
 				<ee:transform doc:name="Not data found" doc:id="54fb0378-769f-4f0b-a010-1fe5170e613d" >
@@ -84,6 +85,7 @@ output application/json
 						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
+				<logger level="INFO" doc:name="No Meals Retrieved" doc:id="479e9d2f-0266-4d3a-9590-0cf167d021f2" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","No Meals Retreived",logMessage,vars.correlationId , vars.flowName)]' />
 			</otherwise>
 		</choice>
 	</flow>
@@ -96,6 +98,7 @@ output application/json
 FROM meals m
 LEFT JOIN meal_items mi ON m.meal_id = mi.meal_id
 WHERE m.meal_id = :meal_id
+AND user_id = :userId
 AND m.deleted_at IS NULL
 AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -104,7 +107,7 @@ AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
 }]]]></db:input-parameters>
 		</db:select>
 		<choice doc:name="Choice" doc:id="ef8ba20c-a73b-42d6-a1cf-af43b7a10f04" >
-			<when expression="#[sizeOf(payload) &gt; 0]" >
+			<when expression="#[!isEmpty(payload)]" >
 				<ee:transform doc:name="Transform Message" doc:id="3e14550d-a79c-41bf-9490-f3ac725c048c" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -117,6 +120,7 @@ transformMeal(payload)]]></ee:set-payload>
 						<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
+				<logger level="INFO" doc:name="Meal Retrieved" doc:id="a98826fd-8581-460b-a951-ea06e25e0b50" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Meal Retreived",logMessage,vars.correlationId , vars.flowName)]' />
 			</when>
 			<otherwise >
 				<ee:transform doc:name="Not data found" doc:id="63fc1e35-7496-4588-9fcf-c34ed6f23430" >
@@ -138,6 +142,7 @@ output application/json
 						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
+				<logger level="INFO" doc:name="No Meal Retrieved" doc:id="b940ab65-3cb2-4de6-b0fa-014c1847263b" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	mealId: vars.mealId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","No Meal Retreived",logMessage,vars.correlationId , vars.flowName)]' />
 			</otherwise>
 		</choice>
 	</flow>

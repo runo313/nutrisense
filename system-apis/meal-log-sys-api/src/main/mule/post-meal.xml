@@ -23,7 +23,7 @@ VALUES (:user_id, :meal_type, :consumed_at)]]></db:sql>
 			</db:insert>
 			<flow-ref doc:name="insert-meal-items-subflow" doc:id="a09eeb71-32c0-4a6a-b32a-731c3616028e" name="insert-meal-items-subflow" />
 		</try>
-		<logger level="INFO" doc:name="END" doc:id="43687b2d-678c-4795-8948-814da00f8b58" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal created successfully'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]"/>
+		<logger level="INFO" doc:name="END" doc:id="43687b2d-678c-4795-8948-814da00f8b58" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal created successfully'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: payload.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]"/>
 	</flow>
 	<flow name="insert-meal-items-subflow" doc:id="a414cc0a-39b6-4f8e-95f5-7de0ec2a1556" >
 		<ee:transform doc:name="Set Mode" doc:id="c1a692ff-a00f-4900-b547-ca92fedf91fa" >
@@ -39,8 +39,14 @@ vars.request.items map (item)->{
   quantityG: item.quantityG default null
 }]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Creating meal items" doc:id="72882f4a-d7d1-425e-8320-93b5fab04ff5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item creation started'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealType: vars.request.mealType,&#10;payload:payload&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="Creating meal items" doc:id="72882f4a-d7d1-425e-8320-93b5fab04ff5" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item creation started'&#10;var userId = {&#10;userId: vars.userId as String,&#10;payload:payload&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
 		<foreach doc:name="For Each " doc:id="dcc2a3c7-bc79-4a6e-9feb-4d21d010b78b" collection="#[payload]">
 			<set-variable value="#[payload]" doc:name="Current Payload" doc:id="3a3f8a35-38ac-48ac-90ab-b37483fd5f8b" variableName="currentItem" />
 			<choice doc:name="Choice" doc:id="91bed965-b894-4edc-b522-ccbc0dae58a4">
@@ -125,7 +131,7 @@ AND deleted_at IS NULL]]></db:sql>
 	userId: vars.userId
 }]]]></db:input-parameters>
 					</db:select>
-					<validation:is-not-null doc:name="Is not null" doc:id="c962af96-5d15-435a-b3d9-6652d0f18506" value="#[vars.id.meal_id]" message="Invalid Portion provided" />
+					<validation:is-not-null doc:name="Invalid Meal" doc:id="c962af96-5d15-435a-b3d9-6652d0f18506" value="#[vars.id.meal_id]" message="Invalid Meal provided" />
 				</when>
 			</choice>
 			<validation:is-false doc:name="vars.validate" doc:id="d466d1d3-3cd2-4ced-83a9-0e77ac6dde4c" expression="#[vars.validate]" message="Invalid Request. Each item must use (portionId + portionAmount) or (quantityG)" />
