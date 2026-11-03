@@ -91,6 +91,8 @@ CREATE TABLE user_goals (
   is_active        BOOLEAN                NOT NULL DEFAULT true,
   set_at           TIMESTAMPTZ            NOT NULL DEFAULT now(),
   achieved_at      TIMESTAMPTZ
+
+  CONSTRAINT uq_user_goal_type UNIQUE (user_id, goal_type)
 );
 
 CREATE INDEX idx_user_goals_user_id ON user_goals(user_id);
@@ -107,6 +109,8 @@ CREATE TABLE user_conditions (
   is_active          BOOLEAN                  NOT NULL DEFAULT true,
   created_at         TIMESTAMPTZ              NOT NULL DEFAULT now(),
   updated_at         TIMESTAMPTZ              NOT NULL DEFAULT now()
+
+  CONSTRAINT uq_user_condition_type UNIQUE (user_id, condition_type)
 );
 
 CREATE INDEX idx_user_conditions_user_id ON user_conditions(user_id);
