@@ -222,6 +222,6 @@ var noTarget = request.targetValue == null and request.targetUnit == null
 		<validation:is-true doc:name="Energy Is Valid" doc:id="04b2f6fb-3474-4b25-bf02-df70fc2c0392" expression="#[vars.isValid.isValidEnergyPayload default true]" message="Invalid energy optimization goal configuration. Verify the goal direction and target fields.">
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_PAYLOAD" />
 		</validation:is-true>
-		<logger level="INFO" doc:name="Payload Is Valid" doc:id="11fecdb9-4080-4a49-aaa4-0054c4933c87" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Validation Complete'&#10;var userId = {&#10;userId: vars.user.userId default vars.userId,&#10;isValid: vars.isValid filterObject ((value) -&gt; value != null )&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , &quot;validate-goals-payload&quot;)]" />
+		<logger level="INFO" doc:name="Payload Is Valid" doc:id="11fecdb9-4080-4a49-aaa4-0054c4933c87" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Payload is Valid'&#10;var userId = {&#10;userId: vars.user.userId default vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , &quot;validate-goals-payload&quot;)]" />
 	</sub-flow>
 </mule>
