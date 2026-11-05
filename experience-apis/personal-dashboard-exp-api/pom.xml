@@ -77,7 +77,7 @@
 		<dependency>
 			<groupId>ebc8f976-c342-4bb4-9666-f6207f92deac</groupId>
 			<artifactId>personal-dashboard-experience-api</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
