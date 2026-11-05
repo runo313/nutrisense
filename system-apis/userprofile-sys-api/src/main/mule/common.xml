@@ -122,4 +122,106 @@ AND deleted_at IS NULL]]></db:sql>
 			</when>
 		</choice>
 	</sub-flow>
+	<sub-flow name="validate-conditions-payload" doc:id="b00084fe-c699-4cf3-820b-45868a1939aa" >
+		<ee:transform doc:name="Validate Condition Request" doc:id="f484f9e2-da95-489f-a4ac-73147a75df24" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="isValid" ><![CDATA[%dw 2.0
+output application/java
+var conditionType = vars.condition.conditionType default vars.existingCondition[0].condition_type
+var request = vars.condition default vars.existingCondition[0]
+var diabetesStatus = ["monitoring", "diet_controlled", "medication_managed", "in_remission"]
+var commonStatus = ["monitoring", "diet_controlled", "medication_managed"]
+---
+{
+    isValidConditionPayload: if (conditionType == "type2_diabetes") (diabetesStatus contains request.managementStatus)      
+        else (commonStatus contains request.managementStatus),
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:is-true doc:name="Condition Status is Valid" doc:id="9c273bb3-3c68-4a39-a442-27cf67fdbd2e" message='#["Invalid $(vars.condition.conditionType default vars.existingCondition[0].condition_type) condition configuration. Verify the management status."]' expression="#[vars.isValid.isValidConditionPayload]">
+			<error-mapping targetType="APP:INVALID_PAYLOAD" />
+		</validation:is-true>
+		<logger level="INFO" doc:name="Payload Is Valid" doc:id="730ff2f5-9f18-4aa0-9e2a-a28ed55fdf69" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Validation Complete'&#10;var userId = {&#10;userId: vars.userId,&#10;isValid: vars.isValid.isValidConditionPayload,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , &quot;validate-conditions-payload&quot;)]" />
+	</sub-flow>
+	<sub-flow name="validate-goals-payload" doc:id="94f57b0d-1292-431a-999a-878741f6bc33" >
+		<ee:transform doc:name="Validate Goals Request" doc:id="195bd3e6-0132-4f26-89a5-b79f40846099">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+						<ee:set-variable variableName="isValid"><![CDATA[%dw 2.0
+output application/java
+var existing = vars.existingGoal[0]
+var patch = vars.goal
+var current = {
+    goalType: existing.goal_type,
+    goalDirection: existing.goal_direction,
+    targetValue: existing.target_value,
+    targetUnit: existing.target_unit
+}
+
+var request = if (vars.user.goalType != null) vars.user else
+{
+    goalType: existing.goal_type,
+    goalDirection: patch.goalDirection default existing.goal_direction,
+    targetValue: patch.targetValue default existing.target_value,
+    targetUnit: patch.targetUnit default existing.target_unit
+}
+var weightDirections = ["lose", "gain", "maintain"]
+var commonDirections = ["improve", "maintain"]
+var noTarget = request.targetValue == null and request.targetUnit == null
+---
+{
+    isValidWeightPayload: if (request.goalType == "weight_management") (weightDirections contains request.goalDirection)
+            and request.targetValue != null and request.targetValue > 0 and request.targetUnit == "kg"
+        else null,
+
+    isValidAthleticPayload: if (request.goalType == "athletic_performance")  
+    (commonDirections contains request.goalDirection) and noTarget
+        else null,
+
+    isValidChronicConditionPayload: if (request.goalType == "chronic_condition_management")
+     (commonDirections contains request.goalDirection) and noTarget
+        else null,
+
+    isValidWellnessPayload: if (request.goalType == "general_wellness")
+    (commonDirections contains request.goalDirection) and noTarget
+        else null,
+
+    isValidSleepPayload: if (request.goalType == "sleep_improvement")
+    (commonDirections contains request.goalDirection) and (noTarget or
+        (
+            request.targetValue != null
+            and request.targetValue > 0
+            and request.targetUnit == "hours"
+        )
+    )
+    else null,
+
+    isValidEnergyPayload: if (request.goalType == "energy_optimization")
+    (commonDirections contains request.goalDirection) and noTarget
+        else null
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:is-true doc:name="Weight Type Is Valid" doc:id="d458072d-aff6-47f2-9a42-204176b47f5d" expression="#[vars.isValid.isValidWeightPayload default true]" message="Invalid weight management goal configuration. Verify the goal direction, target value, and target unit.">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_PAYLOAD" />
+		</validation:is-true>
+		<validation:is-true doc:name="Athletic Type is Valid" doc:id="0c5741a9-af72-49e7-b4c1-b25841f9b334" expression="#[vars.isValid.isValidAthleticPayload default true]" message="Invalid athletic performance goal configuration. Verify the goal direction and target fields.">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_PAYLOAD" />
+		</validation:is-true>
+		<validation:is-true doc:name="Chronic Condition is Valid" doc:id="c6ce45e5-3470-42a4-a49d-a2e69b09d330" expression="#[vars.isValid.isValidChronicConditionPayload default true]" message="Invalid chronic condition management goal configuration. Verify the goal direction and target fields.">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_PAYLOAD" />
+		</validation:is-true>
+		<validation:is-true doc:name="General Wellness Is Valid" doc:id="cca92cf2-b5d1-4f9d-b7f4-934b79a285c5" expression="#[vars.isValid.isValidWellnessPayload default true]" message="Invalid general wellness goal configuration. Verify the goal direction and target fields.">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_PAYLOAD" />
+		</validation:is-true>
+		<validation:is-true doc:name="Sleep Is Valid" doc:id="ecfd8cd7-d071-4056-9b1d-ee14a0f55981" expression="#[vars.isValid.isValidSleepPayload default true]" message="Invalid sleep improvement goal configuration. Verify the goal direction, target value, and target unit.">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_PAYLOAD" />
+		</validation:is-true>
+		<validation:is-true doc:name="Energy Is Valid" doc:id="04b2f6fb-3474-4b25-bf02-df70fc2c0392" expression="#[vars.isValid.isValidEnergyPayload default true]" message="Invalid energy optimization goal configuration. Verify the goal direction and target fields.">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INVALID_PAYLOAD" />
+		</validation:is-true>
+		<logger level="INFO" doc:name="Payload Is Valid" doc:id="11fecdb9-4080-4a49-aaa4-0054c4933c87" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Validation Complete'&#10;var userId = {&#10;userId: vars.user.userId default vars.userId,&#10;isValid: vars.isValid filterObject ((value) -&gt; value != null )&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , &quot;validate-goals-payload&quot;)]" />
+	</sub-flow>
 </mule>
