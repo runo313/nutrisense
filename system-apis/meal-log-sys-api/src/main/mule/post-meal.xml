@@ -77,8 +77,11 @@ VALUES (:food_id, :portion_id, :portion_amount, :quantity_g, :meal_id)]]></db:sq
 			</db:insert>
 		</foreach>
 		<db:select doc:name="Select full meal with items" doc:id="cb0b193d-4be5-4244-8bc1-b8d3cf255ebd" config-ref="NUTRISENSE_DB_CONFIG" >
-			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
-       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, 
+	   TO_CHAR(m.consumed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as consumed_at, 
+	   TO_CHAR(m.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as meal_logged_at,
+       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, 
+       TO_CHAR(mi.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as item_logged_at
 FROM meals m
 JOIN meal_items mi ON m.meal_id = mi.meal_id
 WHERE m.meal_id = :mealId
