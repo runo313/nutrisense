@@ -16,8 +16,11 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 		</validation:all>
 		<logger level="INFO" doc:name="Validations Passed" doc:id="73b6ec5e-baa4-4cb1-bc4b-c67154acb6e1" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	status: "Query Param received is valid",&#10;	userId: vars.userId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("INFO","Validation Successful",logMessage,vars.correlationId , vars.flowName)]' />
 		<db:select doc:name="Select meals" doc:id="6eb77221-9821-48db-90ce-e0bf69b51540" config-ref="NUTRISENSE_DB_CONFIG">
-			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
-       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type,
+       TO_CHAR( m.consumed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS consumed_at,
+       TO_CHAR(m.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS meal_logged_at,
+       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g,
+       TO_CHAR(mi.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS item_logged_at
 FROM meals m
 LEFT JOIN meal_items mi ON m.meal_id = mi.meal_id
 WHERE m.user_id = :userId
@@ -39,22 +42,23 @@ ORDER BY m.consumed_at, m.meal_id, mi.logged_at]]></db:sql>
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
+var timezone = vars.queryParams.timezone default "UTC"
 ---
 {
-	counts: sizeOf(payload),
+	counts: sizeOf(payload groupBy ((item) -> item.meal_id as String)) ,
 	meals: payload groupBy ((item) -> item.meal_id as String) pluck ((value, key ) ->{
 		"mealId": value[0].meal_id,
 		"userId": value[0].user_id,
 		"mealType": value[0].meal_type,
-		"consumedAt": value[0].consumed_at,
-		"loggedAt": value[0].meal_logged_at,
+		"consumedAt": value[0].consumed_at as DateTime as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+		"loggedAt": value[0].meal_logged_at  as DateTime as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
 		"items": value filter ((row) -> row.item_id != null) map ((item) -> {
 			"itemId": item.item_id,
 			"foodId": item.food_id,
 			"portionId": item.portion_id,
 			"portionAmount": item.portion_amount,
 			"quantityG": item.quantity_g,
-			"loggedAt": item.item_logged_at
+			"loggedAt": item.item_logged_at as DateTime as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"}
 		})
 	} )
 }]]></ee:set-payload>
@@ -93,8 +97,11 @@ output application/json
 		<set-variable value="#[flow.name]" doc:name="Flow Name" doc:id="cf63d19d-4f55-4fd9-8301-c2b1cb972b88" variableName="flowName" />
 		<validation:is-false doc:name="Check Meal Id" doc:id="a4beab61-2282-429e-bd2e-e9e8f54af0c1" expression="#[not (vars.mealId matches /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)]" message="Invalid meal Id format. Must be a valid UUID."/>
 		<db:select doc:name="Select meals" doc:id="f2ff4a5c-bfe6-4432-b5df-21603a4184aa" config-ref="NUTRISENSE_DB_CONFIG">
-			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
-       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, 
+	TO_CHAR(m.consumed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as consumed_at, 
+	TO_CHAR(m.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as meal_logged_at,
+	mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g,
+	TO_CHAR(mi.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as item_logged_at
 FROM meals m
 LEFT JOIN meal_items mi ON m.meal_id = mi.meal_id
 WHERE m.meal_id = :meal_id

@@ -189,13 +189,17 @@ output application/java
 vars.inputParam]]]></db:input-parameters>
 		</db:update>
 		<db:select doc:name="Select meals" doc:id="35eec0c7-4556-4490-8ecb-866ed0fe0f57" config-ref="NUTRISENSE_DB_CONFIG" >
-			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, m.consumed_at, m.logged_at as meal_logged_at,
-       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, mi.logged_at as item_logged_at
+			<db:sql ><![CDATA[SELECT m.meal_id, m.user_id, m.meal_type, 
+	   TO_CHAR(m.consumed_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as consumed_at, 
+	   TO_CHAR(m.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as meal_logged_at,
+       mi.item_id, mi.food_id, mi.portion_id, mi.portion_amount, mi.quantity_g, 
+       TO_CHAR(mi.logged_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as item_logged_at
 FROM meals m
 LEFT JOIN meal_items mi ON m.meal_id = mi.meal_id
 WHERE m.meal_id = :meal_id
 AND m.deleted_at IS NULL
-AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)]]></db:sql>
+AND (mi.deleted_at IS NULL OR mi.item_id IS NULL)
+]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	userId: vars.userId,
 	meal_id : vars.mealId
