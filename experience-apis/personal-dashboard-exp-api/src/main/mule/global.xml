@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	</http:listener-config>
 	<apikit:config
 		name="personal-dashboard-experience-api-config"
-		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:personal-dashboard-experience-api:1.0.0:raml:zip:personal-dashboard-experience-api.raml"
+		api="resource::ebc8f976-c342-4bb4-9666-f6207f92deac:personal-dashboard-experience-api:1.0.1:raml:zip:personal-dashboard-experience-api.raml"
 		outboundHeadersMapName="outboundHeaders"
 		httpStatusVarName="httpStatus" />
 	<configuration-properties doc:name="Configuration properties" doc:id="a139b0ac-2528-4abb-a8ed-fbb1d7bef068" file="personal-dashboard-${env}.properties" />
@@ -37,7 +37,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 		<http:request-connection port="${meal.port}" host="${meal.baseUri}" protocol="HTTPS"/>
 	</http:request-config>
 	<http:request-config name="TREND_ANALYSIS_PAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="3e6aafd1-b2dc-4cfc-9a88-10fad157bd4f" >
-		<http:request-connection host="${trend.baseUri}" port="${trend.port}" />
+		<http:request-connection host="${trend.baseUri}" port="${trend.port}" protocol="HTTPS"/>
 	</http:request-config>
 	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="0aa72adb-5a96-4ed4-bf57-5743ed230ecb" flowRef="personal-dashboard-experience-api-main" />
 </mule>
