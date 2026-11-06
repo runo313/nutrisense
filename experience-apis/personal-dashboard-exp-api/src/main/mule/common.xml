@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="extract-user-id-subflow" doc:id="7c196a75-4a87-4830-88a5-d93b09798a55" >
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;authentication.properties.claims.sub]" doc:name="User Id" doc:id="5db0f9b0-9016-4f6f-9700-d42503eb8c97" variableName="userId"/>
+	</sub-flow>
+	<sub-flow name="verify-insights-date-subflow" doc:id="790a84f2-dc79-49db-8fbf-487be755be3a" >
+		<flow-ref doc:name="retrieve-timezone-subflow" doc:id="5b1492bc-9263-41ed-9512-76c0427c752e" name="retrieve-timezone-subflow"/>
+		<ee:transform doc:name="Transform Message" doc:id="cccdfead-97ee-4864-ae2f-f69b95e51f73">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="insightAvaliable" ><![CDATA[%dw 2.0
+output application/java
+var timezone = vars.timezone
+var current = (now() >> timezone) as String {format: "HH:mm"}
+var actual = "18:00" as String {format: "HH:mm"}
+---
+{
+	today: if((vars.date as Date) == (now() as Date))(actual >= current) else false,
+	future: (vars.date as Date) > (now() as Date)
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:is-false doc:name="Insight Available Today" doc:id="9959245b-af26-4f32-a8ce-59e74746cc9e" message="Today's insight report is available after 6:00 PM in your configured timezone." expression="#[vars.insightAvaliable.today]">
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INSIGHTS_UNAVAILABLE" />
+		</validation:is-false>
+		<validation:is-false doc:name="Insight Future Date" doc:id="cb820e65-dc92-47ee-94ed-5235ddc19d16" expression="#[vars.insightAvaliable.future]" message="The requested insight date cannot be in the future. Select today or a past date." >
+			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:INSIGHTS_FUTURE" />
+		</validation:is-false>
+	</sub-flow>
+	<sub-flow name="retrieve-timezone-subflow" doc:id="fb1f4b81-aa78-40d1-aa9d-e12c1d9f372d" >
+		<try doc:name="Try" doc:id="085c674a-ed11-4baf-8058-9ada99bd3829" >
+			<http:request doc:name="Get User Timezone" doc:id="b2a46508-f83c-442b-9ceb-f078caeb1870" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" path="api/v1/user-profile-sapi/profiles/{userId}/preferences" responseTimeout="${nutrisense.sapi.timeout}" target="timezone" targetValue="#[payload.timezone]" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id" : Mule::p('nutrisense.sapi.clientId'),
+	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"userId" : vars.userId
+}]]]></http:uri-params>
+			</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ecebdfc0-522b-4829-8653-ee46b8768a8d" type="ANY" >
+					<logger level="ERROR" doc:name="Preferences Retrieval Error" doc:id="b7fbb8c6-5ed3-451f-9a16-3e9efe877a66" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","timezone not set defaulting to UTC",logMessage,vars.correlationId , vars.flowName)]' />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<set-variable value="#[vars.timezone default 'UTC']" doc:name="Set Timezone" doc:id="49e9e382-27c9-4a18-92b9-5747daf12d8e" variableName="timezone" />
+	</sub-flow>
+</mule>
