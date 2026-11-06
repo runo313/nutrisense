@@ -92,6 +92,7 @@ AND mi.deleted_at IS NULL
 	mealId: vars.meal_id default vars.mealId
 }]]]></db:input-parameters>
 		</db:select>
+		<validation:is-false doc:name="meal not found" doc:id="eefa3e1b-6bf9-4e71-a119-986eba854f9d" expression="#[isEmpty(payload)]" message="Meal not found or has been deleted" />
 		<ee:transform doc:name="Transform Message" doc:id="25d9deeb-7cd7-4322-88da-5b51bbf9d4ca" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
