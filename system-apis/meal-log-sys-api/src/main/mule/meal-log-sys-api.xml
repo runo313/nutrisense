@@ -174,9 +174,7 @@ output application/java
         </ee:transform>
         <logger level="INFO" doc:name="START" doc:id="c57d9422-8aff-42f9-8ffe-cba9ff88a20c" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Request to create new meal'&#xA;var userId = {&#xA;userId: vars.userId as String,&#xA;itemCount:sizeOf(payload)&#xA;}&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
         <flow-ref doc:name="validate-payload-subflow" doc:id="4ee39a09-1240-4686-a0f1-a0cea0772885" name="validate-payload-subflow" />
-        <try doc:name="Try" doc:id="b227756b-27bc-4a38-8cb6-711fb18484f6" transactionalAction="ALWAYS_BEGIN">
-			<flow-ref doc:name="create-meal-flow" doc:id="511f11d8-74b4-4c6f-b189-fe151974aae6" name="create-meal-flow" />
-		</try>
+        <flow-ref doc:name="create-meal-flow" doc:id="511f11d8-74b4-4c6f-b189-fe151974aae6" name="create-meal-flow" />
 		<error-handler ref="post-meal-error-handler" />
     </flow>
 </mule>
