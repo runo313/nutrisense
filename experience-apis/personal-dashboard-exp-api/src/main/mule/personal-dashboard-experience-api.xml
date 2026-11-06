@@ -357,6 +357,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="e60b78b0-4e97-4b11-9fc0-9c48f006d9fe">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="b4ddea14-4600-4683-91fb-9734ef02fa95" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition updated",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -390,6 +398,14 @@ flow.name]]></ee:set-variable>
 	"goalId" : vars.goalId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="fd9b9a57-05e1-47c2-a2f6-6dde8f6b3c7d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="36b1abb9-3ccf-4392-94c7-c88fd18a32c7" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	goalId: vars.goalId&#10;}&#10;---&#10;buildLog("INFO","Goal updated",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -422,6 +438,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="587a4a71-973b-47ac-bd39-50541acdc1c3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="340aeb55-cfcc-41b6-a31d-0f74f6009dea" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preferences updated",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -454,6 +478,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="4309861f-e754-4f57-aa6b-bb4f11d5278b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="00824395-6ae2-449a-9bf3-5a8fff8edf89" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Profile updated",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="profile-error-handler" />
     </flow>
@@ -585,6 +617,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="474d7152-3b33-43fe-b9b3-4b8f4673cc4f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item) -> item - "userId" )]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="cec1a575-6668-41c1-b6a2-421fa8cb3fd7" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Conditions retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -617,6 +657,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="3e897ea9-b117-44b8-86ec-0733b0575e12">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item) -> item - "userId" )]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="0802f094-c8b0-4ab3-a72d-269c60d6b4a3" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Constraints retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -659,6 +707,14 @@ attributes.queryParams.date]]></ee:set-variable>
 	"date" : vars.date
 }]]]></http:query-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="8ae26884-f5b0-4ba7-a589-116bd6bbb436">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "user_id"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="12019318-25e2-4bb3-b42b-76b389f51b85" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Insights retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -731,6 +787,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="2372647e-a04b-4377-98d1-aa42ec518a9f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="00625ce7-04ef-4f8d-9e63-a6768eaee809" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Goals retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -860,6 +924,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="8548ac9b-59af-48e8-8bc3-e19f657ff2e3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="f5cd22ff-c97a-4b44-a03f-3aee81727a32" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preferences retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -906,6 +978,14 @@ attributes.queryParams.mode]]></ee:set-variable>
 	"mode" : vars.mode
 }]]]></http:query-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="eaae96db-780e-4d9b-bbbb-003532a1679a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "user_id"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="3a3a8bc1-bbd9-473c-9a85-ffeed24f2a9e" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	mode: vars.mode&#10;}&#10;---&#10;buildLog("INFO","Insights retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -939,6 +1019,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="4636592f-201b-4ba0-ae9a-9f5af5422496">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="2c82831f-3da6-4f1e-b03f-18a07c5c0e41" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Profile retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="profile-error-handler" />
     </flow>
@@ -980,6 +1068,14 @@ attributes.queryParams.window]]></ee:set-variable>
 	"window" : vars.window
 }]]]></http:query-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="270b0eeb-8f79-488e-81d1-d46137634efd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "user_id"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="7ce40f2f-696e-4e86-a705-169363f275f6" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Trend retrieved",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -1099,6 +1195,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="04436aa6-2acf-4806-8bba-744c0ac20ab1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="45a81150-2d6d-4ff6-8c27-d48b8b4ec3ef" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition Created",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -1131,6 +1235,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="56a26dae-d8a7-44ed-9512-c4a15347a50c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="561cc9fb-4c8e-41bd-a1f3-f4625de63327" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Constraint Created",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -1163,6 +1275,14 @@ flow.name]]></ee:set-variable>
 	"userId" : vars.userId
 }]]]></http:uri-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="aa18e600-09ec-45de-8bb7-792196087fa7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="3d625fd8-81ad-4f34-aecb-2e00babe19b5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Goal Created",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -1291,6 +1411,14 @@ attributes.queryParams.date]]></ee:set-variable>
 	"date" : vars.date
 }]]]></http:query-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="e535617b-e477-43a6-afdc-570863dc5879">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "user_id"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="ca7b3028-eb2a-4755-9283-c946ed6d6c22" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Insights generated",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
@@ -1311,6 +1439,19 @@ flow.name]]></ee:set-variable>
 		<flow-ref doc:name="extract-user-id-subflow" doc:id="93393dae-ec1c-4d4e-8c93-1894ea8cdb34" name="extract-user-id-subflow" />
 		<logger level="INFO" doc:name="Creating Profile" doc:id="872b8d1e-db2c-45dd-9de1-51306abcdef8" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Creating Profile",message,vars.correlationId, vars.flowName)]' />
 		<http:request doc:name="Create Profile" doc:id="1760ec58-f663-4a65-bf62-3a0bd3c434dd" config-ref="USERPROFILE_SAPI_HTTP_CONFIG" method="POST" path="api/v1/user-profile-sapi/profiles" responseTimeout="${nutrisense.sapi.timeout}" >
+			<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+  "userId": vars.userId,
+  "name": payload.name,
+  "email": payload.email,
+  "dateOfBirth": payload.dateOfBirth,
+  "biologicalSex": payload.biologicalSex,
+  "heightCm": payload.heightCm,
+  "weightKg": payload.weightKg,
+  "activityBaseline": payload.activityBaseline
+}]]]></http:body>
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
@@ -1318,6 +1459,14 @@ flow.name]]></ee:set-variable>
 	"client_secret": Mule::p('secure::nutrisense.sapi.clientSecret')
 }]]]></http:headers>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="53a932b8-c869-4519-bc50-fe30b037edc5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload[0] - "userId"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="2693ecaa-b38c-45a8-8a07-c8fb4c6c9520" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Profile Created",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="profile-error-handler" />
 	</flow>
@@ -1359,6 +1508,14 @@ attributes.queryParams.window]]></ee:set-variable>
 	"window" : vars.window
 }]]]></http:query-params>
 		</http:request>
+		<ee:transform doc:name="Format Payload" doc:id="69ae4ea1-ddff-4d1e-b111-6030a0d2b567">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload - "user_id"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="df9cbe61-3713-4976-818a-b38567dbe1e4" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Trend generated",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
     </flow>
