@@ -68,7 +68,7 @@ output application/json
 ]]></ee:set-payload>
 				</ee:message>
 				<ee:variables>
-					<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+					<ee:set-variable variableName="httpStatus"><![CDATA[409]]></ee:set-variable>
 				</ee:variables>
 			</ee:transform>
 				</when>
@@ -143,13 +143,55 @@ output application/json
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d39f2429-c5ca-433a-8689-308b7655117a" type="ANY" >
-			<choice doc:name="Choice" doc:id="7a62bd88-f031-46ee-a222-3462046350f0" >
-				<when expression="error.errorMessage.attributes.statusCode == 409">
-					<logger level="ERROR" doc:name="409 Error" doc:id="260f5753-da82-4064-9ce0-e4f8a8a5b09a" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Duplicate Record",logMessage,vars.correlationId , vars.flowName)]' />
-					<ee:transform doc:name="PERSONAL DASHBOARD 409" doc:id="fe87f041-4b7d-40c9-bf30-ea5ddef9439e">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d39f2429-c5ca-433a-8689-308b7655117a" type="APP:INSIGHTS_UNAVAILABLE" >
+			<logger level="ERROR" doc:name="409 Error" doc:id="260f5753-da82-4064-9ce0-e4f8a8a5b09a" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	date: vars.date&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Daily Insight Unavailable",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="PERSONAL DASHBOARD 409" doc:id="fe87f041-4b7d-40c9-bf30-ea5ddef9439e">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-409",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[409]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d522dc16-1bb7-4ff7-9920-75293e102556" type="ANY">
+			<logger level="ERROR" doc:name="400 Error" doc:id="c65b501e-469a-4820-b655-16f6ca94bc1e" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	date: vars.date&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Daily Insight Future Date",logMessage,vars.correlationId , vars.flowName)]' />
+			<ee:transform doc:name="PERSONAL DASHBOARD 400" doc:id="dee62274-ac5e-4e95-a380-9c0d8c79b856" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-400",
+  message: error.description,
+  correlationId: correlationId,
+  timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
+  originLayer: "system"
+}
+]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e8640c3d-0a60-44ab-8f55-a07ba69d140f" >
+			<choice doc:name="Choice" doc:id="a93d078b-cfdc-4626-a5cb-e74f78aa4287" >
+				<when expression="error.errorMessage.attributes.statusCode == 409" >
+					<logger level="ERROR" doc:name="409 Error" doc:id="159398a6-5c3b-4fa0-bf6f-c47231a7140e" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Duplicate Record",logMessage,vars.correlationId , vars.flowName)]' />
+					<ee:transform doc:name="PERSONAL DASHBOARD 409" doc:id="b5932305-c7a5-495e-bb6a-e55ffcd2edfa" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -160,17 +202,17 @@ output application/json
   originLayer: "system"
 }
 ]]></ee:set-payload>
-				</ee:message>
-				<ee:variables>
-					<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
-				</ee:variables>
-			</ee:transform>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpStatus" ><![CDATA[409]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
 				</when>
 				<otherwise >
-					<logger level="ERROR" doc:name="500 Error" doc:id="20b6d56e-7610-4af2-9310-e2e21c158f43" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	message: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Error",logMessage,vars.correlationId , vars.flowName)]' />
-					<ee:transform doc:name="PERSONAL DASHBOARD 500" doc:id="c0468182-6bde-45e7-981d-3f51b5d1a44a">
-				<ee:message>
-					<ee:set-payload><![CDATA[%dw 2.0
+					<logger level="ERROR" doc:name="500 Error" doc:id="344c9c41-52da-40b4-a64c-2fdcd3b981c2" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	message: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Error",logMessage,vars.correlationId , vars.flowName)]' />
+					<ee:transform doc:name="PERSONAL DASHBOARD 500" doc:id="2bae9606-b54f-4105-818c-4a0a3572e7b3" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -180,16 +222,132 @@ output application/json
   "timestamp": now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
   "originLayer": "experience"
 }]]></ee:set-payload>
-				</ee:message>
-				<ee:variables>
-					<ee:set-variable variableName="httpStatus"><![CDATA[%dw 2.0
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
 output application/java
 ---
 500]]></ee:set-variable>
-				</ee:variables>
-			</ee:transform>
+						</ee:variables>
+					</ee:transform>
 				</otherwise>
 			</choice>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="apikit-error-handler" doc:id="7cd4e5e7-6d9c-4db6-a4fe-f13ed4039e6d" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="95553358-3ab8-4d52-be6c-29d761793d13" type="APIKIT:BAD_REQUEST" >
+			<ee:transform doc:name="Transform Message" doc:id="c49375f5-3764-4226-b729-b076068ca538" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-400",
+  message: "Bad Request: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0d5c5c6c-d168-4aa6-9f7a-005ffddf1a59" type="APIKIT:NOT_FOUND" >
+			<ee:transform doc:name="Transform Message" doc:id="dde4d095-40e0-4300-8ca7-7721c2245361" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-404",
+  message: "Resource not found: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f468a7ff-5505-40e3-9484-b81690a6cf2a" type="APIKIT:METHOD_NOT_ALLOWED" >
+			<ee:transform doc:name="Transform Message" doc:id="8ff42e6b-1315-4ea6-a63d-43d9229fb400" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-405",
+  message: "Method Not allowed: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[405]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="01d3755c-2669-47c5-8e55-ea1291174759" type="APIKIT:NOT_ACCEPTABLE" >
+			<ee:transform doc:name="Transform Message" doc:id="82514258-c958-4f37-b0cb-0b93b9fae2cc" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-406",
+  message: "Not Acceptable: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[406]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="beb4fc74-6fa2-4432-895d-02b725d48f54" type="APIKIT:UNSUPPORTED_MEDIA_TYPE" >
+			<ee:transform doc:name="Transform Message" doc:id="ba8a7327-b3f5-4f3a-a7f7-2ce17c03c97d" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-415",
+  message: "Unsupported media type: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[415]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f702fd4d-3c7e-415d-9290-5fabe0b5b908" type="APIKIT:NOT_IMPLEMENTED" >
+			<ee:transform doc:name="Transform Message" doc:id="96987fdf-edf3-4d03-b9cb-7a948bb435cb" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "PERSONAL-DASHBOARD-501",
+  message: "Not implemented: " ++ error.description as String ,
+  correlationId: correlationId,
+  timestamp: now(),
+  originLayer: "process"
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
 		</on-error-propagate>
 	</error-handler>
 </mule>
