@@ -15,7 +15,7 @@
 					<munit-tools:with-attribute whereValue="6eb77221-9821-48db-90ce-e0bf69b51540" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
-					<munit-tools:payload value='#[[&#10;  {&#10;    "meal_id": "335c71bb-a167-4160-935e-1c8413f39764",&#10;    "user_id": "55445",&#10;    "meal_type": "breakfast",&#10;    "consumed_at": "2026-07-13 12:00:00+00",&#10;    "meal_logged_at": "2026-07-16 01:01:01+00",&#10;    "item_id": "8f6c2a34-b03d-49c0-a30a-c347d2183317",&#10;    "food_id": 747448,&#10;    "portion_id": 118808,&#10;    "portion_amount": 1.5,&#10;    "quantity_g": 234.0,&#10;    "item_logged_at": "2026-07-16 01:01:01+00"&#10;  }&#10;]]' />
+					<munit-tools:payload value='#[[&#10;  {&#10;    "meal_id": "335c71bb-a167-4160-935e-1c8413f39764",&#10;    "user_id": "55445",&#10;    "meal_type": "breakfast",&#10;    "consumed_at": "2026-11-06T03:00:48.137666Z",&#10;    "meal_logged_at": "2026-11-04T17:30:00.000000Z",&#10;    "item_id": "8f6c2a34-b03d-49c0-a30a-c347d2183317",&#10;    "food_id": 747448,&#10;    "portion_id": 118808,&#10;    "portion_amount": 1.5,&#10;    "quantity_g": 234.0,&#10;    "item_logged_at": "2026-11-04T17:30:00.000000Z"&#10;  }&#10;]]' />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 		</munit:behavior>

@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 }]]]></db:input-parameters>
 		</db:select>
 		<validation:is-false doc:name="meals not found" doc:id="72c0cd3e-2041-43f0-bbb9-84ef658bfd73" expression="#[sizeOf(vars.meal_id) == 0]" message="Meal not found or has been deleted" />
-		<logger level="INFO" doc:name="Meal existence confirmed" doc:id="921307b4-3b21-46aa-870d-90f3d7d23bd0" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal existence confirmed'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="Meal exists" doc:id="921307b4-3b21-46aa-870d-90f3d7d23bd0" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal exists'&#10;var userId = {&#10;userId: vars.userId,&#10;mealId: vars.mealId &#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
 	</sub-flow>
 	<sub-flow name="check-items-exist" doc:id="82fe1eee-5652-407a-ac00-e3863a1c4207" >
 		<set-variable value="#[flow.name]" doc:name="flow name" doc:id="fa09f6a8-2e18-4312-908a-01da63c507c5" variableName="flowName" />
@@ -30,6 +30,6 @@ AND deleted_at IS NULL]]></db:sql>
 }]]]></db:input-parameters>
 		</db:select>
 		<validation:is-false doc:name="Item not found " doc:id="375fb404-fefc-4ab0-8cd4-7466e80be027" expression="#[sizeOf(vars.item_response) &lt;= 0]" message="Item not found or has been deleted" />
-		<logger level="INFO" doc:name="Meal item existence confirmed" doc:id="c8c0fe9c-c522-4309-9e8f-de53e67ce487" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item existence confirmed'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="Meal item exists" doc:id="c8c0fe9c-c522-4309-9e8f-de53e67ce487" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item exists'&#10;var userId = {&#10;userId: vars.userId,&#10;mealId: vars.mealId,&#10;itemId: vars.itemId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
 	</sub-flow>
 </mule>

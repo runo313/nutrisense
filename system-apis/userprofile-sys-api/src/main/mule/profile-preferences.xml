@@ -49,7 +49,7 @@ output application/java
 200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="72072bcd-d72f-45a9-b3d3-2cc73c13a4d0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET Preferences request successful",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="END" doc:id="72072bcd-d72f-45a9-b3d3-2cc73c13a4d0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET Preferences request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="patch-preferences-flow" doc:id="710463e4-efef-4171-a39c-4c08e4250187" >
@@ -82,7 +82,7 @@ output application/java
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="6fba96fc-0d80-49fe-b1f1-cafbc1bbbb43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	payload: vars.preference&#10;}&#10;---&#10;buildLog("INFO","Preference creation started",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="START" doc:id="6fba96fc-0d80-49fe-b1f1-cafbc1bbbb43" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preference creation started",message,vars.correlationId, vars.flowName)]' />
 		<validation:is-false doc:name="One Field Is Required" doc:id="a94e39b7-2812-49ae-bbfb-295b4b47a45c" expression="#[sizeOf(keysOf(payload)) == 0]" message="At least one preference field must be provided">
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:REQUIRED_FIELD" />
 		</validation:is-false>
@@ -220,7 +220,7 @@ output application/java
 201]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="1ed1b06a-c130-4dbe-bece-5466737be7dd" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preferences updated successfully",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="END" doc:id="1ed1b06a-c130-4dbe-bece-5466737be7dd" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preferences updated",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
 	</flow>
 </mule>

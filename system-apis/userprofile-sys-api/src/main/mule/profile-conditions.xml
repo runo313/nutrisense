@@ -73,8 +73,9 @@ output application/java
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="ad940bd3-1def-422d-af1d-f4812fbe39b5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	condition: vars.condition&#10;}&#10;---&#10;buildLog("INFO","Condition creation started",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="START" doc:id="ad940bd3-1def-422d-af1d-f4812fbe39b5" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Condition creation started",message,vars.correlationId, vars.flowName)]' />
 		<flow-ref doc:name="validate-uuid-subflow" doc:id="5645320b-9d57-484b-aaa9-f8b377ab10ec" name="validate-uuid-subflow" />
+		<flow-ref doc:name="validate-conditions-payload" doc:id="073813c3-b980-48aa-bb0a-60afa97be9c0" name="validate-conditions-payload"/>
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="1b1e119b-3523-4d50-badc-b940323204b3" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select condition Id" doc:id="b2b7cfda-12bd-4257-b976-7de4b3266689" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions
@@ -95,7 +96,7 @@ output application/json
 ---
 {
   code: "USER-PROFILE-409",
-  message: "A condition with this type already exists",
+  message: "A condition of type $(vars.condition.conditionType) already exists for this user. Update or reactivate the existing condition instead.",
   correlationId: correlationId,
   timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
   originLayer: "system"
@@ -188,15 +189,16 @@ keysOf(vars.condition) some ((key) -> ['managementStatus',"diagnosedAt","notes",
 		<validation:is-true doc:name="At least one field is required" doc:id="79a6a54e-6945-426c-8989-0c631b68b7e0" expression="#[payload]" message="At least one condition field must be provided" >
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:REQUIRED_FIELD" />
 		</validation:is-true>
-		<db:select doc:name="Select Condition Id" doc:id="f542275d-0c41-49b6-8fbb-0212f57dd325" config-ref="NUTRISENSE_DB_CONFIG" target="existingConditionId">
-			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions WHERE condition_id = :conditionId]]></db:sql>
+		<db:select doc:name="Select Existing Condition" doc:id="f542275d-0c41-49b6-8fbb-0212f57dd325" config-ref="NUTRISENSE_DB_CONFIG" target="existingCondition">
+			<db:sql ><![CDATA[SELECT condition_id,condition_type FROM user_conditions WHERE condition_id = :conditionId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	conditionId: vars.conditionId
 }]]]></db:input-parameters>
 		</db:select>
-		<validation:is-false doc:name="Condition does not exist" doc:id="c96f9cb6-4cb8-4cd9-802c-642b9a7075f9" expression="#[sizeOf( vars.existingConditionId) == 0]" message="Condition does not exist" >
+		<validation:is-false doc:name="Condition does not exist" doc:id="c96f9cb6-4cb8-4cd9-802c-642b9a7075f9" expression="#[sizeOf( vars.existingCondition) == 0]" message="Condition does not exist">
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:CONDITION_NOT_FOUND" />
 		</validation:is-false>
+		<flow-ref doc:name="validate-conditions-payload" doc:id="c62468af-c187-43ea-98c5-5ac504d13314" name="validate-conditions-payload"/>
 		<ee:transform doc:name="SQL" doc:id="135e4be2-3ffc-465e-b08e-bc42fa0f88e3" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0

@@ -16,12 +16,20 @@
     <flow name="delete:\users\(userId)\meals\(mealId)\items\(itemId):meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
             <ee:variables>
-                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
-                <ee:set-variable variableName="mealId">attributes.uriParams.'mealId'</ee:set-variable>
-                <ee:set-variable variableName="itemId">attributes.uriParams.'itemId'</ee:set-variable>
+                <ee:set-variable variableName="userId"><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+                <ee:set-variable variableName="mealId"><![CDATA[attributes.uriParams.'mealId']]></ee:set-variable>
+                <ee:set-variable variableName="itemId"><![CDATA[attributes.uriParams.'itemId']]></ee:set-variable>
+				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+output application/java
+---
+flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <logger level="INFO" doc:name="START" doc:id="1d0b4c21-ab85-4b0d-ac0a-6a2f52c2c6d0" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='DELETE item request'&#xA;var userId = {&#xA;userId: vars.userId as String,&#xA;mealId: vars.mealId,&#xA;itemId: vars.itemId&#xA;}&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+        <logger level="INFO" doc:name="START" doc:id="1d0b4c21-ab85-4b0d-ac0a-6a2f52c2c6d0" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='DELETE item request'&#10;var userId = {&#10;userId: vars.userId,&#10;mealId: vars.mealId,&#10;itemId: vars.itemId&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
         <flow-ref doc:name="delete-meal-item-flow" doc:id="c5b96e08-d166-43cb-a42e-2bf3529d9b1c" name="delete-meal-item-flow" />
         <error-handler ref="delete-meal-error-handler" />
     </flow>
@@ -53,8 +61,10 @@ payload]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
         <logger level="INFO" doc:name="START" doc:id="baf7e2e2-786c-4f17-b156-74692ed37282" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='PATCH item request'&#xA;var userId = {&#xA;userId: vars.userId as String,&#xA;mealId: vars.mealId,&#xA;itemId: vars.itemId,&#xA;payload:payload&#xA;}&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
-        <flow-ref doc:name="patch-meal-item-flow" doc:id="5c211388-1024-4e72-9bb0-47097c8224fe" name="patch-meal-item-flow" />
-        <error-handler ref="patch-meal-error-handler" />
+        <try doc:name="Try" doc:id="5370484a-9a49-4866-8ecd-bb36d558a8ad" transactionalAction="ALWAYS_BEGIN">
+			<flow-ref doc:name="patch-meal-item-flow" doc:id="5c211388-1024-4e72-9bb0-47097c8224fe" name="patch-meal-item-flow" />
+		</try>
+		<error-handler ref="patch-meal-error-handler" />
     </flow>
     <flow name="patch:\users\(userId)\meals\(mealId):application\json:meal-log-sys-api-config" doc:id="8f1dc9e7-6b42-4bf8-aadc-42ac710e9038">
         <ee:transform doc:name="Transform Message">
@@ -66,8 +76,10 @@ payload]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
         <logger level="INFO" doc:name="START" doc:id="ab17c720-74fd-4195-b1ab-b5e250dfee09" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='PATCH meal request'&#xA;var userId = {&#xA;userId: vars.userId as String,&#xA;mealId: vars.mealId,&#xA;&quot;payload&quot;:payload&#xA;}&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
-        <flow-ref doc:name="patch-meal-flow" doc:id="8796dfa0-6f45-44c0-9a57-a3b2288c6c69" name="patch-meal-flow" />
-        <error-handler ref="patch-meal-error-handler" />
+        <try doc:name="Try" doc:id="c1c8a85e-9a2a-461e-97d3-852022df46d0" transactionalAction="ALWAYS_BEGIN">
+			<flow-ref doc:name="patch-meal-flow" doc:id="8796dfa0-6f45-44c0-9a57-a3b2288c6c69" name="patch-meal-flow" />
+		</try>
+		<error-handler ref="patch-meal-error-handler" />
     </flow>
     <flow name="get:\health:meal-log-sys-api-config">
         <ee:transform doc:name="Transform Message">
@@ -137,7 +149,7 @@ output application/java
         <try doc:name="Try" doc:id="ba8debae-3c31-44e7-a04c-88ff52e28b9c" transactionalAction="ALWAYS_BEGIN">
             <flow-ref doc:name="insert-meal-items-subflow" doc:id="9c5d915a-b499-42f0-8b2b-001d53e46109" name="insert-meal-items-subflow" />
         </try>
-        <logger level="INFO" doc:name="END" doc:id="abcd8652-a0e2-44a4-92ef-d1ff6e1a75c4" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Meal created successfully'&#xA;var userId = {&#xA;userId: vars.userId as String,&#xA;mealId: vars.mealId,&#xA;}&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+        <logger level="INFO" doc:name="Meal Item Created" doc:id="abcd8652-a0e2-44a4-92ef-d1ff6e1a75c4" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal item created'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
         <error-handler ref="post-meal-error-handler" />
     </flow>
     <flow name="post:\users\(userId)\meals:application\json:meal-log-sys-api-config">
@@ -163,6 +175,6 @@ output application/java
         <logger level="INFO" doc:name="START" doc:id="c57d9422-8aff-42f9-8ffe-cba9ff88a20c" message="#[%dw 2.0&#xA;output application/json&#xA;var logMessage ='Request to create new meal'&#xA;var userId = {&#xA;userId: vars.userId as String,&#xA;itemCount:sizeOf(payload)&#xA;}&#xA;import buildLog from dwl::log&#xA;---&#xA;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
         <flow-ref doc:name="validate-payload-subflow" doc:id="4ee39a09-1240-4686-a0f1-a0cea0772885" name="validate-payload-subflow" />
         <flow-ref doc:name="create-meal-flow" doc:id="511f11d8-74b4-4c6f-b189-fe151974aae6" name="create-meal-flow" />
-        <error-handler ref="post-meal-error-handler" />
+		<error-handler ref="post-meal-error-handler" />
     </flow>
 </mule>
