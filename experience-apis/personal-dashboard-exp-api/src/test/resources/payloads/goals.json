@@ -1,0 +1,26 @@
+[
+    {
+        "goalId": "3fb666ed-fd23-48c0-ae22-5c4d13b903fd",
+        "userId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+        "goalType": "weight_management",
+        "goalDirection": "lose",
+        "targetValue": 65,
+        "targetUnit": "kg",
+        "isPrimary": false,
+        "isActive": true,
+        "setAt": "2026-11-02T03:24:59.487724",
+        "achievedAt": null
+    },
+    {
+        "goalId": "42430c5f-e968-4d02-9235-8018b605cc5e",
+        "userId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+        "goalType": "sleep_improvement",
+        "goalDirection": "improve",
+        "targetValue": null,
+        "targetUnit": null,
+        "isPrimary": true,
+        "isActive": true,
+        "setAt": "2026-11-07T00:47:03.502166",
+        "achievedAt": null
+    }
+]

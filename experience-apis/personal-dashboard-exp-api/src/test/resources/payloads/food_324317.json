@@ -1,0 +1,28 @@
+[
+    {
+        "foodId": 324317,
+        "name": "Onion rings, breaded, par fried, frozen, prepared, heated in oven",
+        "category": "Vegetables and Vegetable Products",
+        "servingSizeG": 20.2,
+        "source": "USDA Foundation Foods",
+        "nutrients": {
+            "energyKcal": 293,
+            "proteinG": 4.52,
+            "carbohydratesG": 36.3,
+            "dietaryFiberG": 2.4,
+            "sugarsG": 4.5,
+            "totalFatG": 14.4,
+            "saturatedFatG": 2.15,
+            "sodiumMg": 374,
+            "potassiumMg": 135,
+            "calciumMg": 28,
+            "ironMg": 1.14,
+            "vitaminCMg": 1.6,
+            "vitaminDMcg": null,
+            "vitaminB12Mcg": null,
+            "magnesiumMg": 20.4,
+            "zincMg": 0.59
+        },
+        "servingSizes": []
+    }
+]

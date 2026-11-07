@@ -1,0 +1,127 @@
+{
+    "userId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+    "name": "Monica Adams",
+    "email": "Madams@gmail.com",
+    "dateOfBirth": "1993-10-10",
+    "biologicalSex": "female",
+    "heightCm": 168,
+    "weightKg": 68,
+    "activityBaseline": "very_active",
+    "dailyCaloricTarget": 2723,
+    "createdAt": "2026-09-27T15:12:09.878837",
+    "updatedAt": "2026-11-07T05:21:44.463975",
+    "goals": [
+        {
+            "goalId": "3fb666ed-fd23-48c0-ae22-5c4d13b903fd",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "goalType": "weight_management",
+            "goalDirection": "lose",
+            "targetValue": 64,
+            "targetUnit": "kg",
+            "isPrimary": false,
+            "isActive": true,
+            "setAt": "2026-11-02T03:24:59.487724",
+            "achievedAt": null
+        },
+        {
+            "goalId": "42430c5f-e968-4d02-9235-8018b605cc5e",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "goalType": "sleep_improvement",
+            "goalDirection": "improve",
+            "targetValue": null,
+            "targetUnit": null,
+            "isPrimary": true,
+            "isActive": true,
+            "setAt": "2026-11-07T00:47:03.502166",
+            "achievedAt": null
+        },
+        {
+            "goalId": "40b118df-3bd2-4c16-a00a-48960830c4cd",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "goalType": "athletic_performance",
+            "goalDirection": "improve",
+            "targetValue": null,
+            "targetUnit": null,
+            "isPrimary": false,
+            "isActive": false,
+            "setAt": "2026-10-31T22:58:14.809645",
+            "achievedAt": "2027-07-13T12:00:00"
+        }
+    ],
+    "conditions": [
+        {
+            "conditionId": "ed16a647-ac8e-4bf1-b8d2-a7b63a98e4ec",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "conditionType": "hypertension",
+            "diagnosedAt": "2022-03-15",
+            "notes": "Monitoring blood pressure weekly",
+            "managementStatus": "diet_controlled",
+            "isActive": true,
+            "createdAt": "2026-09-27T15:13:52.108525"
+        },
+        {
+            "conditionId": "30345f69-cc3e-4250-a95c-c5063d97a4eb",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "conditionType": "anemia",
+            "diagnosedAt": "2024-03-15",
+            "notes": "Get shots occassionally",
+            "managementStatus": "medication_managed",
+            "isActive": true,
+            "createdAt": "2026-11-07T04:04:49.635724"
+        }
+    ],
+    "constraints": [
+        {
+            "constraintId": "9af44fce-e173-41c7-920b-e123f8d303ca",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "constraintType": "allergy",
+            "constraintValue": "gluten",
+            "severity": "strict",
+            "isActive": true,
+            "createdAt": "2026-11-06T22:31:47.699533"
+        },
+        {
+            "constraintId": "f7a778e8-b84a-47bb-9569-d8feab25dc95",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "constraintType": "intolerance",
+            "constraintValue": "halal",
+            "severity": "preferred",
+            "isActive": true,
+            "createdAt": "2026-11-07T04:22:35.285943"
+        },
+        {
+            "constraintId": "471423e3-11b7-48e0-8c3c-df5acf54f4e9",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "constraintType": "intolerance",
+            "constraintValue": "halal",
+            "severity": "preferred",
+            "isActive": true,
+            "createdAt": "2026-11-07T04:22:39.838157"
+        }
+    ],
+    "preferences": [
+        {
+            "preferenceId": "501b98dc-9097-4d3b-89b5-0d1696651fe3",
+            "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+            "insightFrequency": "both",
+            "preferredWearableMetrics": [
+                "heart_rate",
+                "steps"
+            ],
+            "preferredNutritionMetrics": [
+                "protein",
+                "energy_kcal"
+            ],
+            "typicalBreakfastTime": "08:30:00",
+		    "typicalLunchTime": "15:30:00",
+		    "typicalDinnerTime": "19:45:00",
+		    "typicalSleepTime": "01:30:00",
+            "targetSleepDurationHrs": 7,
+            "unitsSystem": "metric",
+            "generationMode": "custom",
+            "timezone": "America/New_York",
+            "createdAt": "2026-09-27T15:26:52.493523",
+            "updatedAt": "2026-11-07T04:19:13.650352"
+        }
+    ]
+}
