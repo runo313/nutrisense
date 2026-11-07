@@ -6,7 +6,7 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<error-handler name="profile-error-handler" doc:id="7bbf84dc-b5b2-4e85-a01c-9a1515b430fe" >
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="be4bb689-81b5-4344-8de8-ead9259f27ed" type="HTTP:NOT_FOUND">
-			<logger level="ERROR" doc:name="USER PROFILE ERROR" doc:id="ea79ac83-ec4d-4445-93bb-ad4a28123de2" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","USER PROFILE ERROR ",logMessage,vars.correlationId , vars.flowName)]' />
+			<logger level="ERROR" doc:name="USER PROFILE ERROR" doc:id="ea79ac83-ec4d-4445-93bb-ad4a28123de2" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code default null,&#10;	message: error.errorMessage.payload.message default error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","USER PROFILE ERROR ",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="PROFILE 404" doc:id="9cd52348-e75b-4525-bcb9-7f38857dfc28" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
@@ -29,7 +29,7 @@ output application/java
 			</ee:transform>
 		</on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d87dccf5-6023-46b6-b382-97611946899c" type="HTTP:BAD_REQUEST">
-			<logger level="ERROR" doc:name="BAD REQUEST" doc:id="8ec5cd2b-5a16-496e-8f1b-a86eaea1e716" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","HTTP_BAD_REQUEST",logMessage,vars.correlationId , vars.flowName)]' />
+			<logger level="ERROR" doc:name="BAD REQUEST" doc:id="8ec5cd2b-5a16-496e-8f1b-a86eaea1e716" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: code: error.errorMessage.payload.code default null,&#10;	message: error.errorMessage.payload.message default error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","HTTP_BAD_REQUEST",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="PROFILE 400" doc:id="973e4530-f541-411f-8a86-621cde83c1d2" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
@@ -37,7 +37,7 @@ output application/json
 ---
 {
   code: "PROFILE-400",
-  message: error.errorMessage.payload.message,
+  message: error.errorMessage.payload.message default error.description,
   correlationId: correlationId,
   timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
   originLayer: "system"
@@ -52,7 +52,7 @@ output application/json
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b2c6e4f3-e935-405f-927d-c5a95f22a416" type="ANY">
 			<choice doc:name="Choice" doc:id="a1488d9b-26f9-4867-bcc2-6e77a3c48624" >
 				<when expression="#[error.errorMessage.attributes.statusCode == 409]">
-					<logger level="ERROR" doc:name="409 Error" doc:id="5fd584af-f596-42e7-8e19-f0e10b6f47f6" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Duplicate Profile",logMessage,vars.correlationId , vars.flowName)]' />
+					<logger level="ERROR" doc:name="409 Error" doc:id="5fd584af-f596-42e7-8e19-f0e10b6f47f6" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code default null,&#10;	message: error.errorMessage.payload.message default error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Duplicate Profile",logMessage,vars.correlationId , vars.flowName)]' />
 					<ee:transform doc:name="PROFILE 409" doc:id="66d42555-6aa7-4baf-83b7-83a75500bb96">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
@@ -60,7 +60,7 @@ output application/json
 ---
 {
   code: "PROFILE-409",
-  message: error.errorMessage.payload.message,
+  message: error.errorMessage.payload.message default error.description,
   correlationId: correlationId,
   timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
   originLayer: "system"
@@ -100,7 +100,7 @@ output application/java
 	</error-handler>
 	<error-handler name="error-handler" doc:id="39136bae-ade8-4581-b66f-2d9cf5785d9e" >
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3bdd39af-1b10-4993-9d3a-71b200ed803d" type="HTTP:NOT_FOUND">
-			<logger level="ERROR" doc:name="404 Error" doc:id="77f518ec-79dc-44ce-9e44-3f008ffe5356" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Meal Log Error ",logMessage,vars.correlationId , vars.flowName)]' />
+			<logger level="ERROR" doc:name="404 Error" doc:id="77f518ec-79dc-44ce-9e44-3f008ffe5356" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code default null,&#10;	message: error.errorMessage.payload.message default error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Meal Log Error ",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="PERSONAL DASHBOARD 404" doc:id="54fac4b0-0e09-481c-a247-2a1397f96426" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
@@ -108,7 +108,7 @@ output application/json
 ---
 {
   "code": "PERSONAL-DASHBOARD-404",
-  "message": error.errorMessage.payload.message,
+  "message": error.errorMessage.payload.message default error.description,
   "correlationId": correlationId,
   "timestamp": now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
   "originLayer": "system"
@@ -123,7 +123,7 @@ output application/java
 			</ee:transform>
 		</on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c39e3212-aa02-451f-aea4-e2887c861b9c" type="HTTP:BAD_REQUEST" >
-			<logger level="ERROR" doc:name="400 Error" doc:id="235db70e-48d6-4e9b-b40e-0304daafddae" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","HTTP_BAD_REQUEST",logMessage,vars.correlationId , vars.flowName)]' />
+			<logger level="ERROR" doc:name="400 Error" doc:id="235db70e-48d6-4e9b-b40e-0304daafddae" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code default null,&#10;	message: error.errorMessage.payload.message default error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","HTTP_BAD_REQUEST",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="PERSONAL DASHBOARD 400" doc:id="1b329d25-d0f1-4604-8faf-40805cb938f6" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
@@ -131,7 +131,7 @@ output application/json
 ---
 {
   code: "PERSONAL-DASHBOARD-400",
-  message: error.errorMessage.payload.message,
+  message: error.errorMessage.payload.message default error.description,
   correlationId: correlationId,
   timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},
   originLayer: "system"
@@ -164,7 +164,7 @@ output application/json
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d522dc16-1bb7-4ff7-9920-75293e102556" type="ANY">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d522dc16-1bb7-4ff7-9920-75293e102556" type="APP:INSIGHTS_FUTURE">
 			<logger level="ERROR" doc:name="400 Error" doc:id="c65b501e-469a-4820-b655-16f6ca94bc1e" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	date: vars.date&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Daily Insight Future Date",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="PERSONAL DASHBOARD 400" doc:id="dee62274-ac5e-4e95-a380-9c0d8c79b856" >
 				<ee:message >
@@ -185,10 +185,10 @@ output application/json
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e8640c3d-0a60-44ab-8f55-a07ba69d140f" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e8640c3d-0a60-44ab-8f55-a07ba69d140f" type="ANY">
 			<choice doc:name="Choice" doc:id="a93d078b-cfdc-4626-a5cb-e74f78aa4287" >
 				<when expression="error.errorMessage.attributes.statusCode == 409" >
-					<logger level="ERROR" doc:name="409 Error" doc:id="159398a6-5c3b-4fa0-bf6f-c47231a7140e" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code,&#10;	message: error.errorMessage.payload.message&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Duplicate Record",logMessage,vars.correlationId , vars.flowName)]' />
+					<logger level="ERROR" doc:name="409 Error" doc:id="159398a6-5c3b-4fa0-bf6f-c47231a7140e" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	code: error.errorMessage.payload.code default null,&#10;	message: error.errorMessage.payload.message default error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Duplicate Record",logMessage,vars.correlationId , vars.flowName)]' />
 					<ee:transform doc:name="PERSONAL DASHBOARD 409" doc:id="b5932305-c7a5-495e-bb6a-e55ffcd2edfa" >
 						<ee:message >
 							<ee:set-payload ><![CDATA[%dw 2.0
