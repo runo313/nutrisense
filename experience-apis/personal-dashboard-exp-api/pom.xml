@@ -15,7 +15,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<app.runtime>4.11.0</app.runtime>
+		<app.runtime>4.13.2</app.runtime>
 		<mule.maven.plugin.version>4.7.0</mule.maven.plugin.version>
 		<munit.version>3.7.0</munit.version>
 	</properties>
@@ -39,7 +39,9 @@
 						<provider>MC</provider>
 						<environment>${environment}</environment>
 						<target>Cloudhub-US-East-2</target>
-						<muleVersion>4.12.2</muleVersion>
+						<muleVersion>4.13.2</muleVersion>
+						<releaseChannel>EDGE</releaseChannel>
+						<javaVersion>17</javaVersion>
 						<applicationName>personal-dashboard-exp-api</applicationName>
 						<businessGroupId>${ANYPOINT_ORG_ID}</businessGroupId>
 						<connectedAppClientId>${ANYPOINT_CLIENT_ID}</connectedAppClientId>
@@ -59,6 +61,18 @@
 							<anypoint.platform.client_secret>${ANYPOINT_ENV_CLIENT_SECRET}</anypoint.platform.client_secret>
 						</secureProperties>
 					</cloudhub2Deployment>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.1</version>
+				<configuration>
+					<release>17</release>
+					<compilerArgs>
+						<arg>-parameters</arg>
+						<args>-parameters</args>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 			<plugin>
