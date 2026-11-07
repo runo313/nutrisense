@@ -1,0 +1,22 @@
+[
+    {
+        "conditionId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+        "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+        "conditionType": "hypertension",
+        "diagnosedAt": "2022-03-15",
+        "notes": "Monitoring blood pressure weekly",
+        "managementStatus": "diet_controlled",
+        "isActive": true,
+        "createdAt": "2026-09-27T15:13:52.108525"
+    },
+    {
+        "conditionId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+        "userId": "1468f408-50f1-70ba-7cf3-092d798620e8",
+        "conditionType": "anemia",
+        "diagnosedAt": "2024-03-15",
+        "notes": "Get shots occassionally",
+        "managementStatus": "medication_managed",
+        "isActive": true,
+        "createdAt": "2026-11-07T04:04:49.635724"
+    }
+]

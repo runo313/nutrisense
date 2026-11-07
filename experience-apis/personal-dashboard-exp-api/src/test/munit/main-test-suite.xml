@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="main-test-suite.xml" />
+	<flow name="mock-get-food-response">
+
+		<choice doc:name="Select Food Response">
+
+			<when expression="#[payload as String == '331960']">
+				<set-payload
+					value='#[MunitTools::getResourceAsString("payloads/food_331960.json")]'
+					mimeType="application/json" />
+			</when>
+
+			<when expression="#[payload as String == '324317']">
+				<set-payload
+					value='#[MunitTools::getResourceAsString("payloads/food_324317.json")]'
+					mimeType="application/json" />
+			</when>
+
+			<otherwise>
+				<raise-error type="ANY"
+					description="Unexpected foodId in MUnit mock" />
+			</otherwise>
+
+		</choice>
+
+	</flow>
+	<munit:test name="should_return_profile" doc:id="2f30455e-2b93-448f-87ae-66e699112977" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock set client Id" doc:id="e8c761fb-2f33-4b56-8cc8-4f4b016348f1" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5db0f9b0-9016-4f6f-9700-d42503eb8c97" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="userId" value='#["c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Get User Profile" doc:id="bea60d2a-4634-4227-88cb-e9d1159ea2cd" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="684d6746-947d-4d1b-804d-a73335dd44b8" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/user_profile.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d7621708-2fea-4f98-aa43-3afb4223298b" />
+			<flow-ref doc:name="get:\me\profile" doc:id="8986f543-4163-46bc-bf38-600fecddd4e3" name="get:\me\profile:personal-dashboard-experience-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert User Id" doc:id="cb8e448f-c598-47ba-99c3-fbcbaf2f4977" message="user id should not be present in payload" expression="#[payload.userId]" is="#[MunitTools::equalTo(null)]" />
+			<munit-tools:assert-that doc:name="Assert Active Goals Only" doc:id="e8d493ee-cdf0-498d-b7a0-8a0e5478b9b1" message="active goals only" expression="#[(payload.goals filter ((item) -&gt; !item.isActive))[0]]" is='#[MunitTools::equalTo(null)]' />
+			<munit-tools:assert-that doc:name="Assert Active Conditions Only" doc:id="366bc152-4a0e-4baf-802a-b5acbdeb9584" message="active conditions only" expression="#[(payload.conditions filter ((item) -&gt; !item.isActive))[0]]" is="#[MunitTools::equalTo(null)]" />
+			<munit-tools:assert-that doc:name="Assert Active Constraints Only" doc:id="90a69fde-7e6d-4f74-b59c-b6080cd599dc" message="active constraints only" expression="#[(payload.constraints filter ((item) -&gt; !item.isActive))[0]]" is="#[MunitTools::equalTo(null)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_meal_with_food_names"
+		doc:id="e6e150cd-8d9f-449d-8100-55b0d5fe1f6d">
+		<munit:behavior>
+			<munit-tools:mock-when
+				doc:name="Mock set client Id"
+				doc:id="f788e620-95a6-4118-a94e-71c117e055c0"
+				processor="set-variable">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="5db0f9b0-9016-4f6f-9700-d42503eb8c97"
+						attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:variables>
+						<munit-tools:variable key="userId"
+							value='#["c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10"]'
+							mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when
+				doc:name="Mock Retrieve Meal"
+				doc:id="fa95ba41-3b00-4f77-bed9-dc191628cd5d"
+				processor="http:request">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="74aac8ce-a7b0-4b56-846e-af7a3adc593b"
+						attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:variables>
+						<munit-tools:variable key="meal"
+							value='#[MunitTools::getResourceAsString("payloads/meal.json") read "application/json"]'
+							mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food"
+				doc:id="77375c84-7d7c-4259-8e05-0da1e94aa64c"
+				processor="http:request">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="a7175427-12a7-4dc5-9f48-fa875036d922"
+						attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:attributes
+						value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+				<munit-tools:then-call flow="mock-get-food-response" />
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="13cc596f-cab4-4fcd-b5f8-e133691fb1bb" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {&#10;    mealId: "335c71bb-a167-4160-935e-1c8413f39764"&#10;  }&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="get:\me\meals\(mealId)" doc:id="c83c371e-7817-45a7-a3ed-f404a89aea09" name="get:\me\meals\(mealId):personal-dashboard-experience-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert User Id" doc:id="44d9c803-a253-4126-b857-77bd1e971140" message="user id should not be present in payload" expression="#[payload.userId]" is='#[MunitTools::equalTo(null)]' />
+			<munit-tools:assert-that doc:name="Assert Food 331960 Name" doc:id="1fecb6a9-c2bb-4c7d-a0aa-5268e4585f43" message="food name is incorrect" expression="#[(payload.items filter ((item) -&gt; item.foodId == 331960))[0].name]" is='#[MunitTools::equalTo("Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised")]' />
+			<munit-tools:assert-that doc:name="Assert Food 324317 Name" doc:id="5a78068b-9a2f-4a13-b8c3-4e0e28cc2e22" message="food name is incorrect" expression="#[(payload.items filter ((item) -&gt; item.foodId == 324317))[0].name]" is='#[MunitTools::equalTo("Onion rings, breaded, par fried, frozen, prepared, heated in oven")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_conditions" doc:id="a98ee670-db97-423d-978a-7c31fd97cf03" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock set client Id" doc:id="8802c232-78b1-4535-b16b-f659003a1c42" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5db0f9b0-9016-4f6f-9700-d42503eb8c97" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="userId" value='#["c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Retrieve Conditions" doc:id="d19a6664-f52e-4375-a935-4b3b24fec29b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="36e658b1-3fba-49a6-9b74-a66d39a23fbb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/conditions.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d1f1b7e6-2e01-4939-a125-2ca1e41f4a32" />
+			<flow-ref doc:name="get:\me\conditions" doc:id="24b8a9a4-e4fd-4183-82f1-2fd6c176aab1" name="get:\me\conditions:personal-dashboard-experience-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert User Id" doc:id="e4db450f-64cc-4c4c-b759-b3709deeb9b5" message="user id should not be present in payload" expression="#[payload.userId]" is="#[MunitTools::equalTo(null)]" />
+			<munit-tools:assert-that doc:name="Assert Condition Type" doc:id="04a35d7b-d232-4127-b099-bc537b8c328f" message="user id should not be present in payload" expression="#[payload.conditionType[0]]" is='#[MunitTools::equalTo("hypertension")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_goals" doc:id="c0170400-d045-41e8-b25a-c8f6cdcde24e" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock set client Id" doc:id="5632f10d-bb85-495d-9ab6-5738a800e13e" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5db0f9b0-9016-4f6f-9700-d42503eb8c97" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="userId" value='#["c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Retrieve Goals" doc:id="53674c1c-4871-4db1-8b40-598e0a953747" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="fd3c1225-0673-4b15-8cc4-586072e70bb3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/goals.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="c53b32ef-8aba-48df-b648-c85506427bb3" />
+			<flow-ref doc:name="get:\me\goals" doc:id="21456f8a-d2f8-41ec-b70c-39aa1590461f" name="get:\me\goals:personal-dashboard-experience-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert User Id" doc:id="cc343781-f6b5-4f55-8365-9169edebc643" message="user id should not be present in payload" expression="#[payload.userId]" is="#[MunitTools::equalTo(null)]" />
+			<munit-tools:assert-that doc:name="Assert Goal Type" doc:id="99b895e1-f4ae-4e99-b1a2-13336e3cb969" message="user id should not be present in payload" expression="#[payload.goalType[0]]" is='#[MunitTools::equalTo("weight_management")]' />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_return_constraints" doc:id="af843c97-6cd0-4417-8baa-cfb2ba24d20d" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock set client Id" doc:id="152172a9-41b2-4dcd-8526-d08cab3487ee" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5db0f9b0-9016-4f6f-9700-d42503eb8c97" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="userId" value='#["c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Retrieve Constraints" doc:id="8ebca6bc-ac21-4991-8221-d08be5b80f3e" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e790eeb1-5824-4ddf-96bd-3b6d200e7d75" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/constraints.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="537a7701-1f61-4c77-9024-801f745d2394" />
+			<flow-ref doc:name="get:\me\constraints" doc:id="ed1d50b7-840c-4af0-9407-e217b3a4602a" name="get:\me\constraints:personal-dashboard-experience-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert User Id" doc:id="aeeb50e2-b92a-4188-bb13-b771b9bf366e" message="user id should not be present in payload" expression="#[payload.userId]" is="#[MunitTools::equalTo(null)]" />
+			<munit-tools:assert-that doc:name="Assert Constraint Type" doc:id="a6bbe817-9d71-497d-a3b3-566b6bb7b8f4" message="user id should not be present in payload" expression="#[payload.constraintType[0]]" is='#[MunitTools::equalTo("allergy")]' />
+		</munit:validation>
+	</munit:test>
+
+</mule>

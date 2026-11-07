@@ -1,0 +1,20 @@
+[
+    {
+        "constraintId": "9af44fce-e173-41c7-920b-e123f8d303ca",
+        "userId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+        "constraintType": "allergy",
+        "constraintValue": "gluten",
+        "severity": "strict",
+        "isActive": true,
+        "createdAt": "2026-11-06T22:31:47.699533"
+    },
+    {
+        "constraintId": "f7a778e8-b84a-47bb-9569-d8feab25dc95",
+        "userId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+        "constraintType": "intolerance",
+        "constraintValue": "halal",
+        "severity": "preferred",
+        "isActive": true,
+        "createdAt": "2026-11-07T04:22:35.285943"
+    }
+]

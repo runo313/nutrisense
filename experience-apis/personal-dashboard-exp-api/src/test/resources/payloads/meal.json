@@ -1,0 +1,25 @@
+{
+    "mealId": "ddd70b73-4549-4de6-8a35-0787ef581769",
+    "userId": "c3f1a7e2-5b84-4d1e-9a60-2f7d8b9e4a10",
+    "mealType": "lunch",
+    "consumedAt": "2026-10-22T16:30:00Z",
+    "loggedAt": "2026-10-29T03:02:14Z",
+    "items": [
+        {
+            "itemId": "648466a9-1fb4-495d-8e0e-585d206d867a",
+            "foodId": 331960,
+            "portionId": null,
+            "portionAmount": null,
+            "quantityG": 150,
+            "loggedAt": "2026-10-29T03:02:14Z"
+        },
+        {
+            "itemId": "fee44b9c-d059-44d8-97b5-cc3622340b75",
+            "foodId": 324317,
+            "portionId": null,
+            "portionAmount": null,
+            "quantityG": 100,
+            "loggedAt": "2026-10-29T03:02:14Z"
+        }
+    ]
+}
