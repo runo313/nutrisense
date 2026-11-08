@@ -56,10 +56,12 @@
 						<properties>
 							<env>${deployEnv}</env>
 							<anypoint.platform.client_id>${ANYPOINT_ENV_CLIENT_ID}</anypoint.platform.client_id>
+							<splunk.url>${SPLUNK_URL}</splunk.url>
 						</properties>
 						<secureProperties>
 							<MULE_MASTER_KEY>${MULE_MASTER_KEY}</MULE_MASTER_KEY>
 							<anypoint.platform.client_secret>${ANYPOINT_ENV_CLIENT_SECRET}</anypoint.platform.client_secret>
+							<splunk.token>${SPLUNK_HEC_TOKEN}</splunk.token>
 						</secureProperties>
 					</cloudhub2Deployment>
 				</configuration>
@@ -159,6 +161,11 @@
 			<version>1.2.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+		    <groupId>com.splunk.logging</groupId>
+		    <artifactId>splunk-library-javalogging</artifactId>
+		    <version>1.11.11</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -174,6 +181,11 @@
 			<url>https://repository.mulesoft.org/nexus/repository/releases/</url>
 			<layout>default</layout>
 		</repository>
+		<repository>
+	        <id>splunk-artifactory</id>
+	        <name>Splunk Releases</name>
+	        <url>https://splunk.jfrog.io/splunk/ext-releases-local</url>
+        </repository>
 	</repositories>
 
 	<pluginRepositories>
