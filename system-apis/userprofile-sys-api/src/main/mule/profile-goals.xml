@@ -219,7 +219,7 @@ output application/java
 output application/json
 import some from dw::core::Arrays
 ---
-keysOf(vars.goal) some ((key) -> ['isActive',"achievedAt","targetValue","targetUnit","isPrimary"] contains  (key as String ))]]></ee:set-payload>
+keysOf(payload) some ((key) -> ['isActive',"achievedAt","targetValue","targetUnit","isPrimary"] contains  (key as String ))]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<validation:is-true doc:name="At least one field is required" doc:id="ce68df7c-6893-470e-b049-9af7e317d15b" expression="#[payload]" message="At least one goal field must be provided">
@@ -281,12 +281,13 @@ output application/java
 	targetValue: vars.goal.targetValue,
 	targetUnit: vars.goal.targetUnit,
 	isPrimary: vars.goal.isPrimary,
-	achievedAt: vars.goal.achievedAt as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"},
+	achievedAt: vars.goal.achievedAt as DateTime {format: "yyyy-MM-dd'T'HH:mm:ssXXX"} as String {format: "yyyy-MM-dd HH:mm:ssXXX"} default null,
 	isActive: vars.goal.isActive
 	
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<logger level="DEBUG" doc:name="Update SQL" doc:id="10ff36ae-eaad-48c2-9289-b6690493a837" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	sql: payload,&#10;	inputParam: vars.inputParam&#10;}&#10;---&#10;buildLog("TRACE","Update SQL Statement",message,vars.correlationId, vars.flowName)]' />
 		<db:update doc:name="Update User Goals" doc:id="590971ae-75f8-4b13-902a-3de8ff15e417" config-ref="NUTRISENSE_DB_CONFIG" >
 			<db:sql ><![CDATA[#[payload]]]></db:sql>
 			<db:input-parameters ><![CDATA[#[vars.inputParam]]]></db:input-parameters>
