@@ -5,7 +5,7 @@
   "goal_direction": "improve",
   "target_value": 8.0,
   "target_unit": "hrs",
-  "is_primary": false,
+  "is_primary": true,
   "is_active": true,
   "set_at": "2026-08-18 00:00:00+00",
   "achieved_at": null
