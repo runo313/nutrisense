@@ -95,7 +95,7 @@ AND deleted_at IS NULL]]></db:sql>
 	email: vars.user.email
 }]]]></db:input-parameters>
 		</db:select>
-		<validation:is-false doc:name="Check Profile exists" doc:id="03e3a82e-e959-48ed-a6e8-e651002f2fb5" expression="#[sizeOf(vars.user_id) == 0]" message="A profile with this userId or email does not exist">
+		<validation:is-false doc:name="Check Profile exists" doc:id="03e3a82e-e959-48ed-a6e8-e651002f2fb5" expression="#[isEmpty(vars.user_id)]" message="A profile with this userId or email does not exist">
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:PROFILE_NOT_FOUND" />
 		</validation:is-false>
 	</sub-flow>
@@ -128,13 +128,27 @@ AND deleted_at IS NULL]]></db:sql>
 			<ee:variables >
 				<ee:set-variable variableName="isValid" ><![CDATA[%dw 2.0
 output application/java
-var conditionType = vars.condition.conditionType default vars.existingCondition[0].condition_type
-var request = vars.condition default vars.existingCondition[0]
+var existing = vars.existingCondition[0]
+var patch = vars.condition
+var current = {
+  "conditionType": existing.condition_type,
+  "managementStatus": existing.management_status,
+  "diagnosedAt": existing.diagnosed_at,
+  "notes": existing.notes,
+  "isActive": existing.is_active
+}
+var request = if(vars.condition.conditionType != null) vars.condition else {
+  "conditionType": current.conditionType,
+  "managementStatus": patch.managementStatus default current.managementStatus,
+  "diagnosedAt": patch.diagnosedAt default current.diagnosedAt,
+  "notes": patch.notes default current.notes,
+  "isActive": patch.isActive default current.isActive
+}
 var diabetesStatus = ["monitoring", "diet_controlled", "medication_managed", "in_remission"]
 var commonStatus = ["monitoring", "diet_controlled", "medication_managed"]
 ---
 {
-    isValidConditionPayload: if (conditionType == "type2_diabetes") (diabetesStatus contains request.managementStatus)      
+    isValidConditionPayload: if (request.conditionType == "type2_diabetes") (diabetesStatus contains request.managementStatus)      
         else (commonStatus contains request.managementStatus),
 }]]></ee:set-variable>
 			</ee:variables>
