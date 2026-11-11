@@ -1,31 +1,32 @@
+
 name: NutriSense CI
 
 on:
   pull_request:
     branches:
       - main
+      - dev
+      - test
+
   push:
     branches:
       - main
 
-env:
-  ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
-  ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
-  ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
-  ANYPOINT_ENV_CLIENT_ID: ${{ secrets.ANYPOINT_ENV_CLIENT_ID }}
-  ANYPOINT_ENV_CLIENT_SECRET: ${{ secrets.ANYPOINT_ENV_CLIENT_SECRET }}
-  MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   secrets-scan:
     name: Secrets Scan
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -34,11 +35,13 @@ jobs:
   build-and-test:
     name: Build and MUnit Test
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    needs: secrets-scan
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -76,6 +79,7 @@ jobs:
         id: changes
         uses: dorny/paths-filter@v3
         with:
+          base: ${{ github.event_name == 'push' && github.ref || 'main' }}
           filters: |
             wearable:
               - 'system-apis/wearable-sys-api/**'
@@ -100,285 +104,103 @@ jobs:
 
       - name: Build and test wearable-sys-api
         if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl system-apis/wearable-sys-api
 
       - name: Build and test nutrition-sys-api
         if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl system-apis/nutrition-sys-api
 
       - name: Build and test userprofile-sys-api
         if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl system-apis/userprofile-sys-api
 
       - name: Build and test notification-sys-api
         if: steps.changes.outputs.notification == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl system-apis/notification-sys-api
 
       - name: Build and test meal-log-sys-api
         if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl system-apis/meal-log-sys-api
 
       - name: Build and test daily-insight-process-api
         if: steps.changes.outputs.daily-insight == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl process-apis/daily-insight-process-api
 
       - name: Build and test trend-analysis-process-api
         if: steps.changes.outputs.trend-analysis == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl process-apis/trend-analysis-process-api
 
       - name: Build and test personal-dashboard-exp-api
         if: steps.changes.outputs.personal-dashboard == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl experience-apis/personal-dashboard-exp-api
 
       - name: Build and test coach-provider-exp-api
         if: steps.changes.outputs.coach-provider == 'true' || steps.changes.outputs.parent-pom == 'true'
+        env:
+          MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
         run: |
           mvn clean install \
             -Denv=test \
-            -DMULE_MASTER_KEY=${{ secrets.MULE_MASTER_KEY }} \
+            -DMULE_MASTER_KEY="$MULE_MASTER_KEY" \
             -pl experience-apis/coach-provider-exp-api
 
-  deploy:
-    name: Deploy to CloudHub Test
-    runs-on: ubuntu-latest
-    needs: secrets-scan
-    if: github.event_name == 'push'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Scan dependencies with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          fetch-depth: 0
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          vuln-type: library
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: '0'
+          cache: 'true'
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-      
-      - name: Install Maven 3.9.9
-        run: |
-          curl -fsSL https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz | tar -xz -C "$RUNNER_TEMP"
-          echo "$RUNNER_TEMP/apache-maven-3.9.9/bin" >> "$GITHUB_PATH"
-
-      - name: Show Maven and Java versions
-        run: mvn -v
-
-      - name: Set up Maven settings
-        uses: whelk-io/maven-settings-xml-action@v22
-        with:
-          servers: >
-            [
-              {
-                "id": "anypoint-exchange-v3",
-                "username": "~~~Client~~~",
-                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
-              },
-              {
-                "id": "mulesoft-releases",
-                "username": "~~~Client~~~",
-                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
-              }
-            ]
-
-      - name: Detect changed modules
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          base: ${{ github.event.before }}
-          filters: |
-            wearable:
-              - 'system-apis/wearable-sys-api/**'
-            nutrition:
-              - 'system-apis/nutrition-sys-api/**'
-            userprofile:
-              - 'system-apis/userprofile-sys-api/**'
-            meal-log:
-              - 'system-apis/meal-log-sys-api/**'
-            daily-insight:
-              - 'process-apis/daily-insight-process-api/**'
-            trend-analysis:
-              - 'process-apis/trend-analysis-process-api/**'
-            personal-dashboard:
-              - 'experience-apis/personal-dashboard-exp-api/**'
-            coach-provider:
-              - 'experience-apis/coach-provider-exp-api/**'
-            parent-pom:
-              - 'pom.xml'
-
-      - name: Deploy wearable-sys-api
-        if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl system-apis/wearable-sys-api
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl system-apis/wearable-sys-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
-
-      - name: Deploy nutrition-sys-api
-        if: steps.changes.outputs.nutrition == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl system-apis/nutrition-sys-api
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl system-apis/nutrition-sys-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
-
-      - name: Deploy userprofile-sys-api
-        if: steps.changes.outputs.userprofile == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl system-apis/userprofile-sys-api
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl system-apis/userprofile-sys-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
-
-      - name: Deploy meal-log-sys-api
-        if: steps.changes.outputs.meal-log == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl system-apis/meal-log-sys-api
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl system-apis/meal-log-sys-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
-
-      - name: Deploy daily-insight-process-api
-        if: steps.changes.outputs.daily-insight == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl process-apis/daily-insight-process-api
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl process-apis/daily-insight-process-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
-
-      - name: Deploy trend-analysis-process-api
-        if: steps.changes.outputs.trend-analysis == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl process-apis/trend-analysis-process-api
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl process-apis/trend-analysis-process-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
-      
-      - name: Deploy personal-dashboard-exp-api
-        if: steps.changes.outputs.personal-dashboard == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl experience-apis/personal-dashboard-exp-api \
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl experience-apis/personal-dashboard-exp-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
-      
-      - name: Deploy coach-provider-exp-api
-        if: steps.changes.outputs.coach-provider == 'true' || steps.changes.outputs.parent-pom == 'true'
-        run: |
-          mvn clean deploy -DskipMunitTests=true \
-            -pl experience-apis/coach-provider-exp-api \
-
-          mvn mule:deploy -DmuleDeploy \
-            -pl experience-apis/coach-provider-exp-api \
-            -DskipMunitTests=true \
-            -Denvironment=test \
-            -DdeployEnv=test \
-            -DANYPOINT_ORG_ID=$ANYPOINT_ORG_ID \
-            -DANYPOINT_CLIENT_ID=$ANYPOINT_CLIENT_ID \
-            -DANYPOINT_CLIENT_SECRET=$ANYPOINT_CLIENT_SECRET \
-            -DANYPOINT_ENV_CLIENT_ID=$ANYPOINT_ENV_CLIENT_ID \
-            -DANYPOINT_ENV_CLIENT_SECRET=$ANYPOINT_ENV_CLIENT_SECRET \
-            -DMULE_MASTER_KEY=$MULE_MASTER_KEY
