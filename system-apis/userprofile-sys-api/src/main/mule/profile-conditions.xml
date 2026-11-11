@@ -20,14 +20,14 @@ output application/java
 flow.name]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="START" doc:id="f92f59cc-008d-49c9-9aeb-05ba52a119f1" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET goal request",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="START" doc:id="f92f59cc-008d-49c9-9aeb-05ba52a119f1" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET conditions request",message,vars.correlationId, vars.flowName)]' />
 		<flow-ref doc:name="validate-uuid-subflow" doc:id="b1cafcae-b29c-4904-8dec-c981b2c41d70" name="validate-uuid-subflow" />
 		<flow-ref doc:name="validate-profile-exists-subflow" doc:id="e015b189-e300-47fc-bccd-e377072dd92c" name="validate-profile-exists-subflow" />
 		<db:select doc:name="Select Conditions" doc:id="59b199e6-37ad-42f4-ae6c-ae9ba5b789f3" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT condition_id, user_id, condition_type, management_status,
 diagnosed_at, notes, is_active, created_at, updated_at
 FROM user_conditions
-WHERE user_id =: user_id]]></db:sql>
+WHERE user_id = :userId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	userId: vars.userId
 }]]]></db:input-parameters>
@@ -47,7 +47,7 @@ output application/java
 200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="cf9913fe-5475-40d7-9bde-ec67f913b72b" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.user.userId&#10;}&#10;---&#10;buildLog("INFO","GET conditions request complete",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="END" doc:id="cf9913fe-5475-40d7-9bde-ec67f913b72b" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET conditions request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="create-condition-flow" doc:id="dcf07453-999a-4e52-b606-e9927ac406f1" >
@@ -80,15 +80,14 @@ output application/java
 		<db:select doc:name="Select condition Id" doc:id="b2b7cfda-12bd-4257-b976-7de4b3266689" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[SELECT condition_id FROM user_conditions
 WHERE user_id = :userId
-AND condition_type = :conditionType::condition_type_enum
-AND is_active = true]]></db:sql>
+AND condition_type = :conditionType::condition_type_enum]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	conditionType: vars.condition.conditionType,
 	userId: vars.userId
 }]]]></db:input-parameters>
 		</db:select>
 		<choice doc:name="Choice" doc:id="80aef568-cc1d-4503-8bc1-a8e376e04a70" >
-			<when expression="#[sizeOf(payload) &gt; 0]">
+			<when expression="#[!isEmpty(payload)]">
 				<ee:transform doc:name="Duplicate Entry" doc:id="3c3ff326-c238-4507-845f-31d9ada42058" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -190,7 +189,10 @@ keysOf(vars.condition) some ((key) -> ['managementStatus',"diagnosedAt","notes",
 			<error-mapping sourceType="VALIDATION:INVALID_BOOLEAN" targetType="APP:REQUIRED_FIELD" />
 		</validation:is-true>
 		<db:select doc:name="Select Existing Condition" doc:id="f542275d-0c41-49b6-8fbb-0212f57dd325" config-ref="NUTRISENSE_DB_CONFIG" target="existingCondition">
-			<db:sql ><![CDATA[SELECT condition_id,condition_type FROM user_conditions WHERE condition_id = :conditionId]]></db:sql>
+			<db:sql ><![CDATA[SELECT condition_id,condition_type, management_status,
+diagnosed_at, notes, is_active
+
+FROM user_conditions WHERE condition_id = :conditionId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	conditionId: vars.conditionId
 }]]]></db:input-parameters>
@@ -222,7 +224,7 @@ output application/java
 	conditionId: vars.conditionId,
 	isActive: vars.condition.isActive,
 	managementStatus: vars.condition.managementStatus,
-	diagnosedAt:notes:vars.condition.diagnosedAt,
+	diagnosedAt:vars.condition.diagnosedAt,
 	notes: vars.condition.notes,
 }]]></ee:set-variable>
 			</ee:variables>

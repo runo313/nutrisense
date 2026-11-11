@@ -81,12 +81,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</munit:test>
 	<munit:test name="should_return_profile_200" doc:id="63189bf1-9cf1-4e05-9d12-dd299cb743b7">
 		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="263746db-4840-4ee1-8128-1c79ae64c65d" processor="db:select" >
-				<munit-tools:with-attributes >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="51181964-a38b-4ed6-ad2c-64c38badd7cd" processor="db:select">
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				<munit-tools:then-return>
+					<munit-tools:variables>
+						<munit-tools:variable key="user_id" value='#["james2822"]' />
+					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock Select User" doc:id="85e7d265-b2f9-438f-b7ea-10f42a946950" processor="db:select">
@@ -169,12 +171,14 @@ output application/java
 	</munit:test>
 	<munit:test name="should_delete_profile_and_return_204" doc:id="7493fcf6-cc91-4a75-901d-e2bc9ddad012" >
 		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="7c8c92af-38b0-4922-a388-25b0621ed5f0" processor="db:select" >
-				<munit-tools:with-attributes >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="ba2ca5f4-a789-4f4d-8b8c-7bb61e72b53b" processor="db:select">
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+				<munit-tools:then-return>
+					<munit-tools:variables>
+						<munit-tools:variable key="user_id" value='#["james2822"]' />
+					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock Soft Delete" doc:id="8d0def02-fbee-4fb9-817e-04de0e89c069" processor="db:update">
@@ -195,12 +199,14 @@ output application/java
 	</munit:test>
 	<munit:test name="should_patch_profile_returns_200" doc:id="1d9dfc56-bdcf-41c0-bcaa-c869bc59defc">
 		<munit:behavior>
-			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="c7d61df2-82c9-4af4-91f1-bf23915c751c" processor="db:select">
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="0add87aa-6003-41fe-a5f0-6c794877b535" processor="db:select">
 				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return>
-					<munit-tools:payload value='#[[{&#10;	user_id: "james2822"&#10;}]]' />
+					<munit-tools:variables>
+						<munit-tools:variable key="user_id" value='#["james2822"]' />
+					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock Select User Profile" doc:id="cf604cbb-faa5-4c15-b0b2-8cfaeb08c01f" processor="db:select">
@@ -281,6 +287,51 @@ output application/java
 			<munit-tools:assert-that doc:name="Assert user Id" doc:id="8af13084-79bf-4e99-bbba-32bace669886" message="User id is not as expected" expression="#[payload.userId]" is='#[MunitTools::equalTo("james2822")]' />
 			<munit-tools:assert-that doc:name="Assert Activity BaseLine" doc:id="b96de7b4-ef51-4d54-9636-dbc0d51a4162" message="activity baseline is incorrect" expression="#[payload.activityBaseline]" is='#[MunitTools::equalTo("very_active")]' />
 			<munit-tools:assert-that doc:name="Assert Weight" doc:id="697e5477-6098-4032-8dc0-6ab38724fcc9" message="Weight is incorrect" expression="#[payload.weightKg]" is="#[MunitTools::equalTo(78.5)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_patch_profile_empty_payload_returns_400" doc:id="ae525066-5652-4be1-8f49-3174d81de769" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="b4e62681-493a-4f7a-8f99-a5dff3f5cda1" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="user_id" value='#["james2822"]' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="ebc8ec20-276f-412c-9156-308967551349" >
+				<munit:payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  &#10;}]" />
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;  uriParams: {userId: "james2822"},&#10;  queryParams: {}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="cc9f5baa-eb07-425e-8c2f-fe4251758407" name="patch:\profiles\(userId):application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 400" doc:id="a8191303-4664-47c1-a79b-eb4a0eb24435" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(400)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="should_create_profile_and_return_409" doc:id="d09943d1-6804-4ed6-97de-6a23b1c12b85" >
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock Check for Duplicate User Id or Email" doc:id="408d083d-3279-4ebe-b5bc-bd5d22cc4b08" processor="db:select" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b0bf44bc-aa74-4529-b072-680f24d9b65c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{&#10;	user_id: "james2822",&#10;	deleted_at: null&#10;}]]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="95277d20-b764-48df-b09e-14f757d242ab" >
+				<munit:payload value='#[%dw 2.0 output application/java&#10;---&#10;{&#10;  userId: "james2822",&#10;  name: "James",&#10;  email: "james@example.com",&#10;  dateOfBirth: "1995-06-15",&#10;  biologicalSex: "male",&#10;  heightCm: 180.0,&#10;  weightKg: 80.0,&#10;  activityBaseline: "moderately_active"&#10;}]' mediaType="application/java" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="c399331a-adea-45ab-a4f0-eea981a7d806" name="post:\profiles:application\json:user-profile-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 409" doc:id="2ae0b110-c42b-4fca-8f09-9f6885990751" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(409)]" />
 		</munit:validation>
 	</munit:test>
 
