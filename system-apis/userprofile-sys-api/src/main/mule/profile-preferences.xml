@@ -49,7 +49,7 @@ output application/java
 200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="72072bcd-d72f-45a9-b3d3-2cc73c13a4d0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET Preferences request complete",message,vars.correlationId, vars.flowName)]' />
+		<logger level="INFO" doc:name="Preferences Retreived" doc:id="72072bcd-d72f-45a9-b3d3-2cc73c13a4d0" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","GET Preferences request complete",message,vars.correlationId, vars.flowName)]' />
 		<error-handler ref="error-handler" />
 	</flow>
 	<flow name="patch-preferences-flow" doc:id="710463e4-efef-4171-a39c-4c08e4250187" >
@@ -144,6 +144,7 @@ output application/java
 				<db:sql><![CDATA[#[payload]]]></db:sql>
 				<db:input-parameters><![CDATA[#[vars.inputParam]]]></db:input-parameters>
 			</db:insert>
+				<logger level="INFO" doc:name="Preferences created" doc:id="179ef7e3-4171-4730-a567-cce3caddab8c" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","Preferences created",message,vars.correlationId, vars.flowName)]' />
 			</when>
 			<otherwise >
 				<ee:transform doc:name="Update SQL" doc:id="25133eb8-6f84-4774-a7f2-59b1918f08dd" >

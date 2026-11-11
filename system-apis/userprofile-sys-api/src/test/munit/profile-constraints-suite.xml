@@ -10,12 +10,12 @@
 	<munit:config name="profile-constraints-suite.xml" />
 	<munit:test name="should_create_constraint_and_return_201" doc:id="2313d971-083b-4895-b9b6-0bd02a1bc556" >
 		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="c794bb6a-6f26-4964-93d5-fd818baecce6" processor="db:select" >
-				<munit-tools:with-attributes >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="bfaac697-945e-4998-96a9-ecb18b771b9a" processor="db:select">
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:variables >
+				<munit-tools:then-return>
+					<munit-tools:variables>
 						<munit-tools:variable key="user_id" value='#["james2822"]' />
 					</munit-tools:variables>
 				</munit-tools:then-return>
@@ -53,12 +53,12 @@
 	</munit:test>
 	<munit:test name="should_get_constraints_200" doc:id="c5c12c31-fdad-44d4-be0d-d6892fa2bda6" >
 		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="6c789f6b-ea2b-4c93-980d-6cff04568fc0" processor="db:select" >
-				<munit-tools:with-attributes >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="ec6d3cb1-8f20-4307-8341-625796c66311" processor="db:select">
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:variables >
+				<munit-tools:then-return>
+					<munit-tools:variables>
 						<munit-tools:variable key="user_id" value='#["james2822"]' />
 					</munit-tools:variables>
 				</munit-tools:then-return>
@@ -84,12 +84,12 @@
 	</munit:test>
 	<munit:test name="should_delete_constraint_and_return_204" doc:id="862028e9-ce48-4f28-a669-84c6d0156510" >
 		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="c1cb03ba-b2e0-44e6-ad5d-4407e6727556" processor="db:select" >
-				<munit-tools:with-attributes >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="72ec474c-46c5-41df-ab2a-b999e0b5a963" processor="db:select">
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:variables >
+				<munit-tools:then-return>
+					<munit-tools:variables>
 						<munit-tools:variable key="user_id" value='#["james2822"]' />
 					</munit-tools:variables>
 				</munit-tools:then-return>
@@ -132,12 +132,12 @@
 	</munit:test>
 	<munit:test name="should_delete_constraint_and_return_404" doc:id="086ac63f-6fa2-400a-b9fc-6bdb9db737f2" >
 		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="fbdc1f69-1c64-43a6-b7d3-3aafb1a32708" processor="db:select" >
-				<munit-tools:with-attributes >
+			<munit-tools:mock-when doc:name="Mock validate-profile-exists" doc:id="dcb754df-250c-4517-9ee7-7878e3d993a6" processor="db:select">
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="c3afebac-7e3d-4c04-bcc0-0fb7978c89d3" attributeName="doc:id" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:variables >
+				<munit-tools:then-return>
+					<munit-tools:variables>
 						<munit-tools:variable key="user_id" value='#["james2822"]' />
 					</munit-tools:variables>
 				</munit-tools:then-return>
