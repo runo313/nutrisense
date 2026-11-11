@@ -182,7 +182,6 @@ payload]]></ee:set-variable>
 output application/json
 import some from dw::core::Arrays
 ---
-if (isEmpty(vars.condition)) false else
 keysOf(vars.condition) some ((key) -> ['managementStatus',"diagnosedAt","notes","isActive"] contains  (key as String ))]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
