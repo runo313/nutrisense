@@ -1,0 +1,182 @@
+
+name: Deploy To Test
+
+on:
+  push:
+    branches:
+      - test
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-deployment
+  cancel-in-progress: false
+
+jobs:
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    name: Build, Test and Deploy to CloudHub
+    needs: secrets-scan
+    runs-on: ubuntu-latest
+    environment: test
+
+    env:
+      ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+      ANYPOINT_ENV_CLIENT_ID: ${{ secrets.ANYPOINT_ENV_CLIENT_ID }}
+      ANYPOINT_ENV_CLIENT_SECRET: ${{ secrets.ANYPOINT_ENV_CLIENT_SECRET }}
+      MULE_MASTER_KEY: ${{ secrets.MULE_MASTER_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install Maven 3.9.9
+        run: |
+          curl -fsSL \
+            https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz \
+            | tar -xz -C "$RUNNER_TEMP"
+
+          echo "$RUNNER_TEMP/apache-maven-3.9.9/bin" >> "$GITHUB_PATH"
+
+      - name: Show Maven and Java versions
+        run: mvn -v
+
+      - name: Set up Maven settings
+        uses: whelk-io/maven-settings-xml-action@v22
+        with:
+          servers: >
+            [
+              {
+                "id": "anypoint-exchange-v3",
+                "username": "~~~Client~~~",
+                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+              },
+              {
+                "id": "mulesoft-releases",
+                "username": "~~~Client~~~",
+                "password": "${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}"
+              }
+            ]
+
+      - name: Detect changed modules
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          base: test
+          filters: |
+            wearable:
+              - 'system-apis/wearable-sys-api/**'
+            nutrition:
+              - 'system-apis/nutrition-sys-api/**'
+            userprofile:
+              - 'system-apis/userprofile-sys-api/**'
+            notification:
+              - 'system-apis/notification-sys-api/**'
+            meal-log:
+              - 'system-apis/meal-log-sys-api/**'
+            daily-insight:
+              - 'process-apis/daily-insight-process-api/**'
+            trend-analysis:
+              - 'process-apis/trend-analysis-process-api/**'
+            personal-dashboard:
+              - 'experience-apis/personal-dashboard-exp-api/**'
+            coach-provider:
+              - 'experience-apis/coach-provider-exp-api/**'
+            parent-pom:
+              - 'pom.xml'
+
+      - name: Build, test and deploy changed APIs
+        shell: bash
+        env:
+          WEARABLE_CHANGED: ${{ steps.changes.outputs.wearable }}
+          NUTRITION_CHANGED: ${{ steps.changes.outputs.nutrition }}
+          USERPROFILE_CHANGED: ${{ steps.changes.outputs.userprofile }}
+          NOTIFICATION_CHANGED: ${{ steps.changes.outputs.notification }}
+          MEAL_LOG_CHANGED: ${{ steps.changes.outputs.meal-log }}
+          DAILY_INSIGHT_CHANGED: ${{ steps.changes.outputs.daily-insight }}
+          TREND_ANALYSIS_CHANGED: ${{ steps.changes.outputs.trend-analysis }}
+          PERSONAL_DASHBOARD_CHANGED: ${{ steps.changes.outputs.personal-dashboard }}
+          COACH_PROVIDER_CHANGED: ${{ steps.changes.outputs.coach-provider }}
+          PARENT_CHANGED: ${{ steps.changes.outputs.parent-pom }}
+        run: |
+          set -euo pipefail
+
+          modules=(
+            "WEARABLE_CHANGED|system-apis/wearable-sys-api"
+            "NUTRITION_CHANGED|system-apis/nutrition-sys-api"
+            "USERPROFILE_CHANGED|system-apis/userprofile-sys-api"
+            "NOTIFICATION_CHANGED|system-apis/notification-sys-api"
+            "MEAL_LOG_CHANGED|system-apis/meal-log-sys-api"
+            "DAILY_INSIGHT_CHANGED|process-apis/daily-insight-process-api"
+            "TREND_ANALYSIS_CHANGED|process-apis/trend-analysis-process-api"
+            "PERSONAL_DASHBOARD_CHANGED|experience-apis/personal-dashboard-exp-api"
+            "COACH_PROVIDER_CHANGED|experience-apis/coach-provider-exp-api"
+          )
+
+          for entry in "${modules[@]}"; do
+            key="${entry%%|*}"
+            module="${entry#*|}"
+
+            if [[ "$PARENT_CHANGED" != "true" && "${!key}" != "true" ]]; then
+              continue
+            fi
+
+            echo "::group::Build, test and deploy $module"
+
+            # Build and run MUnit before publication
+            mvn clean verify \
+              -Ptest \
+              -pl "$module" \
+              -Denv=test \
+              -DMULE_MASTER_KEY="$MULE_MASTER_KEY"
+
+            # Publish the Maven artifact to Exchange
+            mvn deploy \
+              -Ptest \
+              -pl "$module" \
+              -DskipMunitTests=true \
+              -Denv=test \
+              -DMULE_MASTER_KEY="$MULE_MASTER_KEY"
+
+            # Deploy the published application to CloudHub 2.0
+            mvn mule:deploy \
+              -Ptest \
+              -pl "$module" \
+              -DskipMunitTests=true \
+              -Denvironment=test \
+              -DdeployEnv=test \
+              -DANYPOINT_ORG_ID="$ANYPOINT_ORG_ID" \
+              -DANYPOINT_CLIENT_ID="$ANYPOINT_CLIENT_ID" \
+              -DANYPOINT_CLIENT_SECRET="$ANYPOINT_CLIENT_SECRET" \
+              -DANYPOINT_ENV_CLIENT_ID="$ANYPOINT_ENV_CLIENT_ID" \
+              -DANYPOINT_ENV_CLIENT_SECRET="$ANYPOINT_ENV_CLIENT_SECRET" \
+              -DMULE_MASTER_KEY="$MULE_MASTER_KEY"
+
+            echo "::endgroup::"
+          done
