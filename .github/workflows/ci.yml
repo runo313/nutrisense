@@ -101,10 +101,6 @@ jobs:
               - 'experience-apis/coach-provider-exp-api/**'
             parent-pom:
               - 'pom.xml'
-              - '.mvn/**'
-              - 'mvnw'
-              - 'mvnw.cmd'
-              - '.github/workflows/ci.yml'
 
       - name: Build and test wearable-sys-api
         if: steps.changes.outputs.wearable == 'true' || steps.changes.outputs.parent-pom == 'true'

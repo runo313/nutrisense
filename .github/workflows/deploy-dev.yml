@@ -111,10 +111,7 @@ jobs:
               - 'experience-apis/coach-provider-exp-api/**'
             parent-pom:
               - 'pom.xml'
-              - '.mvn/**'
-              - 'mvnw'
-              - 'mvnw.cmd'
-              - '.github/workflows/deploy-standalone.yml'
+
 
       - name: Build, test and deploy changed APIs
         shell: bash
