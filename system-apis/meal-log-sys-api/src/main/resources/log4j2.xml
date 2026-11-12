@@ -27,7 +27,7 @@
             url="${sys:splunk.url}"
             token="${sys:splunk.token}"
             index="nutrisense-dev"
-            source="user-profile-sys-api"
+            source="meal-log-sys-api"
             sourcetype="_json"
             messageFormat="json"
             batch_size_count="1">
