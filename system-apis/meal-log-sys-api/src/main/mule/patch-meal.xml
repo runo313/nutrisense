@@ -24,7 +24,7 @@ import some from dw::core::Arrays
 			<validation:is-false doc:name="mealType or consumedAt is required" doc:id="93c92f8e-e67c-49da-a5cc-e1498f0b934a" expression="#[payload.mealType == null and payload.consumedAt == null]" message="mealType or consumedAt is required"/>
 			<validation:is-false doc:name="Can only modify mealType or consumedAt" doc:id="30453bef-6e9f-4d3e-9b02-a6925404bce9" message="Can only modify mealType or consumedAt" expression="#[vars.InvalidKey]"/>
 		</validation:all>
-		<logger level="INFO" doc:name="Validation Complete" doc:id="332389af-5b99-474f-a7c0-bd71c0aa7bb3" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Validation Complete'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="Validation Complete" doc:id="332389af-5b99-474f-a7c0-bd71c0aa7bb3" message="#[%dw 2.0&#10;output application/json&#10;var message = {&#10;userId: vars.userId,&#10;mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,'Validation Complete', message, vars.correlationId , vars.flowName)]" />
 		<flow-ref doc:name="check-meals-exist" doc:id="4bff91c4-26a7-491d-a854-a158f41b7ec5" name="check-meals-exist"/>
 		<ee:transform doc:name="SQL" doc:id="906c7830-f57b-4392-be38-9c9688a30415">
 					<ee:message>
@@ -180,7 +180,7 @@ output application/java
 		<flow-ref doc:name="update-meal-items-subflow" doc:id="50adfe6d-7008-4d37-a1fe-427e3cd855a2" name="update-meal-items-subflow"/>
 	</flow>
 	<sub-flow name="update-meal-items-subflow" doc:id="2e553c8f-34f9-42ea-8121-c43cdaa06167" >
-		<logger level="INFO" doc:name="Executing Meal update" doc:id="b15690ff-4efe-472b-829a-35870c13258b" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Executing Meal update'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="Executing Meal update" doc:id="b15690ff-4efe-472b-829a-35870c13258b" message="#[%dw 2.0&#10;output application/json&#10;var message = {&#10;userId: vars.userId,&#10;mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,'Executing Meal update', message, vars.correlationId , vars.flowName)]" />
 		<db:update doc:name="Update meal items" doc:id="dce34fdf-5362-4f60-b1b7-f163bb7b2a67" config-ref="NUTRISENSE_DB_CONFIG">
 			<db:sql ><![CDATA[#[payload]]]></db:sql>
 			<db:input-parameters ><![CDATA[#[%dw 2.0
@@ -218,6 +218,6 @@ transformMeal(payload)]]></ee:set-payload>
 				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Update Complete" doc:id="a50987c1-ac3a-4677-9080-1b9a8b6fed83" message="#[%dw 2.0&#10;output application/json&#10;var logMessage ='Meal updated'&#10;var userId = {&#10;userId: vars.userId as String,&#10;mealId: vars.mealId as String&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,logMessage,userId, vars.correlationId , vars.flowName)]" />
+		<logger level="INFO" doc:name="Update Complete" doc:id="a50987c1-ac3a-4677-9080-1b9a8b6fed83" message="#[%dw 2.0&#10;output application/json&#10;var message = {&#10;userId: vars.userId,&#10;mealId: vars.mealId,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog(&quot;INFO&quot;,'Meal updated', message, vars.correlationId , vars.flowName)]" />
 	</sub-flow>
 </mule>

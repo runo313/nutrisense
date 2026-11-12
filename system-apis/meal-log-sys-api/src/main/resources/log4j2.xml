@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Configuration>
+<Configuration packages="com.splunk.logging" status="WARN">
 
     <!--These are some of the loggers you can enable. 
         There are several more you can find in the documentation. 
@@ -9,12 +9,30 @@
         see them in the mule_ee.log file. -->
 
     <Appenders>
-        <RollingFile name="file" fileName="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}meal-log-sys-api.log"
-                 filePattern="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}meal-log-sys-api-%i.log">
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5p %d [%t] [processor: %X{processorPath}; event: %X{correlationId}] %c: %m%n"/>
+        </Console>
+
+        <RollingFile name="file"
+                     fileName="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}userprofile-sys-api.log"
+                     filePattern="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}userprofile-sys-api-%i.log">
             <PatternLayout pattern="%-5p %d [%t] [processor: %X{processorPath}; event: %X{correlationId}] %c: %m%n"/>
             <SizeBasedTriggeringPolicy size="10 MB"/>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+
+        <!-- Splunk HTTP Event Collector -->
+        <SplunkHttp
+            name="SPLUNK"
+            url="${sys:splunk.url}"
+            token="${sys:splunk.token}"
+            index="nutrisense-dev"
+            source="user-profile-sys-api"
+            sourcetype="_json"
+            messageFormat="json"
+            batch_size_count="1">
+            <PatternLayout pattern="%m"/>
+        </SplunkHttp>
     </Appenders>
 
     <Loggers>
@@ -22,12 +40,18 @@
         <!--AsyncLogger name="org.mule.service.http.impl.service.HttpMessageLogger" level="DEBUG"/-->
         <AsyncLogger name="org.mule.service.http" level="WARN"/>
         <AsyncLogger name="org.mule.extension.http" level="WARN"/>
+ 
+ 		<!-- Logger components: console + file + Splunk -->
+        <AsyncLogger name="org.mule.runtime.core.internal.processor.LoggerMessageProcessor" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="file"/>
+            <AppenderRef ref="SPLUNK"/>
+        </AsyncLogger>
 
-        <!-- Mule logger -->
-        <AsyncLogger name="org.mule.runtime.core.internal.processor.LoggerMessageProcessor" level="INFO"/>
-
+        <!-- Everything else: file at INFO, Splunk only WARN/ERROR -->
         <AsyncRoot level="INFO">
             <AppenderRef ref="file"/>
+            <AppenderRef ref="SPLUNK" level="WARN"/>
         </AsyncRoot>
     </Loggers>
 
