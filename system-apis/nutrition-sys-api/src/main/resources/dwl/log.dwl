@@ -6,6 +6,7 @@ fun buildLog(level, message,content,correlationId,flowName) = {
     "correlationId": correlationId,
     "appName": Mule::p('app.name'),
     "layer": Mule::p('nutrition.layer'),
+    "env": Mule::p('env'),
     "content": content,
     "timestamp": now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"},  
 }
