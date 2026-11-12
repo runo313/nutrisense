@@ -16,6 +16,9 @@
 		<app.runtime>4.11.0</app.runtime>
 		<mule.maven.plugin.version>4.7.0</mule.maven.plugin.version>
 		<munit.version>3.7.0</munit.version>
+		
+		<anypoint.uri>https://anypoint.mulesoft.com</anypoint.uri>
+		<deploy.applicationName>wearable-sys-api</deploy.applicationName>
 	</properties>
 
 	<build>
@@ -25,6 +28,7 @@
 				<artifactId>maven-clean-plugin</artifactId>
 				<version>3.2.0</version>
 			</plugin>
+
 			<plugin>
 				<groupId>org.mule.tools.maven</groupId>
 				<artifactId>mule-maven-plugin</artifactId>
@@ -37,34 +41,14 @@
 							<groupId>org.postgresql</groupId>
 							<artifactId>postgresql</artifactId>
 						</sharedLibrary>
+						<sharedLibrary>
+							<groupId>com.splunk.logging</groupId>
+							<artifactId>splunk-library-javalogging</artifactId>
+						</sharedLibrary>
 					</sharedLibraries>
-					<cloudhub2Deployment>
-						<uri>https://anypoint.mulesoft.com</uri>
-						<provider>MC</provider>
-						<environment>${environment}</environment>
-						<target>Cloudhub-US-East-2</target>
-						<muleVersion>4.12.2</muleVersion>
-						<applicationName>wearable-sys-api</applicationName>
-						<businessGroupId>${ANYPOINT_ORG_ID}</businessGroupId>
-						<connectedAppClientId>${ANYPOINT_CLIENT_ID}</connectedAppClientId>
-						<connectedAppClientSecret>${ANYPOINT_CLIENT_SECRET}</connectedAppClientSecret>
-						<connectedAppGrantType>client_credentials</connectedAppGrantType>
-						<replicas>1</replicas>
-						<vCores>0.1</vCores>
-						<deploymentSettings>
-							<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
-						</deploymentSettings>
-						<properties>
-							<env>${deployEnv}</env>
-							<anypoint.platform.client_id>${ANYPOINT_ENV_CLIENT_ID}</anypoint.platform.client_id>
-						</properties>
-						<secureProperties>
-							<MULE_MASTER_KEY>${MULE_MASTER_KEY}</MULE_MASTER_KEY>
-							<anypoint.platform.client_secret>${ANYPOINT_ENV_CLIENT_SECRET}</anypoint.platform.client_secret>
-						</secureProperties>
-					</cloudhub2Deployment>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>com.mulesoft.munit.tools</groupId>
 				<artifactId>munit-maven-plugin</artifactId>
@@ -90,6 +74,96 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<environment>dev</environment>
+				<deployEnv>dev</deployEnv>
+				<arm.muleVersion>4.13.2</arm.muleVersion>
+				<arm.target>nutrisense-dev-server</arm.target>
+				<arm.targetType>server</arm.targetType>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.mule.tools.maven</groupId>
+						<artifactId>mule-maven-plugin</artifactId>
+						<configuration>
+							<armDeployment>
+								<uri>${anypoint.uri}</uri>
+								<muleVersion>${arm.muleVersion}</muleVersion>
+								<target>${arm.target}</target>
+								<targetType>${arm.targetType}</targetType>
+								<environment>${environment}</environment>
+								<applicationName>${deploy.applicationName}</applicationName>
+								<businessGroupId>${ANYPOINT_ORG_ID}</businessGroupId>
+								<connectedAppClientId>${ANYPOINT_CLIENT_ID}</connectedAppClientId>
+								<connectedAppClientSecret>${ANYPOINT_CLIENT_SECRET}</connectedAppClientSecret>
+								<connectedAppGrantType>client_credentials</connectedAppGrantType>
+								<properties>
+									<env>${deployEnv}</env>
+									<anypoint.platform.client_id>${ANYPOINT_ENV_CLIENT_ID}</anypoint.platform.client_id>
+									<SPLUNK_URL>${SPLUNK_URL}</SPLUNK_URL>
+								</properties>
+							</armDeployment>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>test</id>
+			<properties>
+				<environment>test</environment>
+				<deployEnv>test</deployEnv>
+				<ch2.muleVersion>4.12.2</ch2.muleVersion>
+				<ch2.target>Cloudhub-US-East-2</ch2.target>
+				<ch2.replicas>1</ch2.replicas>
+				<ch2.vCores>0.1</ch2.vCores>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.mule.tools.maven</groupId>
+						<artifactId>mule-maven-plugin</artifactId>
+						<configuration>
+							<cloudhub2Deployment>
+								<uri>${anypoint.uri}</uri>
+								<provider>MC</provider>
+								<environment>${environment}</environment>
+								<target>${ch2.target}</target>
+								<muleVersion>${ch2.muleVersion}</muleVersion>
+								<applicationName>${deploy.applicationName}</applicationName>
+								<businessGroupId>${ANYPOINT_ORG_ID}</businessGroupId>
+								<connectedAppClientId>${ANYPOINT_CLIENT_ID}</connectedAppClientId>
+								<connectedAppClientSecret>${ANYPOINT_CLIENT_SECRET}</connectedAppClientSecret>
+								<connectedAppGrantType>client_credentials</connectedAppGrantType>
+								<replicas>${ch2.replicas}</replicas>
+								<vCores>${ch2.vCores}</vCores>
+								<deploymentSettings>
+									<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
+								</deploymentSettings>
+								<properties>
+									<env>${deployEnv}</env>
+									<anypoint.platform.client_id>${ANYPOINT_ENV_CLIENT_ID}</anypoint.platform.client_id>
+									<SPLUNK_URL>${SPLUNK_URL}</SPLUNK_URL>
+								</properties>
+								<secureProperties>
+									<MULE_MASTER_KEY>${MULE_MASTER_KEY}</MULE_MASTER_KEY>
+									<anypoint.platform.client_secret>${ANYPOINT_ENV_CLIENT_SECRET}</anypoint.platform.client_secret>
+									<SPLUNK_HEC_TOKEN>${SPLUNK_HEC_TOKEN}</SPLUNK_HEC_TOKEN>
+								</secureProperties>
+							</cloudhub2Deployment>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
 
 	<dependencies>
 		<dependency>
@@ -153,6 +227,11 @@
 			<version>1.2.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.splunk.logging</groupId>
+			<artifactId>splunk-library-javalogging</artifactId>
+			<version>1.11.10</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -167,6 +246,11 @@
 			<name>MuleSoft Releases Repository</name>
 			<url>https://repository.mulesoft.org/nexus/repository/releases/</url>
 			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>splunk-artifactory</id>
+			<name>Splunk Releases</name>
+			<url>https://splunk.jfrog.io/splunk/ext-releases-local</url>
 		</repository>
 	</repositories>
 
