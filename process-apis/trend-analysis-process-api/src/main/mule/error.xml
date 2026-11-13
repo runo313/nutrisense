@@ -49,7 +49,7 @@ output application/json
 		</on-error-continue>
 		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="59f08ea4-ca89-49e4-a1e6-327815a8f908" type="ANY">
 			<logger level="ERROR" doc:name="Error" doc:id="e782d3e7-cc36-4516-9dd6-e07d70c95a9c" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	error: error.description,&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Trend Analysis Error.",logMessage,vars.correlationId , vars.flowName)]' />
-			<ee:transform doc:name="Error1" doc:id="e684db50-f2c9-4e8f-8207-75dd6309b960" >
+			<ee:transform doc:name="Error" doc:id="e684db50-f2c9-4e8f-8207-75dd6309b960" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
