@@ -27,32 +27,14 @@
 					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food747448" doc:id="9f4a0448-89f2-4a7a-8955-bea342f581ac" processor="http:request" >
+			<munit-tools:mock-when doc:name="Mock GET Food" doc:id="9f4a0448-89f2-4a7a-8955-bea342f581ac" processor="http:request" >
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="747448" attributeName="foodId" />
+					<munit-tools:with-attribute whereValue="08dfc6de-56d4-45c8-a88d-6fd1605d967c" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_747448.json") read "application/json"]' />
 					<munit-tools:attributes value='#[{"statusCode": 200}]' />
 				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food2684444" doc:id="3fc5c6cd-b5c7-4da7-9922-d2d4c37d11eb" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="2684444" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_2684444.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food331960" doc:id="6edc3e1a-87f0-4e6e-b401-99cdcd535073" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="331960" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_331960.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
+				<munit-tools:then-call flow="mock-get-food-response" />
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="caf622f9-2479-427c-8d26-72d9a731b164" processor="http:request">
 				<munit-tools:with-attributes >
@@ -208,32 +190,15 @@
 					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food74744" doc:id="eb553360-4bb5-4e0e-b69e-e41d5f7c3291" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="747448" attributeName="foodId" />
+			<munit-tools:mock-when doc:name="Mock GET Food" doc:id="38389960-4cb7-4216-8bd2-0efc88d44014" processor="http:request">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="08dfc6de-56d4-45c8-a88d-6fd1605d967c" attributeName="doc:id" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_747448.json") read "application/json"]' />
+				<munit-tools:then-return>
 					<munit-tools:attributes value='#[{"statusCode": 200}]' />
 				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food268444" doc:id="0cf733c2-f2c1-4f5b-8f28-85858dd0f39e" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="2684444" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_2684444.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food33196" doc:id="826eeb93-db84-45d5-a7c4-cc5f137268fd" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="331960" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_331960.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
+				
+				<munit-tools:then-call flow="mock-get-food-response" />
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="fe889069-dff7-440f-8820-6de3b3aead4a" processor="http:request" >
 				<munit-tools:with-attributes >
@@ -307,33 +272,6 @@
 					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food74744" doc:id="1b45f5bb-f754-475e-b322-b24fdb9554d1" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="747448" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_747448.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food268444" doc:id="296622c8-3cad-42bf-bcae-dab94db6ae3a" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="2684444" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_2684444.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food33196" doc:id="a11b9624-ebca-414d-8586-74a8958bb9bc" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="331960" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_331960.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="54ca2376-bd06-47d5-bbe3-e362bc85c01e" processor="http:request" >
 				<munit-tools:with-attributes >
 					<munit-tools:with-attribute whereValue="ac1135b7-ae94-4339-8671-14c27256bc18" attributeName="doc:id" />
@@ -344,6 +282,16 @@
 					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food" doc:id="916bb7e6-e379-4456-b553-eea8e0516879" processor="http:request">
+						<munit-tools:with-attributes>
+							<munit-tools:with-attribute whereValue="08dfc6de-56d4-45c8-a88d-6fd1605d967c" attributeName="doc:id" />
+						</munit-tools:with-attributes>
+						<munit-tools:then-return>
+							<munit-tools:attributes value='#[{"statusCode": 200}]' />
+						</munit-tools:then-return>
+						
+						<munit-tools:then-call flow="mock-get-food-response" />
+					</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock GET wearable Summary" doc:id="fed4024c-fb13-474b-8f56-5efa89480010" processor="http:request" >
 				<munit-tools:with-attributes >
 					<munit-tools:with-attribute whereValue="b0a34b89-72ef-4809-8398-30edfe6074bf" attributeName="doc:id" />
@@ -423,33 +371,16 @@
 					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food7474" doc:id="a1fbbfd2-1392-4241-b0cd-0e7a7b4d40fb" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="747448" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_747448.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food26844" doc:id="e2c310fc-296d-4695-9f2a-6e1e86487442" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="2684444" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_2684444.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock GET Food3319" doc:id="ee6ba13e-2798-49fb-9551-40dc493b1418" processor="http:request" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="331960" attributeName="foodId" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/food_331960.json") read "application/json"]' />
-					<munit-tools:attributes value='#[{"statusCode": 200}]' />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food" doc:id="a3797123-386d-460f-9f30-8493b08ea604" processor="http:request">
+						<munit-tools:with-attributes>
+							<munit-tools:with-attribute whereValue="08dfc6de-56d4-45c8-a88d-6fd1605d967c" attributeName="doc:id" />
+						</munit-tools:with-attributes>
+						<munit-tools:then-return>
+							<munit-tools:attributes value='#[{"statusCode": 200}]' />
+						</munit-tools:then-return>
+						
+						<munit-tools:then-call flow="mock-get-food-response" />
+					</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="b32909cc-60f2-4486-83e2-ff76c9edf951" processor="http:request" >
 				<munit-tools:with-attributes >
 					<munit-tools:with-attribute whereValue="ac1135b7-ae94-4339-8671-14c27256bc18" attributeName="doc:id" />
@@ -495,5 +426,19 @@
 			<munit-tools:assert-that doc:name="Assert Text Mode" doc:id="cee2efd1-1130-4bfb-a68c-2492ae838f0f" message="Text Mode should be template" expression="#[payload.generation_mode]" is="#[MunitTools::equalTo('template')]" />
 		</munit:validation>
 	</munit:test>
+	<flow name="mock-get-food-response">
+    <set-variable variableName="mockFoodId" value="#[payload as String]" />
+    <choice doc:name="Validate foodId">
+        <when expression="#[['331960', '2684444', '747448'] contains vars.mockFoodId]">
+            <munit:set-event cloneOriginalEvent="true">
+                <munit:payload value='#[MunitTools::getResourceAsString("payloads/food_" ++ vars.mockFoodId ++ ".json")]' mediaType="application/json" />
+					<munit:attributes value="#[{statusCode: 200}]" />
+            </munit:set-event>
+        </when>
+        <otherwise>
+            <raise-error type="ANY" description="Unexpected foodId in MUnit mock" />
+        </otherwise>
+    </choice>
+</flow>
 
 </mule>

@@ -1,25 +1,28 @@
-{
-  "foodId": 2684444,
-  "name": "Yogurt, plain, low fat",
-  "category": "Dairy and Egg Products",
-  "servingSizeG": 100,
-  "source": "USDA Foundation Foods",
-  "nutrients": {
-    "energyKcal": 63,
-    "proteinG": 5.25,
-    "carbohydratesG": 7.04,
-    "dietaryFiberG": 0,
-    "sugarsG": 7.04,
-    "totalFatG": 1.55,
-    "saturatedFatG": 1.0,
-    "sodiumMg": 70,
-    "potassiumMg": 234,
-    "calciumMg": 183,
-    "ironMg": 0.07,
-    "vitaminCMg": 0.8,
-    "vitaminDMcg": 0,
-    "vitaminB12Mcg": 0.37,
-    "magnesiumMg": 17,
-    "zincMg": 0.9
-  }
-}
+[
+    {
+        "foodId": 2684444,
+        "name": "Fish, cod, Atlantic, wild caught, raw",
+        "category": "Finfish and Shellfish Products",
+        "servingSizeG": 100,
+        "source": "USDA Foundation Foods",
+        "nutrients": {
+            "energyKcal": 65.9855,
+            "proteinG": 16.06875,
+            "carbohydratesG": 0,
+            "dietaryFiberG": null,
+            "sugarsG": null,
+            "totalFatG": 0.6675,
+            "saturatedFatG": 0.044,
+            "sodiumMg": 298.8,
+            "potassiumMg": 245.1,
+            "calciumMg": 6.59,
+            "ironMg": 0.065,
+            "vitaminCMg": null,
+            "vitaminDMcg": null,
+            "vitaminB12Mcg": 1.248,
+            "magnesiumMg": 17.98,
+            "zincMg": 0.3051
+        },
+        "servingSizes": []
+    }
+]

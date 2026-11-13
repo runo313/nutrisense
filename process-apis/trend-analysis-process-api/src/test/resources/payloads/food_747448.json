@@ -1,25 +1,28 @@
-{
-  "foodId": 747448,
-  "name": "Oatmeal, regular and quick, unenriched, dry",
-  "category": "Cereal Grains and Pasta",
-  "servingSizeG": 100,
-  "source": "USDA Foundation Foods",
-  "nutrients": {
-    "energyKcal": 389,
-    "proteinG": 16.9,
-    "carbohydratesG": 66.3,
-    "dietaryFiberG": 10.6,
-    "sugarsG": 0,
-    "totalFatG": 6.9,
-    "saturatedFatG": 1.21,
-    "sodiumMg": 2,
-    "potassiumMg": 429,
-    "calciumMg": 54,
-    "ironMg": 4.72,
-    "vitaminCMg": 0,
-    "vitaminDMcg": null,
-    "vitaminB12Mcg": 0,
-    "magnesiumMg": 177,
-    "zincMg": 3.97
-  }
-}
+[
+    {
+        "foodId": 747448,
+        "name": "Strawberries, raw",
+        "category": "Fruits and Fruit Juices",
+        "servingSizeG": 100,
+        "source": "USDA Foundation Foods",
+        "nutrients": {
+            "energyKcal": 35,
+            "proteinG": 0.64,
+            "carbohydratesG": 7.63,
+            "dietaryFiberG": 1.8,
+            "sugarsG": 5.34,
+            "totalFatG": 0.22,
+            "saturatedFatG": 0,
+            "sodiumMg": 10,
+            "potassiumMg": 89,
+            "calciumMg": 12,
+            "ironMg": 0.28,
+            "vitaminCMg": 56,
+            "vitaminDMcg": null,
+            "vitaminB12Mcg": null,
+            "magnesiumMg": 11.8,
+            "zincMg": 0.18
+        },
+        "servingSizes": []
+    }
+]

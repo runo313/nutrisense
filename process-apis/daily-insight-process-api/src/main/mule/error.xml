@@ -27,7 +27,7 @@ output application/json
 			</ee:transform>
 		</on-error-continue>
 		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f556407d-1fef-481f-ac22-6485b555bdd7" type="ANY">
-			<logger level="ERROR" doc:name="Error" doc:id="c4b701f3-07f9-4d2c-b49c-7bd42d6acdb4" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	error: error.description,&#10;	attr: attributes,&#10;	summaryWearable: vars.summaryWearable&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Daily Insight Error.",logMessage,vars.correlationId , vars.flowName)]' />
+			<logger level="ERROR" doc:name="Error" doc:id="c4b701f3-07f9-4d2c-b49c-7bd42d6acdb4" message='#[%dw 2.0&#10;output application/json&#10;var logMessage = {&#10;	userId: vars.userId,&#10;	error: error.description&#10;}&#10;import buildLog from dwl::log&#10;---&#10;buildLog("ERROR","Daily Insight Error.",logMessage,vars.correlationId , vars.flowName)]' />
 			<ee:transform doc:name="Error" doc:id="57fb0c7f-631e-4098-a9fa-917eb3a49788">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0

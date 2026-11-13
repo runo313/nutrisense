@@ -26,16 +26,16 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<configuration-properties doc:name="Configuration properties" doc:id="85d2df20-bf02-4777-9f3e-f4ddacc6dc18" file="daily-insight-${env}.properties" />
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="339df8a1-67b3-408b-a6d1-b2d460f8a666" file="daily-insight-${env}.properties" key="${MULE_MASTER_KEY}" />
 	<http:request-config name="USERPROFILE_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="745db4b9-8f9e-42f8-976e-80c496c463da">
-		<http:request-connection protocol="HTTPS" host="${userprofile.baseUri}" port="${userprofile.port}"/>
+		<http:request-connection host="${userprofile.baseUri}" port="${userprofile.port}"/>
 	</http:request-config>
 	<http:request-config name="WEARABLE_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="42d62407-2f5b-4a93-b319-b416e39ec6c6">
-		<http:request-connection protocol="HTTPS" host="${wearable.baseUri}" port="${wearable.port}"/>
+		<http:request-connection host="${wearable.baseUri}" port="${wearable.port}"/>
 	</http:request-config>
 	<http:request-config name="NUTRITION_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="038cd5f1-61c4-462c-b09c-8ce3d50aaef5" >
-		<http:request-connection protocol="HTTPS" port="${nutrition.port}" host="${nutrition.baseUri}"/>
+		<http:request-connection port="${nutrition.port}" host="${nutrition.baseUri}"/>
 	</http:request-config>
 	<http:request-config name="MEAL_LOG_SAPI_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="5f8c4b76-acc0-4ac0-bd86-8b80c5c11f89" >
-		<http:request-connection port="${meal.port}" host="${meal.baseUri}" protocol="HTTPS"/>
+		<http:request-connection port="${meal.port}" host="${meal.baseUri}"/>
 	</http:request-config>
 	<http:request-config name="NUTRISENSE_LLM_HTTP_CONFIG" doc:name="HTTP Request config" doc:id="3198722e-1f1e-4207-8f4e-1d5b94f194e8" >
 		<http:request-connection protocol="HTTPS" host="${nutrisense.llm.baseUri}" port="${nutrisense.llm.port}"/>
