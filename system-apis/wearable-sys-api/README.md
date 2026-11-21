@@ -1,50 +1,43 @@
 # Wearable System API
 
-## Overview
-The Wearable System API owns all wearable biometric data, point-in-time metrics (heart rate, steps, body mass, etc.), sleep sessions, and workouts with nested statistics ingested from an Apple Health export via a Python parser. This API is designed for reuse by multiple Process APIs (Daily Insight, Trend Analysis).
+Stores wearable measurements imported from Apple Health, including point-in-time metrics, sleep sessions and workouts.
 
-| Environment | URL |
-|---|---|
-| Local | `https://localhost:8083/api/v1/wearables-sapi` |
-| CloudHub Test | `https://wearable-sys-api-6b2j11.5sc6y6-2.usa-e2.cloudhub.io/api/v1/wearables-sapi` |
+Apple Health exports are parsed by a Python ingestion pipeline before being submitted to this API. The Daily Insight and Trend Analysis Process APIs use the stored measurements to evaluate individual days and longer-term patterns.
 
 ## Endpoints
 
-| Method | Path | Description |
+Base path: `/api/v1/wearables-sapi`
+
+| Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/health` | Health check |
-| `POST` | `/wearable-data/{userId}` | Batch ingest of point metrics, sleep sessions, and workouts. Idempotent. |
-| `GET` | `/wearable-data/{userId}` | Query raw wearable data with optional filters (`dataType`, `metricType`, `stage`, `activityType`, `date range`, `pagination`) |
-| `GET` | `/wearable-data/{userId}/summary` | Aggregated summary of wearable data over a date window |
+| GET | `/health` | Health check |
+| POST | `/wearable-data/{userId}` | Batch ingest metrics, sleep sessions and workouts |
+| GET | `/wearable-data/{userId}` | Retrieve raw measurements using optional filters |
+| GET | `/wearable-data/{userId}/summary` | Aggregate measurements over a date window |
 
-## Data Model
+Raw-data queries support filters for metric type, sleep stage, workout activity type, date range and pagination.
 
-| Table | Purpose |
+## Data model
+
+| Table | Contents |
 |---|---|
-| `point_metrics` | Time-series point values (heart rate, steps, body mass, etc.) |
-| `sleep_sessions` | Interval-shaped sleep stage records |
-| `workouts` | Workout session data |
-| `workout_statistics` | Per-metric aggregate statistics nested under a workout |
+| `point_metrics` | Timestamped values such as heart rate, steps and body mass |
+| `sleep_sessions` | Sleep intervals and their recorded stages |
+| `workouts` | Workout sessions, types and timestamps |
+| `workout_statistics` | Measurements associated with individual workouts |
 
-## Key Design Decisions
-- **Idempotent ingest** — `INSERT ... ON CONFLICT DO NOTHING` against composite unique constraints (e.g. `user_id + metric_type + source_device + recorded_at`) means the same payload can be sent multiple times without creating duplicates. Inserted vs. skipped counts are returned per data type.
-- **Transactional batch writes** — ingest wraps all inserts in a single transaction (Try scope), so a failure partway through rolls back the entire batch rather than leaving partial data.
-- **Dynamic, filterable queries** — the raw and summary GET endpoints support optional filters (`metricType`, `stage`, `activityType`, date ranges) built using dynamic SQL construction in DataWeave.
+## Key design decisions
+
+**Idempotent ingestion.** The same Apple Health export can be submitted more than once without duplicating records. PostgreSQL unique constraints identify existing measurements, and `INSERT ... ON CONFLICT DO NOTHING` skips them.
+
+The ingestion response reports inserted and skipped counts for each data type.
+
+**Transactional batch writes.** A batch is inserted within a database transaction. If part of the operation fails, the transaction is rolled back rather than leaving a partially imported batch.
+
+**Raw records and aggregated summaries.** The API provides both individual measurements and summarized values over a requested period. This avoids requiring every Process API to retrieve large sets of raw records for simple aggregations.
+
+**Flexible filtering.** Optional request parameters are translated into database query conditions using DataWeave. Only relevant filters are included, so clients can request specific measurements without retrieving unrelated wearable data.
 
 ## Security
 
-Client ID / client secret enforcement (service-to-service, internal only). No user-facing OAuth2 at this layer — that's handled by the Experience API tier.
-
-## Environments
-
-- **Local** — PostgreSQL 16 running in Docker via `docker-compose.yml` at the repo root.
-- **Test** — Deployed to CloudHub 2.0, connected to a shared AWS RDS PostgreSQL instance (`us-east-1`).
-
-## Dependencies
-
-- `global-api-fragments` — shared error types, security scheme, pagination trait, health check type
-- `nutrisense-api-fragments` — `PointMetric`, `SleepSession`, `Workout`, `WorkoutStatistics`, and related response/summary types
-
-## Testing
-
-MUnit coverage across ingest happy paths, idempotency (duplicate-send) behavior, transaction rollback on DB failure, and query/summary endpoints across all data types and filter combinations. Run with:
+Internal service-to-service API protected by Client ID and Client Secret Enforcement. It does not authenticate end users directly; that responsibility belongs to the Experience layer.
