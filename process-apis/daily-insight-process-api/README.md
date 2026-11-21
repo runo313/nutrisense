@@ -441,9 +441,10 @@ Every mode follows the same rules for what the text is allowed to say:
 }
 ```
 
+
 ## Reference thresholds
 
-All reference values, their sources and the rules for changing them are documented in the [root README](../README.md#reference-thresholds). This API reads the same modules as the Trend Analysis Process API.
+The published reference values, heuristic warning bands, source citations and maintenance rules used by this API are documented in [Reference Thresholds](../../docs/reference-thresholds.md).
 
 
 ## Known limitations

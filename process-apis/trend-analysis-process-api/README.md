@@ -41,8 +41,6 @@ The window is fixed in length and always **ends yesterday in the user's timezone
 
 Each area gets one of four results: `on_track`, `soft_warning`, `hard_flag` or `insufficient_data`. A missing value is never treated as zero.
 
-The reference values, sources and warning bands are the same ones Daily Insight uses, documented in the [Daily Insight README](../daily-insight-process-api/README.md#how-evaluation-works) and the [root README](../../README.md#reference-thresholds). This section covers how the Java layer gets from raw System API data to those results over a window.
-
 Evaluation runs in two stages. The first stage prepares everything the areas share: the user's context, daily aggregates, coverage and the half-window split. The second runs each area's evaluator on those prepared values.
 
 ### Stage 1
@@ -229,6 +227,11 @@ Trimmed to one entry per array. The values are illustrative.
     "metrics_shown": ["heart_rate", "steps", "protein", "iron"]
 }
 ```
+
+## Reference thresholds
+
+Trend Analysis uses the shared reference definitions documented in [Reference Thresholds](../../docs/reference-thresholds.md).
+
 
 ## Known limitations
 - **Strict dietary constraints can't be checked** The Nutrition System API's allergen and diet label fields are empty.
