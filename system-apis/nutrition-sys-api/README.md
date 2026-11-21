@@ -1,55 +1,53 @@
 # Nutrition System API
 
-## Overview
+A read-only food catalog backed by the USDA FoodData Central Foundation Foods dataset.
 
-The Nutrition System API is a read-only System API that answers a single question for the rest of the NutriSense architecture: *"what's in this food?"* It's backed by a Postgres database seeded once from the [USDA FoodData Central](https://fdc.nal.usda.gov/) Foundation Foods dataset, and exposes search and nutrient-lookup endpoints consumed by the process APIS. 
+It answers two questions for the rest of NutriSense: what a food is, and what nutrients it contains.
 
-## Base URI
-
-| Environment | URL |
-|---|---|
-| Local | `https://localhost:8082/api/v1/nutrition-sapi` |
-| CloudHub Test | `https://nutrition-sys-api-6b2j11.5sc6y6-2.usa-e2.cloudhub.io/api/v1/nutrition-sapi` |
+The Meal Log Experience functionality uses it to resolve food names and serving options. The Daily Insight and Trend Analysis Process APIs use its nutrient values to calculate intake from logged meals.
 
 ## Endpoints
 
-| Method | Path | Description |
+Base path: `/api/v1/nutrition-sapi`
+
+| Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/health` | Health check |
-| `GET` | `/foods/search` | Fuzzy search for foods by name, returns top K matches |
-| `GET` | `/foods/{foodId}` | Full food record — metadata, all 16 canonical nutrients, allergens, diet labels. Optional `portions=true` provides real-world serving sizes |
-| `GET` | `/foods/{foodId}/nutrients` | Filtered nutrient profile for a food, returning only the requested fields |
+| GET | `/health` | Health check |
+| GET | `/foods/search` | Search foods by name, including approximate matches |
+| GET | `/foods/{foodId}` | Retrieve a food's metadata and nutrient profile |
+| GET | `/foods/{foodId}/nutrients` | Retrieve selected nutrient values |
 
-## Data Model
+`GET /foods/{foodId}` supports `portions=true` to include available serving sizes and their gram equivalents.
 
-| Table | Purpose |
+The nutrient endpoint accepts a `fields` parameter so callers can request only the values they need.
+
+## Data source and model
+
+The database is populated through a one-time Python/pandas ETL pipeline using the [USDA FoodData Central](https://fdc.nal.usda.gov/) Foundation Foods dataset.
+
+| Table | Contents |
 |---|---|
-| `foods` | USDA Foundation Foods records — metadata plus 16 canonical nutrient columns per 100g |
-| `food_portions` | Real-world serving size options (e.g. "1 cup") with gram-weight equivalents |
+| `foods` | Food metadata and 16 canonical nutrient values per 100 g |
+| `food_portions` | Serving descriptions and corresponding gram weights |
 
-Sourced from [USDA FoodData Central](https://fdc.nal.usda.gov/), Foundation Foods dataset.
+Nutrients are stored per 100 g. Consumed quantities are handled by the calling layer rather than modifying the catalog's nutrient values.
 
-## Key Design Decisions
+## Key design decisions
 
-- **Fuzzy search** — `GET /foods/search` uses PostgreSQL full-text search (`to_tsvector`/`plainto_tsquery`) with `pg_trgm` trigram matching for typo-tolerant lookups.
-- **Dynamic field selection** — `GET /foods/{foodId}/nutrients` accepts a `fields` query parameter which are mapped to their snake_case Postgres columns via a reusable DataWeave module before being interpolated into the query.
+**Fuzzy food search.** Food lookup combines PostgreSQL full-text search (`to_tsvector` and `plainto_tsquery`) with `pg_trgm` similarity matching. This allows approximate matches rather than requiring an exact food description.
+
+**Selective nutrient retrieval.** The nutrient endpoint accepts a set of requested fields. A reusable DataWeave mapping translates supported nutrient names into database columns, allowing Process APIs to retrieve only the nutrients relevant to a calculation.
+
+**Single nutrition reference.** Meal records store food IDs instead of duplicating descriptions and nutrient values. This keeps food definitions separate from consumption records and allows both Process APIs to use the same nutrient source.
+
+**Read-only access.** The API does not expose food creation or update operations. Food data is populated through the ETL process rather than individual client requests.
+
+## Known limitations
+
+The USDA Foundation Foods import does not currently populate the allergen and dietary-label fields used for strict dietary constraint evaluation.
+
+As a result, Daily Insight cannot reliably detect food-level allergen or dietary violations, even when the user's profile contains dietary constraints.
 
 ## Security
 
-Client ID / client secret enforcement (service-to-service, internal only).
-
-## Environments
-
-- **Local** — PostgreSQL 16 running in Docker, seeded via a one-time Python/pandas ETL pipeline.
-- **Test** — Deployed to CloudHub 2.0, connected to a shared AWS RDS PostgreSQL instance (`us-east-1`).
-
-## Dependencies
-
-- `global-api-fragments` — shared error types, security scheme, health check type
-- `nutrisense-api-fragments` — `Food`, `FoodPortion`, `NutrientProfile`, `NutrientField` enum, and related search/response types
-
-## Testing
-
-MUnit coverage across search (with and without results), full food profile retrieval (found and not found), and filtered nutrient retrieval across single and multiple requested fields. Run with:
-
-
+Internal service-to-service API protected by Client ID and Client Secret Enforcement.
