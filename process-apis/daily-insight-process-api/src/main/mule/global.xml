@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule
-xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-		xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+xmlns:amazon-lambda="http://www.mulesoft.org/schema/mule/amazon-lambda"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+		xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
 	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
 http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/amazon-lambda http://www.mulesoft.org/schema/mule/amazon-lambda/current/mule-amazon-lambda.xsd">
 	<http:listener-config
 		name="daily-insight-process-api-httpListenerConfig">
 		<http:listener-connection host="0.0.0.0"
@@ -41,4 +42,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 		<http:request-connection protocol="HTTPS" host="${nutrisense.llm.baseUri}" port="${nutrisense.llm.port}"/>
 	</http:request-config>
 	<api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="07c7e49c-70ca-4a24-b646-f490d2550c6e" flowRef="daily-insight-process-api-main" />
+	<amazon-lambda:config name="NUTRISENSE_LLM_LAMBDA_CONFIG" doc:name="Amazon Lambda Connector Config" doc:id="a58f2998-83d8-4400-a6d5-28aa43ccdb6d" >
+		<amazon-lambda:connection accessKey="${secure::nutrisense.llm.accessKey}" secretKey="${secure::nutrisense.llm.secretKey}" />
+	</amazon-lambda:config>
 </mule>
