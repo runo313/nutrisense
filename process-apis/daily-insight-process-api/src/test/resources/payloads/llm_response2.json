@@ -1,0 +1,4 @@
+{
+    "statusCode": 404,
+    "body": "{\"text\": {\"recommendations\": [], \"cross_signal\": []}, \"model\": \"amazon.nova-lite-v1:0\", \"provider\": \"bedrock\"}"
+}
