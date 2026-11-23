@@ -221,12 +221,14 @@
 					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock HTTP Request To LLM" doc:id="53770e24-2e99-4a08-92da-35ab43b67a58" processor="http:request">
+			<munit-tools:mock-when doc:name="Mock Lambda Request To LLM" doc:id="2a8ac3cb-7016-4f0c-b846-0a657a8c9f16" processor="amazon-lambda:create20150331-functions-invocations-by-function-name" >
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="7215784e-c97d-47c5-9240-d728815418ca" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="80c4290c-864f-48eb-a539-768b0b6f7bd6" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
-					<munit-tools:error typeId="ANY" />
+					<munit-tools:variables >
+						<munit-tools:variable key="llmResponse" value='#[MunitTools::getResourceAsString("payloads/llm_response2.json") read "application/json"]' />
+					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 		</munit:behavior>
@@ -303,23 +305,16 @@
 					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock HTTP Request To LLM" doc:id="4b9eb376-c562-4c78-96ab-9590aee9d520" processor="http:request" >
+			<munit-tools:mock-when doc:name="Mock Lambda Request To LLM" doc:id="4b9eb376-c562-4c78-96ab-9590aee9d520" processor="amazon-lambda:create20150331-functions-invocations-by-function-name" >
 				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="7215784e-c97d-47c5-9240-d728815418ca" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="80c4290c-864f-48eb-a539-768b0b6f7bd6" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
-					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/llm_response.json") read "application/json"]' />
+					<munit-tools:variables >
+						<munit-tools:variable key="llmResponse" value='#[MunitTools::getResourceAsString("payloads/llm_response.json") read "application/json"]' />
+					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
-			<munit-tools:spy doc:name="Spy" doc:id="066f271c-423c-4c7c-a1f0-c59455982cc9" processor="ee:transform">
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="63086dd4-e5e3-424b-a759-c293dfaa66d9" attributeName="doc:id" />
-				</munit-tools:with-attributes>
-				<munit-tools:after-call >
-					<munit-tools:assert-that doc:name="Assert Payload Status" doc:id="a34d1d8d-20e8-464b-a9fe-b7e0bd4ab6f1" message="status should be ok " expression="#[payload.status]" is="#[MunitTools::equalTo('ok')]" />
-					<munit-tools:assert-that doc:name="Assert that data is not null " doc:id="49fedc4e-af06-4480-9da3-bc531e78410f" message="data should not be null" expression="#[payload.data]" is="#[MunitTools::notNullValue()]" />
-				</munit-tools:after-call>
-			</munit-tools:spy>
 		</munit:behavior>
 		<munit:execution >
 			<munit:set-event doc:name="Set Event" doc:id="87898c48-760b-41e9-8837-3388675ddc92" >
@@ -328,7 +323,7 @@
 			<flow-ref doc:name="Flow Reference" doc:id="144234b2-0c0c-4327-b8e6-865a10ad0c76" name="get:\insights\daily\(userId)\preview:daily-insight-process-api-config" />
 		</munit:execution>
 		<munit:validation >
-			<munit-tools:assert-that doc:name="Assert that http status 20" doc:id="f798705d-cd1e-403f-a82c-124340bf329a" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="f798705d-cd1e-403f-a82c-124340bf329a" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
 			<munit-tools:assert-that doc:name="Assert that Meals Logged is True" doc:id="9f48adad-5c32-423a-8561-42830083ea0a" message="Meals Logged should be true" is="#[MunitTools::equalTo(true)]" expression="#[payload.data_completeness.meals_logged]" />
 			<munit-tools:assert-that doc:name="Assert that Nutrition Resolved is True" doc:id="c60a9034-8d8a-401e-a218-3f0fdbd01e4f" message="Nutrition Resolved should be true" expression="#[payload.data_completeness.nutrition_resolved]" is="#[MunitTools::equalTo(true)]" />
 			<munit-tools:assert-that doc:name="Assert that Wearable Data is True" doc:id="4ee16d87-20b4-496f-a565-196ed6fc6643" message="Wearable Data should be true" expression="#[payload.data_completeness.wearable_daily_data_present]" is="#[MunitTools::equalTo(true)]" />
@@ -342,6 +337,7 @@
 			<munit-tools:assert-that doc:name="Assert Recovery Status" doc:id="0b06d966-3b8d-4cdb-8929-79fceae32f70" message="Recovery status should be soft warning" is="#[MunitTools::equalTo('soft_warning')]" expression="#[payload.biometric_detail.recovery.status]" />
 			<munit-tools:assert-that doc:name="Assert Cross Signal Key" doc:id="dda7f437-d5e3-44d7-b39f-8b71a0aef8c7" message="Cross signal key should be recovery stress" is='#[MunitTools::equalTo("recovery_stress")]' expression="#[payload.cross_signal[0].key]" />
 			<munit-tools:assert-that doc:name="Assert Text Mode" doc:id="d356a348-79ca-4ca2-9af0-c640bf5c34d0" message="Text Mode should be template" is="#[MunitTools::equalTo('llm')]" expression="#[payload.generation_mode]" />
+			<munit-tools:assert-that doc:name="Assert Recommendations text Not null" doc:id="b905d0e9-b850-4384-97cd-23e204fc4d41" message="Recommendations text should not be null" is="#[MunitTools::notNullValue()]" expression="#[payload.recommendations.text]" />
 		</munit:validation>
 	</munit:test>
 	<munit:test name="should_produce_full_insight_when_all_data_available_text_mode_custom_default_to_template" doc:id="aed383f2-0d31-4d8a-93e4-af906d6ac328">
@@ -440,5 +436,97 @@
         </otherwise>
     </choice>
 </flow>
+	<munit:test name="should_produce_full_insight_when_all_data_available_text_mode_llm_empty_response_default_to_template" doc:id="225571fa-e257-409a-a712-de39ffd683b6">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET Profiles" doc:id="934a8567-ef7e-4353-906b-d807b6ba9da1" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="10fbcfe7-ef5d-472a-9184-047cf2f00658" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/profile2.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:spy doc:name="Spy" doc:id="75b31c60-c2b8-436a-926e-a5ec671c32d4" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="3ca5b0cb-b1cf-49d1-8ef6-9cb6a2dfd26b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:after-call >
+					<munit-tools:assert-that doc:name="Assert Text Mode" doc:id="022b773c-a1bd-4481-8e59-80ec7f2a4524" message="genMode should be llm" expression="#[vars.userProfile.preferences.generationMode]" is="#[MunitTools::equalTo('llm')]" />
+				</munit-tools:after-call>
+			</munit-tools:spy>
+			<munit-tools:mock-when doc:name="Mock GET Meals" doc:id="127d4d37-6bb2-4682-98aa-d1661e1f68d7" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="feb9df4a-fa6c-47b3-9896-2b519a192a89" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/meals.json") read "application/json"]' />
+					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food" doc:id="af235ebf-f105-4b20-80f0-e908ceee51d0" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="08dfc6de-56d4-45c8-a88d-6fd1605d967c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+				
+				<munit-tools:then-call flow="mock-get-food-response" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="f6e1c5b8-e2f7-408d-9625-0d1222ff57ac" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ac1135b7-ae94-4339-8671-14c27256bc18" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="dailyWearable" value='#[MunitTools::getResourceAsString("payloads/wearables.json") read "application/json"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable Summary" doc:id="fb7bed27-ad3c-4606-a0ac-502364763237" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b0a34b89-72ef-4809-8398-30edfe6074bf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/summary.json") read "application/json"]' mediaType="application/java" />
+					<munit-tools:variables >
+						<munit-tools:variable key="summaryWearable" value='#[MunitTools::getResourceAsString("payloads/summary.json") read "application/json"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Lambda Request To LLM" doc:id="21e0e7de-de95-47a9-8a3e-0983709c20c7" processor="amazon-lambda:create20150331-functions-invocations-by-function-name" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="80c4290c-864f-48eb-a539-768b0b6f7bd6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="llmResponse" value='#[MunitTools::getResourceAsString("payloads/llm_response1.json") read "application/json"]' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="c6720af3-fa56-434b-a002-e3130c4562ed" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	uriParams: {&#10;		userId: "runo313"&#10;	},&#10;	queryParams: {&#10;		date: "2026-09-14"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="ac572a35-10bc-4a00-b9a3-2e5ebb6a7b5c" name="get:\insights\daily\(userId):daily-insight-process-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 20" doc:id="03395070-56ae-40cb-a5c7-2e566ed7a174" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that Meals Logged is True" doc:id="6991b21d-5a7c-445d-be1b-aba9fc8a85d6" message="Meals Logged should be true" is="#[MunitTools::equalTo(true)]" expression="#[payload.data_completeness.meals_logged]" />
+			<munit-tools:assert-that doc:name="Assert that Nutrition Resolved is True" doc:id="1af871be-fc0a-423c-bad0-4c07be61d919" message="Nutrition Resolved should be true" expression="#[payload.data_completeness.nutrition_resolved]" is="#[MunitTools::equalTo(true)]" />
+			<munit-tools:assert-that doc:name="Assert that Wearable Data is True" doc:id="218044b8-d877-4074-8026-af6ecd24492a" message="Wearable Data should be true" expression="#[payload.data_completeness.wearable_daily_data_present]" is="#[MunitTools::equalTo(true)]" />
+			<munit-tools:assert-that doc:name="Assert that Wearable Baseline is True" doc:id="6c783d52-8fc4-43d8-8ae0-21b0b161f5d9" message="Wearable Baseline should be true" expression="#[payload.data_completeness.wearable_baseline_available]" is="#[MunitTools::equalTo(true)]" />
+			<munit-tools:assert-that doc:name="Assert Calories Status" doc:id="f35cd62d-0fbb-4bcc-8199-a4519ea4d4bc" message="Calories satus should be soft warning" expression="#[payload.dimension_status.calories.status]" is='#[MunitTools::equalTo("hard_flag")]' />
+			<munit-tools:assert-that doc:name="Assert Total Calories " doc:id="a7bc4f89-3941-4330-bd42-667663e21fd3" message="calories should be close to 352" expression="#[%dw 2.0&#10;output application/java&#10;---&#10;payload.nutrition_detail.total_calories]" is="#[MunitTools::closeTo(352.87825, 0.5)]" />
+			<munit-tools:assert-that doc:name="Assert Macros Status" doc:id="c76e9d15-0949-4e68-9bf3-d3e40663098c" message="Macros satus should be hard_flag" expression="#[payload.dimension_status.macros.status]" is='#[MunitTools::equalTo("hard_flag")]' />
+			<munit-tools:assert-that doc:name="Assert that micro status is null " doc:id="aacc5f34-0ff6-4dd4-821b-9992945385b1" message="Micro Status should be null " expression="#[payload.dimension_status.micros.status]" is="#[MunitTools::nullValue()]" />
+			<munit-tools:assert-that doc:name="Assert that condition context " doc:id="e738c673-acf5-4c3b-9a7b-4ebbc4ddf9ce" message="Condition context should be anemia" expression="#[payload.nutrition_detail.micronutrients[0].condition_context]" is='#[MunitTools::equalTo("anemia")]' />
+			<munit-tools:assert-that doc:name="Assert sleep floor " doc:id="33c84fdf-f603-41a4-aca9-05c1096197af" message="Sleep Floor should be true" expression="#[payload.biometric_detail.sleep.floor_applied]" is="#[MunitTools::equalTo(true)]" />
+			<munit-tools:assert-that doc:name="Assert Recovery Status" doc:id="948c2959-5af1-4da8-b813-5f000ee7e423" message="Recovery status should be soft warning" is="#[MunitTools::equalTo('soft_warning')]" expression="#[payload.biometric_detail.recovery.status]" />
+			<munit-tools:assert-that doc:name="Assert Cross Signal Key" doc:id="875d5b13-4982-414c-8397-8f47303c855f" message="Cross signal key should be recovery stress" is='#[MunitTools::equalTo("recovery_stress")]' expression="#[payload.cross_signal[0].key]" />
+			<munit-tools:assert-that doc:name="Assert Text Mode" doc:id="c826095d-675c-4fb9-9147-dd6a9606e427" message="Text Mode should be template" expression="#[payload.generation_mode]" is="#[MunitTools::equalTo('template')]" />
+		</munit:validation>
+	</munit:test>
 
 </mule>

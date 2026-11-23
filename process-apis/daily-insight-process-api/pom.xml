@@ -16,7 +16,6 @@
 		<app.runtime>4.11.0</app.runtime>
 		<mule.maven.plugin.version>4.7.0</mule.maven.plugin.version>
 		<munit.version>3.7.0</munit.version>
-		
 		<anypoint.uri>https://anypoint.mulesoft.com</anypoint.uri>
 		<deploy.applicationName>daily-insight-process-api</deploy.applicationName>
 	</properties>
@@ -70,7 +69,6 @@
 			</plugin>
 		</plugins>
 	</build>
-	
 	<profiles>
 		<profile>
 			<id>dev</id>
@@ -223,6 +221,12 @@
 			<groupId>com.splunk.logging</groupId>
 			<artifactId>splunk-library-javalogging</artifactId>
 			<version>1.11.10</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule4-amazon-lambda-connector</artifactId>
+			<version>1.2.4</version>
+			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
 
