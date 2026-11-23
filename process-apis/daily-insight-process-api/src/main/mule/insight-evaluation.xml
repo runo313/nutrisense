@@ -352,9 +352,8 @@ var historical = (now() as Date) > vars.date
 			<amazon-lambda:j_20150331-functions-invocations-content ><![CDATA[#[vars.llmPrompt]]]></amazon-lambda:j_20150331-functions-invocations-content>
 		</amazon-lambda:create20150331-functions-invocations-by-function-name>
 		<logger level="INFO" doc:name="LLM Request Complete" doc:id="8e3fc461-1203-4213-b142-030a7686d5ee" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	status: vars.llmResponse.statusCode&#10;}&#10;---&#10;buildLog("INFO","LLM Request Complete",message,vars.correlationId, "create-llm-based-text")]' />
-		<set-variable value='#[read(vars.llmResponse.body, "application/json")]' doc:name="Parse LLM Response" doc:id="d083c132-be49-441f-b952-796e718279ff" variableName="body"/>
 		<choice doc:name="Choice" doc:id="f6bc86df-d41d-4478-bc90-e71b9d6545a1" >
-			<when expression="#[vars.llmResponse.statusCode == 200&#10;  and (!isEmpty(vars.body.text.recommendations default [])&#10;       or !isEmpty(vars.body.text.cross_signal default []))]">
+			<when expression="#[vars.llmResponse.statusCode == 200]">
 				<ee:transform doc:name="Attach LLM Text" doc:id="15e22f91-0e1e-4678-a767-7de4d1c8f583" >
 					<ee:message />
 					<ee:variables >
