@@ -9,7 +9,7 @@ fun attachLlmText(recommendations, crossSignals, body) = do {
     }
 } )
 
-	var crossSignalsWithText = crossignal map ((sig) -> do {
+	var crossSignalsWithText = crossSignals map ((sig) -> do {
 		var match = (body.text.cross_signal filter ($.key == sig.key))
 		---
 		sig update {
