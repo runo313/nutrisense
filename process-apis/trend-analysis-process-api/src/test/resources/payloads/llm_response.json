@@ -1,0 +1,4 @@
+{
+    "statusCode": 200,
+    "body": "{\"text\": {\"conclusions\": [{\"rank\": 1, \"text\": \"From 2026-11-20 to 2026-11-26, you averaged 3943 mg of sodium a day on the days you logged, above the target of 1500 mg. Given your hypertension, keeping this in check matters more than it might for someone without it.\"}, {\"rank\": 2, \"text\": \"From 2026-11-20 to 2026-11-26, you recorded 0 moderate and 0 vigorous minutes, against a guideline of 150 moderate or 75 vigorous minutes.\"}, {\"rank\": 3, \"text\": \"From 2026-11-20 to 2026-11-26, you averaged 5.82 mg of iron a day on the days you logged, below the Recommended Dietary Allowance (RDA) of 8 mg. With anemia in the picture, iron gaps like this are worth paying closer attention to.\"}]}, \"model\": \"amazon.nova-lite-v1:0\", \"provider\": \"bedrock\"}"
+}
