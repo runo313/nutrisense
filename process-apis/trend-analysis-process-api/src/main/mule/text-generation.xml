@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+<mule xmlns:amazon-lambda="http://www.mulesoft.org/schema/mule/amazon-lambda" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/amazon-lambda http://www.mulesoft.org/schema/mule/amazon-lambda/current/mule-amazon-lambda.xsd">
 	<sub-flow name="text-generation-flow" doc:id="1593493d-d110-4707-bc0a-d398e325f471" >
+		<ee:transform doc:name="Attach Template Text" doc:id="719919a9-84c2-4626-be56-bd8d5143296a">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="patternSignals"><![CDATA[%dw 2.0
+import buildSignals from dwl::trend_signals
+output application/java
+---
+buildSignals(vars.evalResponse.dimension_trends, vars.window.value)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 		<choice doc:name="Choice" doc:id="90ad47e5-8700-4f25-abb5-275370abc7c0" >
 			<when expression="#[vars.textMode == 'template']" >
 				<flow-ref doc:name="create-template-text" doc:id="15a068d3-2e92-40c2-80b8-437b8e811972" name="create-template-text" />
@@ -46,18 +57,72 @@ output application/java
 import addText from dwl::trend_text
 ---
 addText(vars.trendConclusions,vars.evalResponse.dimension_trends, vars.window.value)]]></ee:set-variable>
-				<ee:set-variable variableName="patternSignals" ><![CDATA[%dw 2.0
-import buildSignals from dwl::trend_signals
-output application/java
----
-buildSignals(vars.evalResponse.dimension_trends, vars.window.value)]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 	</sub-flow>
 	<sub-flow name="create-custom-based-text" doc:id="88e5a2e7-4d47-46b5-87fb-0395063fcf09" >
-		<raise-error doc:name="Raise error" doc:id="f83d8b48-b5d0-4f93-a1c0-c79bb6f03bb0" type="ANY" description="Custom Model Unavailable " />
+		<raise-error doc:name="Raise error" doc:id="1faf9648-0425-468e-a306-b8a4b4d3142e" type="ANY" description="Custom Model Unavailable " />
 	</sub-flow>
 	<sub-flow name="create-llm-based-text" doc:id="f0eb4796-3f01-480f-a518-f05ccc4d082b" >
-		<raise-error doc:name="Raise error" doc:id="1faf9648-0425-468e-a306-b8a4b4d3142e" type="ANY" description="Custom Model Unavailable " />
+		<ee:transform doc:name="Transform Message" doc:id="072fffbb-958d-445b-8af1-50a9f15877c8">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="llmPrompt"><![CDATA[%dw 2.0
+output application/json
+fun returnMetric(dimension) = vars.evalResponse.dimension_trends[dimension]
+fun returnMacrosMetric(nutrient) = vars.evalResponse.dimension_trends.macros[nutrient]
+fun returnMicroMetric(nutrient) = 
+    (vars.evalResponse.dimension_trends.micronutrients filter ((item) -> 
+        item.nutrient == nutrient))[0]
+var days = vars.window.value as Number
+var start = vars.window.start as Date
+var end = start + ("P$(days - 1)D" as Period)
+---
+{
+	generationType: "trend_analysis",
+	correlationId: vars.correlationId,
+	evaluation: {
+		window_days: days,
+		window_start: start,
+		window_end: end,
+		conclusions: vars.trendConclusions map ((item) -> 
+            (item - "condition_context") ++ {
+			metric: if ( item.dimension == "micronutrients" ) returnMicroMetric(item.nutrient)
+                    else if ( item.dimension == "macros" ) returnMacrosMetric(item.nutrient)
+                    else 
+                        returnMetric(item.dimension)
+		})
+	}
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="Prompt Created" doc:id="008d98c3-c8c3-4377-a6aa-7aa7ecc38d2e" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	prompt: vars.llmPrompt&#10;}&#10;---&#10;buildLog("DEBUG","Prompt Created",message,vars.correlationId, "orchestrate-trend-analyis-subflow")]' />
+		<amazon-lambda:create20150331-functions-invocations-by-function-name doc:name="Nutrisense Text Generator" doc:id="8a5225d3-54cf-4fb3-9d0c-e506c5e91d98" config-ref="NUTRISENSE_LLM_LAMBDA_CONFIG" functionName="#[Mule::p('nutrisense.lambda.name')]" xAmzInvocationType="REQUEST_RESPONSE" target="llmResponse" >
+			<amazon-lambda:j_20150331-functions-invocations-content ><![CDATA[#[vars.llmPrompt]]]></amazon-lambda:j_20150331-functions-invocations-content>
+		</amazon-lambda:create20150331-functions-invocations-by-function-name>
+		<logger level="INFO" doc:name="LLM Request Complete" doc:id="74709c03-e3dd-4b25-b1f3-c0b1dc600b26" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId,&#10;	status: vars.llmResponse.statusCode&#10;}&#10;---&#10;buildLog("INFO","LLM Request Complete",message,vars.correlationId, "create-llm-based-text")]' />
+		<set-variable value='#[read(vars.llmResponse.body, "application/json")]' doc:name="Parse LLM Response" doc:id="c5f0d1c3-0963-4280-a233-368b0a20843f" variableName="body" />
+		<choice doc:name="Choice" doc:id="10e418ca-d45a-44dd-8898-42aff5c6ac35" >
+			<when expression="#[vars.llmResponse.statusCode == 200&#10;  and (!isEmpty(vars.body.text.conclusions default []))]" >
+				<ee:transform doc:name="Attach LLM Text" doc:id="3dd788ee-5e12-4fd2-9b41-aea5f0b79c79" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="addText" ><![CDATA[%dw 2.0
+output application/java
+import attachLlmText from dwl::parseLLMText
+var body = read(vars.llmResponse.body, "application/json")
+---
+attachLlmText(vars.trendConclusions,body)
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="LLM Text Attached" doc:id="1d667975-8b72-48a1-bae4-c493940a2396" message='#[%dw 2.0&#10;output application/json&#10;import buildLog from dwl::log&#10;var message ={&#10;	userId: vars.userId&#10;}&#10;---&#10;buildLog("INFO","LLM Text Attached",message,vars.correlationId, "create-llm-based-text")]' />
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="e5f83c88-6c5f-43f1-bfc1-9aafaa7ac5bc" type="ANY" description="LLM Text Parsing Failed" />
+			</otherwise>
+		</choice>
 	</sub-flow>
 </mule>
