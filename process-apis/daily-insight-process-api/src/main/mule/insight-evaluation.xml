@@ -339,7 +339,7 @@ var historical = (now() as Date) > vars.date
 ---
 {
 	"correlationId": correlationId,
-	"evaluations": {
+	"evaluation": {
 		"insightDate": vars.date,
 	    "isHistorical": historical,
 	    "recommendations": vars.insightConclusions.recommendations,
