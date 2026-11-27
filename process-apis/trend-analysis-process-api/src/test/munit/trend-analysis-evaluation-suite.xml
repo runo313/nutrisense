@@ -229,5 +229,77 @@
 			</otherwise>
 		</choice>
 	</flow>
+	<munit:test name="should_produce_full_insight_with_flagged_dimensions_when_all_data_available_llm_response" doc:id="888cd013-0bfd-47fb-b5b3-b2d3ff12b6de" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET Profiles" doc:id="70bc14f0-fb46-4c2c-84fa-0e1d7310b09d" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="10fbcfe7-ef5d-472a-9184-047cf2f00658" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/profile2.json") read "application/json"]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Meals" doc:id="03e7c36e-fd40-426b-bd39-7b63e3ff7335" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="feb9df4a-fa6c-47b3-9896-2b519a192a89" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/meals.json") read "application/json"]' />
+					<munit-tools:attributes value="#[{&#10;	statusCode: 200&#10;}]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET Food" doc:id="239d8a2f-c479-4c87-9fe8-f81f81da70f5" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="08dfc6de-56d4-45c8-a88d-6fd1605d967c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+				
+				<munit-tools:then-call flow="mock-get-food-response" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable data" doc:id="b9cd0c5b-5c35-48b4-8c7d-f921af5c0e7b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5d5a8717-6fce-4330-89b7-bec15e0f2efb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="dailyWearable" value='#[MunitTools::getResourceAsString("payloads/wearables.json") read "application/json"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock GET wearable Summary" doc:id="c57e86c3-48ba-4938-aaa6-6a76da2464a5" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="bb60c6a1-3798-443f-8de5-2de7393beb49" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[MunitTools::getResourceAsString("payloads/summary.json") read "application/json"]' mediaType="application/java" />
+					<munit-tools:variables >
+						<munit-tools:variable key="summaryWearable" value='#[MunitTools::getResourceAsString("payloads/summary.json") read "application/json"]' mediaType="application/java" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock LLM Request" doc:id="689c9a88-3a79-4f12-82c3-395cc7b4725f" processor="amazon-lambda:create20150331-functions-invocations-by-function-name">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="8a5225d3-54cf-4fb3-9d0c-e506c5e91d98" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="llmResponse" value='#[MunitTools::getResourceAsString("payloads/llm_response.json") read "application/json"]' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="edeef547-c41a-4462-91c3-11d56f9a9ca2" >
+				<munit:attributes value='#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	uriParams: {&#10;		userId: "runo313"&#10;	},&#10;	queryParams: {&#10;		window: 14&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="d59cc856-625f-4a3e-a914-14fa0bbedfa8" name="get:\insights\trend\(userId):trend-analysis-process-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that http status 200" doc:id="431ccca9-4522-41ea-ba8b-edf5c40b0e75" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert Text Mode" doc:id="d8a9c400-76e7-49ce-ac3e-caf1892816b5" message="Text Mode should be llm" is="#[MunitTools::equalTo('llm')]" expression="#[payload.generation_mode]" />
+		</munit:validation>
+	</munit:test>
 
 </mule>
